@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — painel do professor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+button:focus-visible{outline:2px solid #22D3EE;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 800px; background: #0B0E1F; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 16px 40px; border-bottom: 1px solid #2A3160">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<span style="font-family: 'Press Start 2P', monospace; font-size: 9px; color: #0B0E1F; background: #FBBF24; padding: 6px 8px; border-radius: 5px">PROFESSOR</span>
+<nav aria-label="Professor" style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 600">
+<a href="Professor.dc.html" style="color: #E5E7F5; text-decoration: none; border-bottom: 2px solid #FBBF24; padding-bottom: 4px">Turmas</a>
+<a href="Professor.dc.html" style="color: #9CA3C7; text-decoration: none">Conteúdo</a>
+<a href="Professor.dc.html" style="color: #9CA3C7; text-decoration: none">Atividades</a>
+<a href="Professor.dc.html" style="color: #9CA3C7; text-decoration: none">Relatórios</a>
+</nav>
+<span style="margin-left: auto; font-size: 14px; color: #C4C8E4">Prof. Rameson Jacó</span>
+</header>
+
+<main style="max-width: 1240px; margin: 0 auto; padding: 28px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+<sc-for list="{{ turmas }}" as="t" hint-placeholder-count="3">
+<button type="button" onClick="{{ t.pick }}" aria-pressed="{{ t.sel }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 14px; color: {{ t.fg }}; background: {{ t.bg }}; border: 1px solid #2A3160">{{ t.nome }}</button>
+</sc-for>
+<span style="margin-left: auto; font-size: 14px; color: #9CA3C7">Ano letivo 2026 · Algoritmos e Lógica de Programação</span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 22px">
+<section style="flex: 1 1 380px; background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px; align-self: flex-start">
+<div style="display: flex; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 18px">Pedidos de acesso</h2>
+<span style="font-family: 'Press Start 2P', monospace; font-size: 9px; color: #0B0E1F; background: #F472B6; padding: 5px 7px; border-radius: 5px">{{ pendentes }}</span>
+</div>
+<sc-for list="{{ pedidos }}" as="p" hint-placeholder-count="4">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; background: #0B0E1F; border: 1px solid #2A3160; border-radius: 10px">
+<div style="flex: 1 1 180px; min-width: 0">
+<div style="font-weight: 600; font-size: 15px">{{ p.nome }}</div>
+<div style="font-size: 13px; color: #9CA3C7; overflow-wrap: anywhere">{{ p.email }}</div>
+</div>
+<sc-if value="{{ p.aberto }}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{ p.aprovar }}" style="min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; background: #34D399; color: #052E1F; font-weight: 800; cursor: pointer; font-family: inherit">Aprovar</button>
+<button type="button" onClick="{{ p.recusar }}" style="min-height: 40px; padding: 0 14px; border: 1px solid #2A3160; border-radius: 8px; background: transparent; color: #C4C8E4; font-weight: 600; cursor: pointer; font-family: inherit">Recusar</button>
+</sc-if>
+<sc-if value="{{ p.fechado }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 14px; font-weight: 600; color: {{ p.cor }}">{{ p.status }}</span>
+</sc-if>
+</div>
+</sc-for>
+<button type="button" onClick="{{ aprovarTodos }}" style="align-self: flex-start; min-height: 40px; padding: 0 14px; border: 1px solid #34D399; border-radius: 8px; background: transparent; color: #34D399; font-weight: 600; cursor: pointer; font-family: inherit">Aprovar todos os pendentes</button>
+</section>
+
+<section style="flex: 999 1 540px; min-width: 0; background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 18px">Liberação de aulas · Unidade IV</h2>
+<p style="margin: 0; font-size: 14px; color: #9CA3C7">Ligue a aula quando ensinar. A turma vê slides, apostila da aula e áudio na hora.</p>
+<sc-for list="{{ aulas }}" as="a" hint-placeholder-count="6">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 14px; background: #0B0E1F; border: 1px solid #2A3160; border-radius: 10px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #F472B6; width: 34px">IV.{{ a.n }}</span>
+<span style="flex: 1 1 200px; font-size: 15px">{{ a.titulo }}</span>
+<a href="Aula.dc.html" style="font-size: 14px; font-weight: 600">Apresentar</a>
+<button type="button" role="switch" aria-checked="{{ a.on }}" aria-label="Liberar {{ a.titulo }}" onClick="{{ a.toggle }}" style="width: 52px; height: 30px; border-radius: 15px; border: 0; cursor: pointer; padding: 3px; background: {{ a.trilho }}; display: flex; justify-content: {{ a.lado }}">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+<span style="width: 72px; font-size: 13px; color: {{ a.cor }}">{{ a.rotulo }}</span>
+</div>
+</sc-for>
+</section>
+</div>
+
+<section style="background: #161B33; border: 1px solid #F472B6; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 18px">Alertas da última prova · Unidade III</h2>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px">
+<thead><tr style="text-align: left; color: #9CA3C7"><th style="padding: 8px 10px; font-weight: 600">Aluno</th><th style="padding: 8px 10px; font-weight: 600">Saídas de tela</th><th style="padding: 8px 10px; font-weight: 600">Tempo fora</th><th style="padding: 8px 10px; font-weight: 600">Nota</th></tr></thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3160"><td style="padding: 10px">Pedro Henrique Lima</td><td style="padding: 10px; color: #F472B6; font-weight: 600">3 · prova encerrada</td><td style="padding: 10px">2 min 40 s</td><td style="padding: 10px">5,0</td></tr>
+<tr style="border-top: 1px solid #2A3160"><td style="padding: 10px">Júlia Andrade</td><td style="padding: 10px; color: #FBBF24; font-weight: 600">1</td><td style="padding: 10px">8 s</td><td style="padding: 10px">9,0</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { turma: 0, decisoes: {}, lib: [true, true, false, false, false, false] };
+  }
+  renderVals() {
+    const s = this.state;
+    const nomesT = ['1º INFO M · 2026', '1º INFO V · 2026', '3º INFO · 2026'];
+    const turmas = nomesT.map((nome, i) => ({ nome, sel: String(i === s.turma), bg: i === s.turma ? '#FBBF24' : '#161B33', fg: i === s.turma ? '#0B0E1F' : '#E5E7F5', pick: () => this.setState({ turma: i }) }));
+    const lista = [
+      ['Larissa Souza', '20261001@academico.ifpb.edu.br'],
+      ['Lucas Ferreira', '20261017@academico.ifpb.edu.br'],
+      ['Camila Rocha', '20261032@academico.ifpb.edu.br'],
+      ['Visitante', 'fulano@gmail.com']
+    ];
+    const decide = (i, v) => () => this.setState({ decisoes: Object.assign({}, s.decisoes, { [i]: v }) });
+    const pedidos = lista.map(([nome, email], i) => {
+      const d = s.decisoes[i];
+      return { nome, email, aberto: !d, fechado: !!d,
+        status: d === 'ok' ? 'Aprovado' : 'Recusado', cor: d === 'ok' ? '#34D399' : '#9CA3C7',
+        aprovar: decide(i, 'ok'), recusar: decide(i, 'nao') };
+    });
+    const pendentes = pedidos.filter((p) => p.aberto).length;
+    const titulos = ['Listas (vetores)', 'Algoritmos com listas', 'Ordenação e busca', 'Matrizes: listas de listas', 'Algoritmos com matrizes', 'Funções e projeto final'];
+    const aulas = titulos.map((titulo, i) => {
+      const on = s.lib[i];
+      return { n: i + 1, titulo, on: String(on), trilho: on ? '#22D3EE' : '#2A3160', lado: on ? 'flex-end' : 'flex-start',
+        rotulo: on ? 'liberada' : 'bloqueada', cor: on ? '#22D3EE' : '#9CA3C7',
+        toggle: () => { const l = s.lib.slice(); l[i] = !l[i]; this.setState({ lib: l }); } };
+    });
+    return {
+      turmas, pedidos, pendentes, aulas,
+      aprovarTodos: () => {
+        const d = Object.assign({}, s.decisoes);
+        lista.forEach((p, i) => { if (!d[i] && p[1].endsWith('@academico.ifpb.edu.br')) d[i] = 'ok'; });
+        this.setState({ decisoes: d });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

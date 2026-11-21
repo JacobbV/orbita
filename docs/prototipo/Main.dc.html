@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — início</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+.ceu{background-color:#0B0E1F;background-image:radial-gradient(rgba(229,231,245,.5) 1px,transparent 1.5px),radial-gradient(rgba(167,139,250,.45) 1px,transparent 1.5px);background-size:140px 140px,90px 90px;background-position:0 0,45px 60px}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+</style>
+</helmet>
+<div class="ceu" style="min-height: 800px; font-family: Inter, system-ui, sans-serif; color: #E5E7F5; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 18px 40px; border-bottom: 1px solid #2A3160">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none; letter-spacing: 1px">ORBITA</a>
+<nav aria-label="Principal" style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 15px">
+<a href="#disciplinas" style="color: #9CA3C7; text-decoration: none">Disciplinas</a>
+<a href="#como" style="color: #9CA3C7; text-decoration: none">Como funciona</a>
+<a href="#creditos" style="color: #9CA3C7; text-decoration: none">Créditos</a>
+</nav>
+<div style="margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap">
+<a href="Ponte.dc.html" style="padding: 11px 20px; border: 1px solid #2A3160; border-radius: 10px; color: #E5E7F5; text-decoration: none; font-weight: 600">Entrar</a>
+<a href="Cadastro.dc.html" style="padding: 11px 20px; background: #22D3EE; border-radius: 10px; color: #0B0E1F; text-decoration: none; font-weight: 800">Criar conta</a>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 56px 40px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 64px">
+<section style="display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+<div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 11px; color: #A78BFA; line-height: 1.8">IFPB · CAMPUS CATOLE DO ROCHA</span>
+<h1 style="margin: 0; font-size: 54px; line-height: 1.05; font-weight: 800; letter-spacing: -1px">Estude programação a bordo da sua própria nave.</h1>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; color: #C4C8E4; max-width: 560px">Aulas, apostilas, áudios e exercícios de código das disciplinas do Prof. Rameson Jacó, num só lugar. Ganhe XP, suba de patente e monte o seu tripulante.</p>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
+<a href="Cadastro.dc.html" style="padding: 14px 24px; background: #22D3EE; border-radius: 10px; color: #0B0E1F; text-decoration: none; font-weight: 800; font-size: 16px">Sou aluno, quero entrar</a>
+<a href="Mapa.dc.html" style="padding: 14px 24px; border: 1px solid #2A3160; border-radius: 10px; color: #E5E7F5; text-decoration: none; font-weight: 600; font-size: 16px; background: #161B33">Ver uma aula de amostra</a>
+</div>
+</div>
+<div style="flex: 1 1 320px; display: flex; justify-content: center; align-items: center; position: relative; min-height: 340px">
+<div aria-hidden="true" style="position: absolute; width: 320px; height: 320px; border-radius: 50%; border: 1px dashed #2A3160"></div>
+<div aria-hidden="true" style="position: absolute; width: 220px; height: 220px; border-radius: 50%; border: 1px solid #2A3160"></div>
+<div aria-hidden="true" style="position: absolute; top: 18px; right: 40px; width: 46px; height: 46px; border-radius: 50%; background: #A78BFA"></div>
+<div aria-hidden="true" style="position: absolute; bottom: 30px; left: 30px; width: 26px; height: 26px; border-radius: 50%; background: #FBBF24"></div>
+<div style="position: relative">
+<dc-import name="Avatar" hair-style="cacheado" skin="#8D5A3B" hair="#1C120D" shirt="#22D3EE" cell="{{ cell }}" hint-size="192px,216px"></dc-import>
+</div>
+</div>
+</section>
+
+<section id="disciplinas" style="display: flex; flex-direction: column; gap: 20px">
+<h2 style="margin: 0; font-size: 28px; font-weight: 800">Disciplinas a bordo</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px">
+<article style="background: #161B33; border: 1px solid #2A3160; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #22D3EE">1º ANO · INFO</span>
+<h3 style="margin: 0; font-size: 21px">Algoritmos e Lógica de Programação</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">Python do zero: entrada e saída, decisões, laços, listas, matrizes e funções.</p>
+<p style="margin: 0; color: #C4C8E4; font-size: 14px">4 unidades · 24 aulas · 4 apostilas</p>
+<a href="Mapa.dc.html" style="margin-top: auto; font-weight: 600; font-size: 15px">Ver amostra</a>
+</article>
+<article style="background: #161B33; border: 1px solid #2A3160; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #A78BFA">1º ANO · INFO</span>
+<h3 style="margin: 0; font-size: 21px">Fundamentos do Computador</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">Hardware, sistemas numéricos, redes e topologias.</p>
+<p style="margin: 0; color: #C4C8E4; font-size: 14px">[NÚMERO DE AULAS]</p>
+<a href="Mapa.dc.html" style="margin-top: auto; font-weight: 600; font-size: 15px">Ver amostra</a>
+</article>
+<article style="background: #161B33; border: 1px solid #2A3160; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #FBBF24">3º ANO · INFO</span>
+<h3 style="margin: 0; font-size: 21px">Desenvolvimento de Aplicações Web</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">HTML, CSS moderno, JavaScript, back-end e publicação.</p>
+<p style="margin: 0; color: #C4C8E4; font-size: 14px">4 unidades · 24 aulas</p>
+<a href="Mapa.dc.html" style="margin-top: auto; font-weight: 600; font-size: 15px">Ver amostra</a>
+</article>
+</div>
+</section>
+
+<section id="como" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 18px; color: #22D3EE">01</span>
+<h3 style="margin: 0; font-size: 18px">Crie sua conta</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">Use o e-mail @academico.ifpb.edu.br e escolha sua turma.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 18px; color: #A78BFA">02</span>
+<h3 style="margin: 0; font-size: 18px">O professor aprova</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">Enquanto isso, você já vê as aulas de amostra.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 18px; color: #FBBF24">03</span>
+<h3 style="margin: 0; font-size: 18px">Estude e suba de patente</h3>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">Cada aula, exercício e entrega rende XP e peças para o avatar.</p>
+</div>
+</section>
+</main>
+
+<footer id="creditos" style="margin-top: auto; border-top: 1px solid #2A3160; padding: 20px 40px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; font-size: 14px; color: #9CA3C7">
+<span>Fontes Inter, JetBrains Mono e Press Start 2P · SIL Open Font License · arte original</span>
+<a href="https://jacobbv.github.io" style="text-decoration: none; color: #9CA3C7">Desenvolvido por <span style="color: #22D3EE; font-weight: 800; letter-spacing: 1px">QYUDEV.</span></a>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { cell: 13 };
+  }
+}
+</script>
+</body>
+</html>

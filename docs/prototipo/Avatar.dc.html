@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Avatar pixel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div role="img" aria-label="Avatar em pixel art do tripulante" style="display: grid; grid-template-columns: repeat(16, {{cellPx}}); width: max-content">
+<sc-for list="{{cells}}" as="c" hint-placeholder-count="288">
+<div style="width: {{cellPx}}; height: {{cellPx}}; background: {{c.bg}}"></div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"skin":{"editor":"color","default":"#C68A5E"},"hair":{"editor":"color","default":"#2B1B14"},"shirt":{"editor":"color","default":"#22D3EE"},"hairStyle":{"editor":"enum","options":["curto","cacheado","comprido"],"default":"cacheado"},"glasses":{"editor":"boolean","default":false},"cell":{"editor":"int","min":2,"max":24,"default":12},"$preview":{"width":192,"height":216}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const heads = {
+      curto: ['....KKKKKKKK....','...KHHHHHHHHK...','..KHHHHHHHHHHK..','..KHHSSSSSSHHK..','..KHSSSSSSSSHK..','..KSSESSSSESSK..','..KSSESSSSESSK..','..KSSSSSSSSSSK..','..KSSSSMMSSSSK..','...KSSSSSSSSK...','....KKSSSSKK....'],
+      cacheado: ['...KHHHHHHHHK...','..KHHHHHHHHHHK..','.KHHHHHHHHHHHHK.','.KHHHSSSSSSHHHK.','.KHHSSSSSSSSHHK.','.KHSSESSSSESSHK.','..KSSESSSSESSK..','..KSSSSSSSSSSK..','..KSSSSMMSSSSK..','...KSSSSSSSSK...','....KKSSSSKK....'],
+      comprido: ['....KKKKKKKK....','...KHHHHHHHHK...','..KHHHHHHHHHHK..','..KHHSSSSSSHHK..','.KHHSSSSSSSSHHK.','.KHSSESSSSESSHK.','.KHSSESSSSESSHK.','.KHSSSSSSSSSSHK.','.KHSSSSMMSSSSHK.','.KHHSSSSSSSSHHK.','..KHKKSSSSKKHK..']
+    };
+    const body = ['...KTTTTTTTTK...','..KSTTTTTTTTSK..','..KSKTTTTTTKSK..','....KPPPPPPK....','.....KPPKPPK....','.....KPPKPPK....','.....KBBKBBK....'];
+    const style = this.props.hairStyle ?? 'cacheado';
+    const rows = (heads[style] || heads.cacheado).concat(body).map((r) => r.split(''));
+    if (this.props.glasses ?? false) {
+      const g = rows[5];
+      [3, 4, 5, 6, 9, 10, 11, 12].forEach((i) => { if (g[i] !== 'K' && g[i] !== 'H') g[i] = 'G'; });
+      g[7] = 'K'; g[8] = 'K';
+    }
+    const pal = {
+      '.': 'transparent', K: '#141428', E: '#141428', M: '#B4535E', G: '#7DE8F8',
+      P: '#2A3160', B: '#5B6394',
+      S: this.props.skin ?? '#C68A5E', H: this.props.hair ?? '#2B1B14', T: this.props.shirt ?? '#22D3EE'
+    };
+    const cells = [];
+    rows.forEach((r) => r.forEach((ch) => cells.push({ bg: pal[ch] || 'transparent' })));
+    const cell = this.props.cell ?? 12;
+    return { cells, cellPx: cell + 'px' };
+  }
+}
+</script>
+</body>
+</html>

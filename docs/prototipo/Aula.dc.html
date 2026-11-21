@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — aula</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+button:focus-visible{outline:2px solid #22D3EE;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 800px; background: #0B0E1F; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 16px 40px; border-bottom: 1px solid #2A3160">
+<a href="Mapa.dc.html" style="display: inline-flex; align-items: center; gap: 8px; color: #9CA3C7; text-decoration: none; font-size: 15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Mapa</a>
+<div style="display: flex; flex-direction: column">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 9px; color: #F472B6">UNIDADE IV · AULA 2</span>
+<span style="font-weight: 800; font-size: 18px">Algoritmos com listas</span>
+</div>
+<div role="tablist" aria-label="Material da aula" style="margin-left: auto; display: flex; gap: 6px; background: #161B33; border: 1px solid #2A3160; border-radius: 10px; padding: 4px">
+<sc-for list="{{ abas }}" as="t" hint-placeholder-count="3">
+<button type="button" role="tab" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}" style="border: 0; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 9px 16px; border-radius: 7px; background: {{ t.bg }}; color: {{ t.fg }}">{{ t.nome }}</button>
+</sc-for>
+</div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 28px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+
+<sc-if value="{{ vSlides }}" hint-placeholder-val="{{ true }}">
+<div style="background: #008080; border-radius: 12px; padding: 22px">
+<div style="background: #C0C0C0; border: 2px solid #FFFFFF; border-right-color: #404040; border-bottom-color: #404040; font-family: Inter, system-ui, sans-serif">
+<div style="background: #000080; color: #FFFFFF; font-weight: 800; font-size: 14px; padding: 6px 10px; display: flex; justify-content: space-between"><span>IFPB - ALG - {{ slide.arquivo }}</span><span>{{ slideNum }} / {{ slideTotal }}</span></div>
+<div style="background: #FFFFFF; margin: 6px; min-height: 300px; padding: 26px 30px; color: #111827; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; color: #000080; font-size: 30px; font-weight: 800">{{ slide.titulo }}</h2>
+<p style="margin: 0; font-size: 19px; line-height: 1.5">{{ slide.texto }}</p>
+<pre style="margin: 0; background: #1E1E2E; color: #E5E7F5; padding: 16px 18px; border-radius: 6px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 16px; line-height: 1.6; white-space: pre-wrap">{{ slide.codigo }}</pre>
+</div>
+</div>
+</div>
+<div style="display: flex; gap: 12px; align-items: center">
+<button type="button" onClick="{{ anterior }}" style="padding: 11px 18px; border-radius: 10px; border: 1px solid #2A3160; background: #161B33; color: #E5E7F5; font-weight: 600; cursor: pointer; font-family: inherit">Anterior</button>
+<button type="button" onClick="{{ proximo }}" style="padding: 11px 18px; border-radius: 10px; border: 0; background: #22D3EE; color: #0B0E1F; font-weight: 800; cursor: pointer; font-family: inherit">Próximo</button>
+<span style="margin-left: auto; font-size: 14px; color: #9CA3C7">Slides em HTML, abrem também em tela cheia</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ vApostila }}" hint-placeholder-val="{{ false }}">
+<article style="background: #F7F7FB; color: #111827; border-radius: 12px; padding: 36px 44px; display: flex; flex-direction: column; gap: 14px; line-height: 1.7; font-size: 17px">
+<span style="font-size: 13px; font-weight: 600; color: #6B7280">Apostila da Unidade IV · p. 9 a 16</span>
+<h2 style="margin: 0; font-size: 26px; color: #0B2A6F">2. Soma, média e maior valor</h2>
+<p style="margin: 0">Quase todo algoritmo com listas segue o mesmo molde: um acumulador começa vazio, o laço visita cada elemento e o acumulador vai sendo atualizado.</p>
+<pre style="margin: 0; background: #1E1E2E; color: #E5E7F5; padding: 16px 18px; border-radius: 6px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 15px">notas = [7.0, 8.5, 6.0, 9.0]
+soma = 0
+for n in notas:
+    soma += n
+print(soma / len(notas))</pre>
+<p style="margin: 0; padding: 14px 16px; background: #FEF3C7; border-radius: 8px; font-size: 15px"><b>Atenção:</b> se a lista estiver vazia, <code>len(notas)</code> é 0 e a divisão dá erro.</p>
+</article>
+</sc-if>
+
+<sc-if value="{{ vAudio }}" hint-placeholder-val="{{ false }}">
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #A78BFA">AUDIOCAST DA AULA</span>
+<h2 style="margin: 0; font-size: 22px">Listas na prática: soma, média e o maior da turma</h2>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px">Gerado a partir da apostila · 12 min · ouça no ônibus</p>
+<div style="display: flex; align-items: center; gap: 16px">
+<button type="button" onClick="{{ tocar }}" aria-label="{{ playLabel }}" style="width: 56px; height: 56px; border-radius: 50%; border: 0; background: #A78BFA; color: #0B0E1F; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{ tocando }}" hint-placeholder-val="{{ false }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"></rect><rect x="14" y="5" width="4" height="14"></rect></svg></sc-if>
+<sc-if value="{{ parado }}" hint-placeholder-val="{{ true }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"></path></svg></sc-if>
+</button>
+<div style="flex: 1; height: 8px; background: #0B0E1F; border-radius: 4px; overflow: hidden"><div style="width: {{ progresso }}; height: 100%; background: #A78BFA"></div></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #C4C8E4">{{ tempo }} / 12:04</span>
+</div>
+<p style="margin: 0; font-size: 14px; color: #FBBF24">Ouvir até o fim: +10 XP</p>
+</section>
+</sc-if>
+</div>
+
+<aside style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 17px">Nesta aula</h2>
+<ul style="margin: 0; padding-left: 18px; color: #C4C8E4; font-size: 15px; line-height: 1.8">
+<li>Soma, média, maior e menor</li>
+<li>Contar e buscar elementos</li>
+<li>Copiar sem estragar a original</li>
+</ul>
+</section>
+<section style="background: #161B33; border: 1px solid #22D3EE; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 17px">Exercícios</h2>
+<p style="margin: 0; color: #9CA3C7; font-size: 14px">3 exercícios no laboratório · até 50 XP cada</p>
+<a href="Laboratorio.dc.html" style="padding: 13px; background: #22D3EE; border-radius: 10px; color: #0B0E1F; text-decoration: none; font-weight: 800; text-align: center">Ir para o laboratório</a>
+</section>
+</aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { aba: 0, slide: 0, tocando: false };
+  }
+  renderVals() {
+    const slides = [
+      { arquivo: 'soma.txt', titulo: 'O molde do acumulador', texto: 'Comece com zero, visite cada elemento, atualize.', codigo: 'soma = 0\nfor n in notas:\n    soma += n' },
+      { arquivo: 'media.txt', titulo: 'Média = soma ÷ quantidade', texto: 'len() diz quantos elementos a lista tem.', codigo: 'media = soma / len(notas)\nprint(f"Média: {media:.1f}")' },
+      { arquivo: 'maior.txt', titulo: 'Quem tirou a maior nota?', texto: 'Guarde o primeiro como "maior até agora" e compare o resto.', codigo: 'maior = notas[0]\nfor n in notas:\n    if n > maior:\n        maior = n' }
+    ];
+    const nomes = ['Slides', 'Apostila', 'Áudio'];
+    const s = this.state;
+    return {
+      abas: nomes.map((nome, i) => ({
+        nome, sel: i === s.aba ? 'true' : 'false',
+        bg: i === s.aba ? '#22D3EE' : 'transparent', fg: i === s.aba ? '#0B0E1F' : '#C4C8E4',
+        pick: () => this.setState({ aba: i })
+      })),
+      vSlides: s.aba === 0, vApostila: s.aba === 1, vAudio: s.aba === 2,
+      slide: slides[s.slide], slideNum: s.slide + 1, slideTotal: slides.length,
+      anterior: () => this.setState({ slide: Math.max(0, s.slide - 1) }),
+      proximo: () => this.setState({ slide: Math.min(slides.length - 1, s.slide + 1) }),
+      tocando: s.tocando, parado: !s.tocando,
+      playLabel: s.tocando ? 'Pausar áudio' : 'Tocar áudio',
+      progresso: s.tocando ? '38%' : '24%', tempo: s.tocando ? '04:35' : '02:54',
+      tocar: () => this.setState({ tocando: !s.tocando })
+    };
+  }
+}
+</script>
+</body>
+</html>

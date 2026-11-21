@@ -1,0 +1,11 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-21T17:45:00Z"},"title":"Órbita — protótipo das telas","launch":{"view":"canvas"},"pages":[],"boards":{
+"Main.dc.html":{"x":0,"y":0,"w":1280,"h":800,"title":"1 · Início (público)","expand":"fill","is_interactive":true},
+"Cadastro.dc.html":{"x":1360,"y":0,"w":1280,"h":800,"title":"2 · Cadastro","expand":"fill","is_interactive":true},
+"Ponte.dc.html":{"x":2720,"y":0,"w":1280,"h":800,"title":"3 · Ponte de comando (aluno)","expand":"fill","is_interactive":true},
+"Mapa.dc.html":{"x":0,"y":920,"w":1280,"h":800,"title":"4 · Mapa da disciplina","expand":"fill","is_interactive":true},
+"Aula.dc.html":{"x":1360,"y":920,"w":1280,"h":800,"title":"5 · Aula","expand":"fill","is_interactive":true},
+"Laboratorio.dc.html":{"x":2720,"y":920,"w":1280,"h":800,"title":"6 · Laboratório","expand":"fill","is_interactive":true},
+"Hangar.dc.html":{"x":0,"y":1840,"w":1280,"h":800,"title":"7 · Hangar (avatar)","expand":"fill","is_interactive":true},
+"Professor.dc.html":{"x":1360,"y":1840,"w":1280,"h":800,"title":"8 · Painel do professor","expand":"fill","is_interactive":true},
+"Avatar.dc.html":{"x":2720,"y":1840,"w":192,"h":216,"title":"Componente · avatar pixel"}
+},"order":["Main.dc.html","Cadastro.dc.html","Ponte.dc.html","Mapa.dc.html","Aula.dc.html","Laboratorio.dc.html","Hangar.dc.html","Professor.dc.html","Avatar.dc.html"],"notes":{},"designSystems":[]}

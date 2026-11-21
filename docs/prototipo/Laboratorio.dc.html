@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — laboratório</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+textarea:focus{outline:2px solid #22D3EE;outline-offset:-2px}
+button:focus-visible{outline:2px solid #22D3EE;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 800px; background: #0B0E1F; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid #2A3160">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<nav aria-label="Aluno" style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 600">
+<a href="Ponte.dc.html" style="color: #9CA3C7; text-decoration: none">Ponte</a>
+<a href="Mapa.dc.html" style="color: #9CA3C7; text-decoration: none">Mapa</a>
+<a href="Laboratorio.dc.html" style="color: #E5E7F5; text-decoration: none; border-bottom: 2px solid #22D3EE; padding-bottom: 4px">Laboratório</a>
+<a href="Hangar.dc.html" style="color: #9CA3C7; text-decoration: none">Hangar</a>
+</nav>
+<span style="margin-left: auto; font-family: 'Press Start 2P', monospace; font-size: 10px; color: #0B0E1F; background: #A78BFA; padding: 7px 10px; border-radius: 6px">{{ xp }} XP</span>
+</header>
+
+<main style="max-width: 1240px; margin: 0 auto; padding: 24px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 20px">
+<section style="flex: 1 1 320px; background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; align-self: flex-start">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #F472B6">IV.2 · EXERCICIO 1 · 50 XP</span>
+<h1 style="margin: 0; font-size: 22px; font-weight: 800">Média da turma</h1>
+<p style="margin: 0; color: #C4C8E4; font-size: 15px; line-height: 1.6">Escreva a função <code style="font-family: 'JetBrains Mono', monospace; color: #7DE8F8">media(notas)</code> que recebe uma lista de notas e devolve a média. Se a lista estiver vazia, devolva 0.</p>
+<h2 style="margin: 6px 0 0; font-size: 15px">Testes</h2>
+<sc-for list="{{ testes }}" as="t" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; background: #0B0E1F; border: 1px solid {{ t.borda }}; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px">
+<span style="font-weight: 600; color: {{ t.cor }}; width: 52px">{{ t.status }}</span>
+<span style="color: #C4C8E4">{{ t.caso }}</span>
+</div>
+</sc-for>
+<p style="margin: 0; font-size: 13px; color: #9CA3C7">O 3º teste fica oculto até a entrega.</p>
+</section>
+
+<section style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #2A3160; font-size: 14px">
+<span style="font-family: 'JetBrains Mono', monospace; color: #C4C8E4">main.py</span>
+<span style="color: #9CA3C7">Python 3 · roda no seu navegador</span>
+</div>
+<label for="codigo" style="position: absolute; left: -9999px">Código</label>
+<textarea id="codigo" spellcheck="false" value="{{ codigo }}" onChange="{{ editar }}" style="min-height: 300px; resize: vertical; border: 0; background: #0E1226; color: #E5E7F5; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 16px; line-height: 1.7; padding: 18px 20px; box-sizing: border-box; width: 100%"></textarea>
+</div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
+<button type="button" onClick="{{ testar }}" style="padding: 13px 22px; border: 1px solid #22D3EE; border-radius: 10px; background: #161B33; color: #22D3EE; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit">Testar</button>
+<button type="button" onClick="{{ entregar }}" style="padding: 13px 22px; border: 0; border-radius: 10px; background: #22D3EE; color: #0B0E1F; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit">Entregar</button>
+</div>
+<div role="log" aria-live="polite" style="background: #05070F; border: 1px solid #2A3160; border-radius: 12px; padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; color: #C4C8E4; min-height: 90px; white-space: pre-wrap">{{ console }}</div>
+<sc-if value="{{ entregue }}" hint-placeholder-val="{{ false }}">
+<div style="background: #161B33; border: 1px solid #FBBF24; border-radius: 12px; padding: 16px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 14px; color: #FBBF24">+50 XP</span>
+<span style="font-size: 15px">Entregue. 3 de 3 testes passaram, inclusive o oculto.</span>
+<a href="Ponte.dc.html" style="margin-left: auto; font-weight: 600">Voltar à Ponte</a>
+</div>
+</sc-if>
+<p style="margin: 0; font-size: 13px; color: #9CA3C7">Protótipo: a correção aqui é simulada. No site, o Python roda de verdade (Pyodide) e o servidor confere o teste oculto.</p>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      codigo: 'def media(notas):\n    # seu código aqui\n    pass\n\nprint(media([7.0, 8.5, 6.0, 9.0]))',
+      rodou: false, ok: false, entregue: false
+    };
+  }
+  avaliar(c) {
+    const soma = /sum\(|\+=/.test(c), conta = /len\(/.test(c), vazio = /if\s+(not\s+notas|len\(notas\)\s*==\s*0)/.test(c);
+    return [soma && conta, soma && conta, soma && conta && vazio];
+  }
+  renderVals() {
+    const s = this.state;
+    const r = this.avaliar(s.codigo);
+    const casos = ['media([7.0, 8.5, 6.0, 9.0]) == 7.625', 'media([10]) == 10', 'teste oculto'];
+    const testes = casos.map((caso, i) => {
+      const visto = s.rodou && (i < 2 || s.entregue);
+      const passou = visto && r[i];
+      return {
+        caso, status: !visto ? '···' : (passou ? 'ok' : 'falhou'),
+        cor: !visto ? '#9CA3C7' : (passou ? '#34D399' : '#F472B6'),
+        borda: !visto ? '#2A3160' : (passou ? '#34D399' : '#F472B6')
+      };
+    });
+    let consoleTxt = '>>> aperte Testar para rodar seu código';
+    if (s.rodou) consoleTxt = r[0] ? '>>> 7.625\n2 de 2 testes visíveis passaram.' : '>>> None\nDica: some as notas e divida por len(notas).';
+    return {
+      codigo: s.codigo, testes, console: consoleTxt,
+      entregue: s.entregue, xp: s.entregue ? 390 : 340,
+      editar: (e) => this.setState({ codigo: e.target.value, rodou: false }),
+      testar: () => this.setState({ rodou: true }),
+      entregar: () => this.setState({ rodou: true, entregue: r[0] && r[1] && r[2] })
+    };
+  }
+}
+</script>
+</body>
+</html>

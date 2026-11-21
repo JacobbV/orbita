@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — hangar do avatar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+.ceu{background-color:#0B0E1F;background-image:radial-gradient(rgba(229,231,245,.5) 1px,transparent 1.5px),radial-gradient(rgba(167,139,250,.45) 1px,transparent 1.5px);background-size:140px 140px,90px 90px;background-position:0 0,45px 60px}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+button:focus-visible{outline:2px solid #22D3EE;outline-offset:2px}
+</style>
+</helmet>
+<div class="ceu" style="min-height: 800px; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid #2A3160; background: #0B0E1F">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<nav aria-label="Aluno" style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 600">
+<a href="Ponte.dc.html" style="color: #9CA3C7; text-decoration: none">Ponte</a>
+<a href="Mapa.dc.html" style="color: #9CA3C7; text-decoration: none">Mapa</a>
+<a href="Laboratorio.dc.html" style="color: #9CA3C7; text-decoration: none">Laboratório</a>
+<a href="Hangar.dc.html" style="color: #E5E7F5; text-decoration: none; border-bottom: 2px solid #22D3EE; padding-bottom: 4px">Hangar</a>
+</nav>
+<span style="margin-left: auto; font-family: 'Press Start 2P', monospace; font-size: 10px; color: #0B0E1F; background: #A78BFA; padding: 7px 10px; border-radius: 6px">NIVEL 3</span>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 32px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 28px">
+<section style="flex: 1 1 340px; background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 18px; align-self: flex-start">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #A78BFA">SEU TRIPULANTE</span>
+<div style="background: #0B0E1F; border: 1px solid #2A3160; border-radius: 14px; padding: 26px 40px; display: flex; justify-content: center">
+<dc-import name="Avatar" skin="{{ skin }}" hair="{{ hair }}" shirt="{{ shirt }}" hair-style="{{ estilo }}" glasses="{{ oculos }}" cell="{{ cell }}" hint-size="224px,252px"></dc-import>
+</div>
+<div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #9CA3C7">
+<span>Prévia pequena:</span>
+<dc-import name="Avatar" skin="{{ skin }}" hair="{{ hair }}" shirt="{{ shirt }}" hair-style="{{ estilo }}" glasses="{{ oculos }}" cell="{{ cellMini }}" hint-size="48px,54px"></dc-import>
+</div>
+<button type="button" onClick="{{ salvar }}" style="width: 100%; padding: 14px; border: 0; border-radius: 10px; background: #22D3EE; color: #0B0E1F; font-weight: 800; font-size: 16px; cursor: pointer; font-family: inherit">{{ salvarTxt }}</button>
+</section>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+<div>
+<h1 style="margin: 0; font-size: 30px; font-weight: 800">Hangar</h1>
+<p style="margin: 6px 0 0; color: #9CA3C7; font-size: 15px">Monte o seu avatar. Peças novas são liberadas com XP e ao derrotar os chefes das unidades.</p>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px">Tom de pele</h2>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<sc-for list="{{ peles }}" as="o" hint-placeholder-count="8">
+<button type="button" onClick="{{ o.pick }}" aria-label="{{ o.nome }}" aria-pressed="{{ o.sel }}" style="width: 44px; height: 44px; border-radius: 10px; cursor: pointer; background: {{ o.cor }}; border: {{ o.anel }}"></button>
+</sc-for>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px">Cabelo</h2>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<sc-for list="{{ estilos }}" as="o" hint-placeholder-count="3">
+<button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.sel }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 14px; color: #E5E7F5; background: #161B33; border: {{ o.anel }}">{{ o.nome }}</button>
+</sc-for>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<sc-for list="{{ cabelos }}" as="o" hint-placeholder-count="8">
+<button type="button" onClick="{{ o.pick }}" aria-label="{{ o.nome }}" aria-pressed="{{ o.sel }}" style="width: 44px; height: 44px; border-radius: 10px; cursor: pointer; background: {{ o.cor }}; border: {{ o.anel }}"></button>
+</sc-for>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px">Uniforme</h2>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<sc-for list="{{ roupas }}" as="o" hint-placeholder-count="6">
+<button type="button" onClick="{{ o.pick }}" aria-label="{{ o.rotulo }}" aria-pressed="{{ o.sel }}" disabled="{{ o.bloq }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; cursor: {{ o.cursor }}; display: inline-flex; gap: 8px; align-items: center; font-family: inherit; font-size: 14px; color: {{ o.fg }}; background: #161B33; border: {{ o.anel }}">
+<span aria-hidden="true" style="width: 18px; height: 18px; border-radius: 4px; background: {{ o.cor }}; opacity: {{ o.opac }}"></span>{{ o.nome }}
+</button>
+</sc-for>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px">Acessórios</h2>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<button type="button" onClick="{{ toggleOculos }}" aria-pressed="{{ oculosSel }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 14px; color: #E5E7F5; background: #161B33; border: {{ oculosAnel }}">Óculos de visor</button>
+<button type="button" disabled="{{ true }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; font-family: inherit; font-size: 14px; color: #9CA3C7; background: #161B33; border: 1px dashed #2A3160">Capacete espacial · nível 5</button>
+<button type="button" disabled="{{ true }}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; font-family: inherit; font-size: 14px; color: #9CA3C7; background: #161B33; border: 1px dashed #2A3160">Mascote alien · derrote o Colosso</button>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { skin: '#E0AC82', hair: '#5B2E1A', shirt: '#A78BFA', estilo: 'comprido', oculos: true, salvo: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const anel = (on) => on ? '3px solid #22D3EE' : '1px solid #2A3160';
+    const set = (k, v) => () => this.setState({ [k]: v, salvo: false });
+    const peles = [['#FBE0C8','Pele muito clara'],['#F1C27D','Pele clara'],['#E0AC82','Pele média clara'],['#C68A5E','Pele média'],['#A8693F','Pele morena'],['#8D5A3B','Pele morena escura'],['#6B4028','Pele escura'],['#4A2B1A','Pele muito escura']]
+      .map(([cor, nome]) => ({ cor, nome, sel: String(s.skin === cor), anel: anel(s.skin === cor), pick: set('skin', cor) }));
+    const cabelos = [['#1C120D','Preto'],['#5B2E1A','Castanho'],['#9A5B2C','Castanho claro'],['#E5C07B','Loiro'],['#B5462E','Ruivo'],['#D4D4D8','Grisalho'],['#22D3EE','Ciano'],['#F472B6','Rosa']]
+      .map(([cor, nome]) => ({ cor, nome, sel: String(s.hair === cor), anel: anel(s.hair === cor), pick: set('hair', cor) }));
+    const estilos = [['curto','Curto'],['cacheado','Cacheado / black'],['comprido','Comprido']]
+      .map(([id, nome]) => ({ nome, sel: String(s.estilo === id), anel: anel(s.estilo === id), pick: set('estilo', id) }));
+    const roupas = [['#22D3EE','Ciano da nave',0],['#A78BFA','Nebulosa',0],['#FBBF24','Estrela',0],['#34D399','Aurora',0],['#F472B6','Plasma',8],['#E5E7F5','Almirante',12]]
+      .map(([cor, nome, nivel]) => {
+        const bloq = nivel > 3;
+        return { cor, nome: bloq ? nome + ' · nível ' + nivel : nome, rotulo: bloq ? nome + ', bloqueado até o nível ' + nivel : nome,
+          bloq, sel: String(s.shirt === cor), anel: bloq ? '1px dashed #2A3160' : anel(s.shirt === cor),
+          fg: bloq ? '#9CA3C7' : '#E5E7F5', opac: bloq ? 0.4 : 1, cursor: bloq ? 'not-allowed' : 'pointer',
+          pick: bloq ? () => {} : set('shirt', cor) };
+      });
+    return {
+      skin: s.skin, hair: s.hair, shirt: s.shirt, estilo: s.estilo, oculos: s.oculos, cell: 14, cellMini: 3,
+      peles, cabelos, estilos, roupas,
+      oculosSel: String(s.oculos), oculosAnel: anel(s.oculos),
+      toggleOculos: () => this.setState({ oculos: !s.oculos, salvo: false }),
+      salvar: () => this.setState({ salvo: true }),
+      salvarTxt: s.salvo ? 'Salvo' : 'Salvar avatar'
+    };
+  }
+}
+</script>
+</body>
+</html>

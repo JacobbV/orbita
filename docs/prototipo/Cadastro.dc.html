@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — cadastro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+.ceu{background-color:#0B0E1F;background-image:radial-gradient(rgba(229,231,245,.5) 1px,transparent 1.5px),radial-gradient(rgba(167,139,250,.45) 1px,transparent 1.5px);background-size:140px 140px,90px 90px;background-position:0 0,45px 60px}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+input:focus,select:focus{outline:2px solid #22D3EE;outline-offset:1px}
+</style>
+</helmet>
+<div class="ceu" style="min-height: 800px; font-family: Inter, system-ui, sans-serif; color: #E5E7F5; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; gap: 24px; padding: 18px 40px; border-bottom: 1px solid #2A3160">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<a href="Main.dc.html" style="margin-left: auto; color: #9CA3C7; font-size: 15px; text-decoration: none">Voltar ao início</a>
+</header>
+<main style="flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 48px 24px">
+<div style="width: 100%; max-width: 520px; background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 36px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+
+<sc-if value="{{ form }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #A78BFA">NOVO TRIPULANTE</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 800">Criar conta</h1>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px; line-height: 1.55">O professor confere se você é da turma e aprova o seu acesso.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="nome" style="font-size: 14px; font-weight: 600">Nome completo</label>
+<input id="nome" type="text" value="{{ nome }}" onChange="{{ setNome }}" placeholder="Como aparece na chamada" style="padding: 13px 14px; border-radius: 10px; border: 1px solid #2A3160; background: #0B0E1F; color: #E5E7F5; font-size: 16px; font-family: inherit">
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="email" style="font-size: 14px; font-weight: 600">E-mail acadêmico</label>
+<input id="email" type="email" value="{{ email }}" onChange="{{ setEmail }}" placeholder="matricula@academico.ifpb.edu.br" style="padding: 13px 14px; border-radius: 10px; border: 1px solid {{ emailBorder }}; background: #0B0E1F; color: #E5E7F5; font-size: 16px; font-family: inherit">
+<sc-if value="{{ emailErro }}" hint-placeholder-val="{{ false }}">
+<span role="alert" style="color: #F9A8D4; font-size: 14px">Use o e-mail que termina em @academico.ifpb.edu.br</span>
+</sc-if>
+</div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap">
+<div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 8px">
+<label for="turma" style="font-size: 14px; font-weight: 600">Turma</label>
+<select id="turma" style="padding: 13px 14px; border-radius: 10px; border: 1px solid #2A3160; background: #0B0E1F; color: #E5E7F5; font-size: 16px; font-family: inherit">
+<option>1º INFO M · 2026</option>
+<option>1º INFO V · 2026</option>
+<option>3º INFO · 2026</option>
+</select>
+</div>
+<div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 8px">
+<label for="disc" style="font-size: 14px; font-weight: 600">Disciplina</label>
+<select id="disc" style="padding: 13px 14px; border-radius: 10px; border: 1px solid #2A3160; background: #0B0E1F; color: #E5E7F5; font-size: 16px; font-family: inherit">
+<option>Algoritmos e Lógica de Programação</option>
+<option>Fundamentos do Computador</option>
+<option>Desenvolvimento de Aplicações Web</option>
+</select>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="senha" style="font-size: 14px; font-weight: 600">Senha</label>
+<input id="senha" type="password" placeholder="Mínimo de 8 caracteres" style="padding: 13px 14px; border-radius: 10px; border: 1px solid #2A3160; background: #0B0E1F; color: #E5E7F5; font-size: 16px; font-family: inherit">
+</div>
+<button type="button" onClick="{{ enviar }}" style="padding: 15px; border: 0; border-radius: 10px; background: #22D3EE; color: #0B0E1F; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit">Enviar pedido de acesso</button>
+<p style="margin: 0; color: #9CA3C7; font-size: 13px; line-height: 1.5">Guardamos só nome, e-mail acadêmico e turma. Nada de foto.</p>
+</sc-if>
+
+<sc-if value="{{ enviado }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; align-items: flex-start">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #FBBF24">AGUARDANDO APROVACAO</span>
+<h1 style="margin: 0; font-size: 28px; font-weight: 800">Pedido enviado, {{ primeiroNome }}.</h1>
+<p style="margin: 0; color: #C4C8E4; font-size: 16px; line-height: 1.6">Confirme o link que chegou em {{ email }}. Quando o professor aprovar, as aulas da sua turma aparecem na Ponte de comando.</p>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
+<a href="Ponte.dc.html" style="padding: 13px 20px; background: #22D3EE; border-radius: 10px; color: #0B0E1F; text-decoration: none; font-weight: 800">Simular aprovação</a>
+<a href="Mapa.dc.html" style="padding: 13px 20px; border: 1px solid #2A3160; border-radius: 10px; color: #E5E7F5; text-decoration: none; font-weight: 600">Ver aulas públicas</a>
+</div>
+</div>
+</sc-if>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { nome: '', email: '', tentou: false, enviado: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const ok = /@academico\.ifpb\.edu\.br$/i.test(s.email.trim());
+    const erro = s.tentou && !ok;
+    return {
+      nome: s.nome,
+      email: s.email,
+      emailErro: erro,
+      emailBorder: erro ? '#F472B6' : '#2A3160',
+      form: !s.enviado,
+      enviado: s.enviado,
+      primeiroNome: (s.nome.trim().split(' ')[0]) || 'tripulante',
+      setNome: (e) => this.setState({ nome: e.target.value }),
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      enviar: () => this.setState({ tentou: true, enviado: ok })
+    };
+  }
+}
+</script>
+</body>
+</html>

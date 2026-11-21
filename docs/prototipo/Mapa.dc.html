@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — mapa da disciplina</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+.ceu{background-color:#0B0E1F;background-image:radial-gradient(rgba(229,231,245,.5) 1px,transparent 1.5px),radial-gradient(rgba(167,139,250,.45) 1px,transparent 1.5px);background-size:140px 140px,90px 90px;background-position:0 0,45px 60px}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+button:focus-visible{outline:2px solid #22D3EE;outline-offset:2px}
+</style>
+</helmet>
+<div class="ceu" style="min-height: 800px; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid #2A3160; background: #0B0E1F">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<nav aria-label="Aluno" style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 600">
+<a href="Ponte.dc.html" style="color: #9CA3C7; text-decoration: none">Ponte</a>
+<a href="Mapa.dc.html" style="color: #E5E7F5; text-decoration: none; border-bottom: 2px solid #22D3EE; padding-bottom: 4px">Mapa</a>
+<a href="Laboratorio.dc.html" style="color: #9CA3C7; text-decoration: none">Laboratório</a>
+<a href="Hangar.dc.html" style="color: #9CA3C7; text-decoration: none">Hangar</a>
+</nav>
+<span style="margin-left: auto; font-family: 'Press Start 2P', monospace; font-size: 10px; color: #0B0E1F; background: #A78BFA; padding: 7px 10px; border-radius: 6px">340 XP</span>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 32px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #A78BFA">ALGORITMOS E LOGICA DE PROGRAMACAO</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 800">Mapa da galáxia</h1>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px">Cada unidade é um planeta. Aulas com cadeado abrem quando o professor libera.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+<sc-for list="{{ unidades }}" as="u" hint-placeholder-count="4">
+<button type="button" onClick="{{ u.pick }}" aria-pressed="{{ u.ativo }}" style="text-align: left; cursor: pointer; font-family: inherit; color: #E5E7F5; background: #161B33; border: {{ u.borda }}; border-radius: 16px; padding: 18px; display: flex; gap: 16px; align-items: center">
+<span aria-hidden="true" style="flex: none; width: 56px; height: 56px; border-radius: 50%; background: {{ u.cor }}; box-shadow: inset -10px -8px 0 rgba(0,0,0,.25)"></span>
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: {{ u.cor }}">UNIDADE {{ u.num }}</span>
+<span style="font-weight: 600; font-size: 15px; line-height: 1.35">{{ u.titulo }}</span>
+<span style="font-size: 13px; color: #9CA3C7">{{ u.progresso }}</span>
+</span>
+</button>
+</sc-for>
+</div>
+
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; gap: 28px">
+<div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0 0 6px; font-size: 20px">Unidade {{ sel.num }} · estações</h2>
+<sc-for list="{{ sel.aulas }}" as="a" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: #0B0E1F; border: 1px solid {{ a.borda }}; border-radius: 10px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 11px; color: {{ a.cor }}; width: 34px">{{ sel.num }}.{{ a.n }}</span>
+<span style="flex: 1; font-size: 15px; color: {{ a.texto }}">{{ a.titulo }}</span>
+<sc-if value="{{ a.aberta }}" hint-placeholder-val="{{ true }}">
+<a href="Aula.dc.html" style="font-size: 14px; font-weight: 600">{{ a.acao }}</a>
+</sc-if>
+<sc-if value="{{ a.fechada }}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: #9CA3C7"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>bloqueada</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px dashed #F472B6; border-radius: 12px; align-self: flex-start">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #F472B6">CHEFE DA UNIDADE</span>
+<h3 style="margin: 0; font-size: 20px">{{ sel.chefe }}</h3>
+<p style="margin: 0; font-size: 14px; color: #C4C8E4; line-height: 1.55">Vença o projeto da unidade para derrotá-lo e ganhar uma peça rara para o avatar.</p>
+<span style="font-size: 14px; font-weight: 600; color: #FBBF24">+100 XP</span>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 3 };
+  }
+  renderVals() {
+    const base = [
+      { num: 'I', titulo: 'Algoritmos, Python e entrada/saída', cor: '#22D3EE', chefe: 'Bugzilla', feitas: 6,
+        aulas: ['O que é um algoritmo?', 'Do algoritmo ao programa', 'Variáveis, constantes e tipos', 'Operadores e expressões', 'Entrada com input() e conversão', 'Saída formatada e projeto'] },
+      { num: 'II', titulo: 'Decisões: if, elif e else', cor: '#A78BFA', chefe: 'Hidra do If', feitas: 6,
+        aulas: ['Valores lógicos e comparação', 'A decisão if e else', 'Várias escolhas com elif', 'Operadores lógicos', 'Decisões aninhadas, match e ternário', 'Projeto: sistema de pedidos'] },
+      { num: 'III', titulo: 'Repetição: while e for', cor: '#FBBF24', chefe: 'Verme do Loop Infinito', feitas: 6,
+        aulas: ['Por que repetir? O laço while', 'Contadores, acumuladores e sentinelas', 'Validação, menus, break e continue', 'O laço for e range', 'Laços aninhados e clássicos', 'Projeto: jogos e caixa do restaurante'] },
+      { num: 'IV', titulo: 'Listas, matrizes e funções', cor: '#F472B6', chefe: 'Colosso de Matrizes', feitas: 1, liberadas: 2,
+        aulas: ['Listas (vetores)', 'Algoritmos com listas', 'Ordenação e busca', 'Matrizes: listas de listas', 'Algoritmos com matrizes', 'Funções e projeto final'] }
+    ];
+    const unidades = base.map((u, i) => {
+      const lib = u.liberadas || u.feitas;
+      return {
+        num: u.num, titulo: u.titulo, cor: u.cor,
+        progresso: u.feitas === 6 ? 'concluída · 6 de 6' : (u.feitas + ' de 6 concluídas'),
+        ativo: i === this.state.sel ? 'true' : 'false',
+        borda: i === this.state.sel ? ('2px solid ' + u.cor) : '1px solid #2A3160',
+        pick: () => this.setState({ sel: i }),
+        chefe: u.chefe,
+        aulas: u.aulas.map((t, k) => {
+          const feita = k < u.feitas, aberta = k < lib;
+          return {
+            n: k + 1, titulo: t, aberta, fechada: !aberta,
+            acao: feita ? 'Rever' : 'Começar',
+            cor: aberta ? u.cor : '#5B6394',
+            texto: aberta ? '#E5E7F5' : '#9CA3C7',
+            borda: aberta && !feita ? u.cor : '#2A3160'
+          };
+        })
+      };
+    });
+    return { unidades, sel: unidades[this.state.sel] };
+  }
+}
+</script>
+</body>
+</html>

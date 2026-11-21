@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Órbita — ponte de comando</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;family=JetBrains+Mono:wght@400;600&amp;family=Press+Start+2P&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E1F}
+.ceu{background-color:#0B0E1F;background-image:radial-gradient(rgba(229,231,245,.5) 1px,transparent 1.5px),radial-gradient(rgba(167,139,250,.45) 1px,transparent 1.5px);background-size:140px 140px,90px 90px;background-position:0 0,45px 60px}
+a{color:#22D3EE}a:hover{color:#7DE8F8}
+</style>
+</helmet>
+<div class="ceu" style="min-height: 800px; font-family: Inter, system-ui, sans-serif; color: #E5E7F5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 28px; padding: 16px 40px; border-bottom: 1px solid #2A3160; background: #0B0E1F">
+<a href="Main.dc.html" style="font-family: 'Press Start 2P', monospace; font-size: 15px; color: #22D3EE; text-decoration: none">ORBITA</a>
+<nav aria-label="Aluno" style="display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; font-weight: 600">
+<a href="Ponte.dc.html" style="color: #E5E7F5; text-decoration: none; border-bottom: 2px solid #22D3EE; padding-bottom: 4px">Ponte</a>
+<a href="Mapa.dc.html" style="color: #9CA3C7; text-decoration: none">Mapa</a>
+<a href="Laboratorio.dc.html" style="color: #9CA3C7; text-decoration: none">Laboratório</a>
+<a href="Hangar.dc.html" style="color: #9CA3C7; text-decoration: none">Hangar</a>
+</nav>
+<div style="margin-left: auto; display: flex; gap: 12px; align-items: center">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #0B0E1F; background: #A78BFA; padding: 7px 10px; border-radius: 6px">340 XP</span>
+<span style="font-size: 14px; color: #C4C8E4">Larissa Souza · 1º INFO M</span>
+</div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 32px 40px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px">
+
+<aside style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 20px">
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+<div style="background: #0B0E1F; border: 1px solid #2A3160; border-radius: 12px; padding: 18px 26px">
+<dc-import name="Avatar" hair-style="comprido" skin="#E0AC82" hair="#5B2E1A" shirt="#A78BFA" glasses="{{ true }}" cell="{{ cell }}" hint-size="160px,180px"></dc-import>
+</div>
+<span style="font-family: 'Press Start 2P', monospace; font-size: 11px; color: #22D3EE">PILOTO · NIVEL 3</span>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #9CA3C7"><span>340 XP</span><span>faltam 160 para Navegador</span></div>
+<div role="progressbar" aria-label="XP até a próxima patente" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" style="height: 14px; background: #0B0E1F; border: 1px solid #2A3160; border-radius: 4px; overflow: hidden"><div style="width: 68%; height: 100%; background: #A78BFA"></div></div>
+</div>
+<a href="Hangar.dc.html" style="font-weight: 600; font-size: 15px">Editar avatar no Hangar</a>
+</section>
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 20px 24px; display: flex; gap: 16px; align-items: center">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 22px; color: #FBBF24">4</span>
+<div><div style="font-weight: 600">dias seguidos estudando</div><div style="font-size: 14px; color: #9CA3C7">Mais 1 dia rende 30 XP</div></div>
+</section>
+</aside>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section style="background: #161B33; border: 1px solid #22D3EE; border-radius: 16px; padding: 26px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+<div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #22D3EE">PROXIMA MISSAO</span>
+<h1 style="margin: 0; font-size: 26px; font-weight: 800">Unidade IV · Aula 2 — Algoritmos com listas</h1>
+<p style="margin: 0; color: #9CA3C7; font-size: 15px">Algoritmos e Lógica de Programação · slides, apostila e áudio de 12 min</p>
+</div>
+<a href="Aula.dc.html" style="padding: 14px 22px; background: #22D3EE; border-radius: 10px; color: #0B0E1F; text-decoration: none; font-weight: 800">Continuar aula</a>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px">
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px">Atividades abertas</h2>
+<a href="Laboratorio.dc.html" style="display: flex; justify-content: space-between; gap: 12px; padding: 14px; background: #0B0E1F; border: 1px solid #2A3160; border-radius: 10px; text-decoration: none; color: #E5E7F5">
+<span><span style="display: block; font-weight: 600">Média da turma com listas</span><span style="font-size: 13px; color: #9CA3C7">Laboratório · Python · 3 testes</span></span>
+<span style="font-size: 13px; color: #FBBF24; white-space: nowrap">até sex.</span>
+</a>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px; background: #0B0E1F; border: 1px solid #2A3160; border-radius: 10px">
+<span><span style="display: block; font-weight: 600">Prova da Unidade IV</span><span style="font-size: 13px; color: #9CA3C7">Modo prova · tela cheia</span></span>
+<span style="font-size: 13px; color: #9CA3C7; white-space: nowrap">abre 05/12</span>
+</div>
+</section>
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 18px">Ranking da turma</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<li style="display: flex; justify-content: space-between"><span><span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #FBBF24; margin-right: 10px">1</span>Cometa_Azul</span><span style="color: #9CA3C7">612 XP</span></li>
+<li style="display: flex; justify-content: space-between"><span><span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #C4C8E4; margin-right: 10px">2</span>ByteNinja</span><span style="color: #9CA3C7">540 XP</span></li>
+<li style="display: flex; justify-content: space-between"><span><span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #C4C8E4; margin-right: 10px">3</span>LoopMaster</span><span style="color: #9CA3C7">498 XP</span></li>
+<li style="display: flex; justify-content: space-between; background: #0B0E1F; border: 1px solid #22D3EE; border-radius: 8px; padding: 6px 10px"><span><span style="font-family: 'Press Start 2P', monospace; font-size: 10px; color: #22D3EE; margin-right: 10px">7</span>Você · Nebulosa</span><span style="color: #9CA3C7">340 XP</span></li>
+</ol>
+<p style="margin: 0; font-size: 13px; color: #9CA3C7">Ranking só por apelido. Dá para sair dele no perfil.</p>
+</section>
+</div>
+
+<section style="background: #161B33; border: 1px solid #2A3160; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px">Medalhas</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<span style="padding: 10px 14px; border-radius: 10px; background: #0B0E1F; border: 1px solid #FBBF24; font-size: 14px; font-weight: 600">Primeiro Hello World</span>
+<span style="padding: 10px 14px; border-radius: 10px; background: #0B0E1F; border: 1px solid #FBBF24; font-size: 14px; font-weight: 600">Mestre dos Laços</span>
+<span style="padding: 10px 14px; border-radius: 10px; background: #0B0E1F; border: 1px solid #FBBF24; font-size: 14px; font-weight: 600">Pontual</span>
+<span style="padding: 10px 14px; border-radius: 10px; background: #0B0E1F; border: 1px dashed #2A3160; font-size: 14px; color: #9CA3C7">Senhor das Matrizes · bloqueada</span>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { cell: 10 };
+  }
+}
+</script>
+</body>
+</html>
