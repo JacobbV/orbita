@@ -3,6 +3,8 @@ import {
   lerNomeDoSlide,
   montarEstrutura,
   planejarEnvioEmLote,
+  siglaDoNome,
+  soArquivosHtml,
   validarArquivoDeSlides,
   validarAnoLetivo,
   validarLink,
@@ -132,6 +134,27 @@ describe('slides HTML', () => {
       ['DAW_U2_A1.html', null, 'Esta disciplina não tem essa aula.'],
     ])
     expect(itens.find((i) => i.aula?.rotulo === 'I.2')?.aula?.temSlides).toBe(true)
+  })
+
+  it('lê a disciplina do começo do nome (DAW é Web)', () => {
+    expect(siglaDoNome('DAW_U1_A1.html')).toEqual({ escrita: 'DAW', sigla: 'WEB' })
+    expect(siglaDoNome('alg-u4-a1.html')).toEqual({ escrita: 'ALG', sigla: 'ALG' })
+    expect(siglaDoNome('U1_A1.html')).toBeNull()
+    expect(siglaDoNome('capa.html')).toBeNull()
+    expect(siglaDoNome('XYZ_U1_A1.html')).toBeNull()
+  })
+
+  it('barra arquivo de outra disciplina', () => {
+    const naWeb = planejarEnvioEmLote([arquivo('DAW_U1_A1.html'), arquivo('U1_A2.html')], unidades, 'WEB')
+    expect(naWeb.map((i) => i.aula?.rotulo ?? null)).toEqual(['I.1', 'I.2'])
+    const [errado] = planejarEnvioEmLote([arquivo('DAW_U1_A1.html')], unidades, 'ALG')
+    expect(errado?.aula).toBeNull()
+    expect(errado?.problema).toBe('Arquivo de outra disciplina (DAW). Troque a disciplina no topo.')
+  })
+
+  it('da pasta escolhida, fica só com os .html', () => {
+    const nomes = soArquivosHtml([arquivo('ALG_U1_A1.html'), arquivo('logo.png'), arquivo('desktop.ini'), arquivo('b.HTM')])
+    expect(nomes.map((a) => a.name)).toEqual(['ALG_U1_A1.html', 'b.HTM'])
   })
 })
 

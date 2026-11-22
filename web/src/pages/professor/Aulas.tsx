@@ -14,6 +14,7 @@ import {
   liberarUnidade,
   listarOfertasDoPainel,
   planejarEnvioEmLote,
+  soArquivosHtml,
   removerAula,
   removerSlides,
   removerUnidade,
@@ -133,7 +134,7 @@ export function Aulas() {
           <p className="painel-resumo">
             {oferta.turma.nome}: {liberadas} de {total} {total === 1 ? 'aula liberada' : 'aulas liberadas'}.
           </p>
-          <EnvioEmLote unidades={unidades} disciplina={oferta.disciplina.nome} ocupado={ocupado} executar={executar} />
+          <EnvioEmLote unidades={unidades} disciplina={oferta.disciplina.nome} sigla={oferta.disciplina.sigla} ocupado={ocupado} executar={executar} />
           <div className="painel-unidades">
             {unidades.map((u) => (
               <CartaoUnidade
@@ -576,17 +577,20 @@ function CampoSlides({
 function EnvioEmLote({
   unidades,
   disciplina,
+  sigla,
   ocupado,
   executar,
 }: {
   unidades: UnidadeDoPainel[]
   disciplina: string
+  sigla: string
   ocupado: boolean
   executar: Executar
 }) {
   const [itens, setItens] = useState<ItemDoEnvio[]>([])
   const [progresso, setProgresso] = useState<string | null>(null)
   const entrada = useRef<HTMLInputElement>(null)
+  const entradaPasta = useRef<HTMLInputElement>(null)
   const validos = itens.filter((i) => i.aula)
   const substitui = validos.filter((i) => i.aula?.temSlides).length
 
@@ -612,6 +616,8 @@ function EnvioEmLote({
     if (ok || falhas.length > 0) {
       setItens([])
       if (entrada.current) entrada.current.value = ''
+      if (entradaPasta.current) entradaPasta.current.value = ''
+      if (entradaPasta.current) entradaPasta.current.value = ''
     }
   }
 
@@ -620,9 +626,9 @@ function EnvioEmLote({
       <summary>Enviar vários slides de uma vez</summary>
       <div className="painel-lote-corpo">
         <p className="campo-dica">
-          Escolha os arquivos .html de {disciplina}. O nome de cada arquivo diz a aula: <code>ALG_U1_A2.html</code> vai
-          para a Unidade I, Aula 2. Os slides valem para todas as turmas desta disciplina e só aparecem para o aluno
-          quando a aula é liberada.
+          Escolha os arquivos .html de {disciplina}, ou a pasta que guarda as pastas das unidades. O nome de cada
+          arquivo diz a aula: <code>ALG_U1_A2.html</code> vai para a Unidade I, Aula 2. Os slides valem para todas as
+          turmas desta disciplina e só aparecem para o aluno quando a aula é liberada.
         </p>
         <div className="campo">
           <label htmlFor="lote-arquivos">Arquivos de slides</label>
@@ -633,14 +639,26 @@ function EnvioEmLote({
             multiple
             accept=".html,.htm,text/html"
             className="painel-arquivo"
-            onChange={(e) => setItens(planejarEnvioEmLote([...(e.target.files ?? [])], unidades))}
+            onChange={(e) => setItens(planejarEnvioEmLote([...(e.target.files ?? [])], unidades, sigla))}
+          />
+        </div>
+        <div className="campo">
+          <label htmlFor="lote-pasta">Ou uma pasta inteira (com as subpastas)</label>
+          <input
+            ref={entradaPasta}
+            id="lote-pasta"
+            type="file"
+            multiple
+            className="painel-arquivo"
+            {...{ webkitdirectory: '' }}
+            onChange={(e) => setItens(planejarEnvioEmLote(soArquivosHtml([...(e.target.files ?? [])]), unidades, sigla))}
           />
         </div>
         {itens.length > 0 && (
           <>
             <ul className="painel-lote-lista" role="list">
               {itens.map((i) => (
-                <li key={i.arquivo.name} className={i.aula ? 'painel-lote-ok' : 'painel-lote-problema'}>
+                <li key={i.arquivo.webkitRelativePath || i.arquivo.name} className={i.aula ? 'painel-lote-ok' : 'painel-lote-problema'}>
                   <span className="painel-lote-arquivo">{i.arquivo.name}</span>
                   <span>
                     {i.aula

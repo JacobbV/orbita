@@ -371,6 +371,22 @@ export function lerNomeDoSlide(nome: string): { unidade: number; aula: number } 
   return { unidade: Number(achado[1]), aula: Number(achado[2]) }
 }
 
+/** Siglas que podem aparecer no começo do nome; DAW é a sigla de Web nos arquivos. */
+const SIGLAS_DOS_ARQUIVOS: Record<string, string> = { ALG: 'ALG', FUND: 'FUND', WEB: 'WEB', DAW: 'WEB' }
+
+/** Disciplina indicada no começo do nome (ALG_U1_A1 → ALG; DAW_U1_A1 → WEB), se for conhecida. */
+export function siglaDoNome(nome: string): { escrita: string; sigla: string } | null {
+  const achado = /^([a-z]+)[ _.-]/i.exec(nome)
+  const escrita = achado?.[1]?.toUpperCase()
+  const sigla = escrita ? SIGLAS_DOS_ARQUIVOS[escrita] : undefined
+  return escrita && sigla ? { escrita, sigla } : null
+}
+
+/** Só os .html de uma pasta escolhida inteira (deixa de fora imagens e outros arquivos). */
+export function soArquivosHtml(arquivos: File[]): File[] {
+  return arquivos.filter((a) => /\.html?$/i.test(a.name))
+}
+
 export interface ItemDoEnvio {
   arquivo: File
   aula: { id: number; rotulo: string; titulo: string; temSlides: boolean } | null
@@ -378,13 +394,17 @@ export interface ItemDoEnvio {
 }
 
 /** Casa cada arquivo com a aula da disciplina pelo nome (unidade e aula). */
-export function planejarEnvioEmLote(arquivos: File[], unidades: UnidadeDoPainel[]): ItemDoEnvio[] {
+export function planejarEnvioEmLote(arquivos: File[], unidades: UnidadeDoPainel[], sigla?: string): ItemDoEnvio[] {
   const usadas = new Set<number>()
   const itens = [...arquivos]
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true }))
     .map((arquivo): ItemDoEnvio => {
       const problemaArquivo = validarArquivoDeSlides(arquivo)
       if (problemaArquivo) return { arquivo, aula: null, problema: problemaArquivo }
+      const doNome = siglaDoNome(arquivo.name)
+      if (sigla && doNome && doNome.sigla !== sigla) {
+        return { arquivo, aula: null, problema: `Arquivo de outra disciplina (${doNome.escrita}). Troque a disciplina no topo.` }
+      }
       const nome = lerNomeDoSlide(arquivo.name)
       if (!nome) return { arquivo, aula: null, problema: 'O nome não diz a unidade e a aula (ex.: ALG_U1_A2).' }
       const unidade = unidades.find((u) => u.numero === nome.unidade)
