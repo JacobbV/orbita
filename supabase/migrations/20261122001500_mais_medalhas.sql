@@ -1,4 +1,4 @@
--- Mais tipos de medalhas: estudo, laboratório, Hangar e coleção (16 no total).
+-- Mais tipos de medalhas: estudo, laboratório, Hangar e coleção (20 no total, com a série da cobra do Python).
 --
 -- As medalhas de código contam só entregas que acertaram todos os testes
 -- visíveis e ocultos e que o professor não marcou como "não confere".
@@ -13,9 +13,13 @@ insert into public.medalhas (codigo, nome, descricao, ordem) values
   ('cacador-de-bugs', 'Caçador de Bugs', 'Acertou um exercício depois de errar 3 vezes ou mais.', 11),
   ('mestre-dos-lacos', 'Mestre dos Laços', 'Resolveu 5 exercícios diferentes usando for ou while.', 12),
   ('programador-de-bordo', 'Programador de Bordo', 'Resolveu 10 exercícios diferentes.', 13),
-  ('destaque-triplo', 'Coroa de Estrelas', 'Recebeu XP do professor por participação em 3 dias diferentes.', 14),
-  ('estrela-em-ascensao', 'Estrela em Ascensão', 'Juntou 500 XP.', 15),
-  ('colecionador', 'Colecionador', 'Ganhou 8 outras medalhas.', 16)
+  ('cobrinha', 'Cobrinha', 'Resolveu 3 exercícios em Python.', 14),
+  ('ninho-de-cobras', 'Ninho de Cobras', 'Resolveu exercícios em Python em 5 dias diferentes.', 15),
+  ('cobra-criada', 'Cobra Criada', 'Resolveu 15 exercícios em Python.', 16),
+  ('encantador-de-serpentes', 'Encantador de Serpentes', 'Acertou de primeira 3 exercícios difíceis em Python.', 17),
+  ('destaque-triplo', 'Coroa de Estrelas', 'Recebeu XP do professor por participação em 3 dias diferentes.', 18),
+  ('estrela-em-ascensao', 'Estrela em Ascensão', 'Juntou 500 XP.', 19),
+  ('colecionador', 'Colecionador', 'Ganhou 8 outras medalhas.', 20)
 on conflict (codigo) do update set nome = excluded.nome, descricao = excluded.descricao, ordem = excluded.ordem;
 
 create or replace function privado.conferir_medalhas(p_aluno_id uuid)
@@ -31,8 +35,10 @@ begin
   with
   -- Entregas que acertaram tudo e não foram recusadas na reconferência.
   certas as (
-    select en.exercicio_id, en.tentativa, en.codigo
+    select en.exercicio_id, en.tentativa, en.codigo, ex.linguagem, ex.dificuldade,
+      (en.criado_em at time zone 'America/Fortaleza')::date as dia
     from public.entregas en
+    join public.exercicios ex on ex.id = en.exercicio_id
     where en.aluno_id = p_aluno_id and en.testes_total > 0 and en.testes_certos = en.testes_total
       and en.situacao <> 'nao_confere'
   ),
@@ -105,6 +111,21 @@ begin
     union all
     select 'programador-de-bordo'
     where (select count(distinct exercicio_id) from certas) >= 10
+    union all
+    -- Série da cobra: exercícios em Python.
+    select 'cobrinha'
+    where (select count(distinct exercicio_id) from certas where linguagem = 'python') >= 3
+    union all
+    select 'ninho-de-cobras'
+    where (select count(distinct dia) from certas where linguagem = 'python') >= 5
+    union all
+    select 'cobra-criada'
+    where (select count(distinct exercicio_id) from certas where linguagem = 'python') >= 15
+    union all
+    select 'encantador-de-serpentes'
+    where (
+      select count(distinct exercicio_id) from certas where linguagem = 'python' and dificuldade = 3 and tentativa = 1
+    ) >= 3
     union all
     select 'destaque-triplo'
     where (

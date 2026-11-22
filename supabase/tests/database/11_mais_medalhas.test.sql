@@ -1,7 +1,7 @@
 -- Testes dos novos tipos de medalha. Nomes inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(17);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -35,7 +35,7 @@ $$;
 
 grant execute on function pg_temp.entrar(text) to authenticated;
 
-select is((select count(*) from public.medalhas), 16::bigint, 'catálogo com 16 medalhas');
+select is((select count(*) from public.medalhas), 20::bigint, 'catálogo com 20 medalhas');
 
 select pg_temp.criar_conta('fb000000-0000-0000-0000-00000000000f', 'docente.medalhas@academico.ifpb.edu.br');
 update public.perfis set papel = 'professor' where id = 'fb000000-0000-0000-0000-00000000000f';
@@ -111,6 +111,18 @@ where aluno_id = 'fb000000-0000-0000-0000-0000000000a1' and codigo = 'print(1)'
   and exercicio_id in (select id from public.exercicios where titulo like 'Laço %');
 select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
 select ok(pg_temp.tem('mestre-dos-lacos'), 'o quinto, com while, dá Mestre dos Laços');
+
+-- Série da cobra: os 5 exercícios com laço também são Python (e 2 da primeira parte).
+select ok(pg_temp.tem('cobrinha'), '3 exercícios em Python dão Cobrinha');
+select ok(not pg_temp.tem('ninho-de-cobras'), 'tudo no mesmo dia ainda não dá Ninho de Cobras');
+update public.entregas set criado_em = now() - (tentativa * 0 + (exercicio_id % 5)) * interval '1 day'
+where aluno_id = 'fb000000-0000-0000-0000-0000000000a1'
+  and exercicio_id in (select id from public.exercicios where titulo like 'Laço %');
+select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
+select ok(pg_temp.tem('ninho-de-cobras'), 'Python em 5 dias diferentes dá Ninho de Cobras');
+update public.exercicios set dificuldade = 3 where titulo like 'Laço %';
+select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
+select ok(pg_temp.tem('encantador-de-serpentes'), '3 difíceis de primeira dão Encantador de Serpentes');
 
 -- Sequência de 10 dias.
 insert into public.xp_eventos (aluno_id, quantidade, motivo, descricao, referencia_dia)
