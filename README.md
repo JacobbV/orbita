@@ -32,6 +32,8 @@ npx supabase stop       # desliga
 Com o Supabase local ligado, rode `npx supabase status` e copie `API_URL` e `ANON_KEY` para `web/.env.local`.
 Os e-mails de confirmação e de nova senha do ambiente local aparecem no Mailpit: http://127.0.0.1:54324
 
+Os modelos dos e-mails (confirmar cadastro, criar senha nova e trocar e-mail) ficam em `supabase/templates/`, com os assuntos em `supabase/config.toml`. No projeto da nuvem, os mesmos textos são colados à mão em Authentication → Emails. A imagem do topo fica em `web/public/email/topo.jpg` e é publicada junto com o site.
+
 - `supabase/migrations/`: uma migration por mudança (tabelas, regras RLS, conteúdo inicial).
 - `supabase/tests/database/`: testes pgTAP das regras de acesso.
 - `supabase/scripts/tornar-professor.sql`: dá o papel de professor a uma conta (rodar no painel).

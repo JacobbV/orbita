@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Confirme a troca de e-mail</title>
+</head>
+<!-- Modelo de e-mail do Órbita (trocar e-mail). Variáveis do Supabase Auth: .ConfirmationURL, .Email, .NewEmail. -->
+<body style="margin:0;padding:0;background-color:#0b0e1f;">
+<div style="display:none;max-height:0;overflow:hidden;">Confirme a troca do e-mail da sua conta no Órbita.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0b0e1f;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#161b33;border:1px solid #2a3160;border-radius:12px;">
+<tr><td style="padding:0;">
+<img src="https://jacobbv.github.io/orbita/email/topo.jpg" width="600" alt="Órbita: plataforma de estudo do IFPB Catolé do Rocha" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:12px 12px 0 0;">
+</td></tr>
+<tr><td style="padding:28px 28px 8px 28px;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#e5e7f5;">
+<p style="margin:0 0 8px 0;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#fbbf24;font-weight:700;">Conta no Órbita</p>
+<h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.3;color:#e5e7f5;">Confirme a troca de e-mail</h1>
+<p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#e5e7f5;">Olá! Pediram para trocar o e-mail da conta no Órbita de <strong style="color:#7de8f8;">{{ .Email }}</strong> para <strong style="color:#7de8f8;">{{ .NewEmail }}</strong>.</p>
+<p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:#e5e7f5;">Toque no botão abaixo para confirmar a troca.</p>
+</td></tr>
+<tr><td align="center" style="padding:16px 28px 24px 28px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td align="center" bgcolor="#22d3ee" style="border-radius:8px;">
+<a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#0b0e1f;text-decoration:none;border-radius:8px;">Confirmar a troca</a>
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:0 28px 24px 28px;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#9ca3c7;">
+<p style="margin:0 0 8px 0;">Se o botão não funcionar, copie este endereço e cole no navegador:</p>
+<p style="margin:0 0 16px 0;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#7de8f8;">{{ .ConfirmationURL }}</a></p>
+<p style="margin:0;">Se você não pediu essa troca, ignore este e-mail e avise o professor.</p>
+</td></tr>
+<tr><td style="padding:16px 28px;border-top:1px solid #2a3160;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#9ca3c7;">
+Órbita · IFPB Catolé do Rocha<br>
+Desenvolvido por <a href="https://jacobbv.github.io" style="color:#22d3ee;font-weight:700;text-decoration:none;">QYUDEV.</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
