@@ -20,6 +20,7 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 | --- | --- | --- | --- | --- |
 | React | Meta Platforms e colaboradores | https://react.dev | MIT | Interface do site |
 | React Router | Remix Software e colaboradores | https://reactrouter.com | MIT | Navegação entre páginas |
+| supabase-js | Supabase | https://github.com/supabase/supabase-js | MIT | Login, cadastro e acesso ao banco pelo site |
 | Vite | Evan You e colaboradores | https://vite.dev | MIT | Compilação do site |
 | TypeScript | Microsoft | https://www.typescriptlang.org | Apache 2.0 | Linguagem do código |
 | Vitest | Vitest team | https://vitest.dev | MIT | Testes automáticos |

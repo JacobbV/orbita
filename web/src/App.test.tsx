@@ -1,29 +1,7 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
-import { App } from './App'
+import { screen } from '@testing-library/react'
+import { abrir, prepararNavegadorFalso } from './test/renderizar'
 
-// jsdom não desenha canvas; o fundo de estrelas só precisa não quebrar.
-beforeAll(() => {
-  HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext
-  window.matchMedia ??= ((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  })) as typeof window.matchMedia
-})
-
-function abrir(rota: string) {
-  render(
-    <MemoryRouter initialEntries={[rota]}>
-      <App />
-    </MemoryRouter>,
-  )
-}
+beforeAll(prepararNavegadorFalso)
 
 describe('páginas públicas', () => {
   it('mostra o início com as três disciplinas', () => {
@@ -51,5 +29,15 @@ describe('páginas públicas', () => {
   it('mostra a página 404 para endereço desconhecido', () => {
     abrir('/nao-existe')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('não existe')
+  })
+
+  it('manda para o login quem tenta abrir a área do aluno sem entrar', () => {
+    abrir('/aguardando')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Entrar')
+  })
+
+  it('manda para o login quem tenta abrir o painel do professor sem entrar', () => {
+    abrir('/professor')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Entrar')
   })
 })

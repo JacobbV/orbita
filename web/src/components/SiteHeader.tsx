@@ -1,9 +1,18 @@
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import './SiteHeader.css'
 
-/** Topo das páginas públicas: logo, atalhos da página inicial e botões de acesso. */
+/** Topo das páginas: logo, atalhos da página inicial e botões de acesso. */
 export function SiteHeader() {
+  const { sessao, perfil, sair } = useAuth()
+  const navegar = useNavigate()
+
+  const sairDaConta = async () => {
+    await sair()
+    navegar('/', { replace: true })
+  }
+
   return (
     <header className="topo">
       <div className="container topo-linha">
@@ -16,12 +25,25 @@ export function SiteHeader() {
           </nav>
         </div>
         <div className="topo-acoes">
-          <Link to="/entrar" className="botao botao-compacto">
-            Entrar
-          </Link>
-          <Link to="/cadastro" className="botao botao-primario botao-compacto">
-            Criar conta
-          </Link>
+          {sessao ? (
+            <>
+              <Link to={perfil?.papel === 'professor' ? '/professor' : '/aguardando'} className="botao botao-compacto">
+                Minha área
+              </Link>
+              <button type="button" className="botao botao-compacto" onClick={() => void sairDaConta()}>
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/entrar" className="botao botao-compacto">
+                Entrar
+              </Link>
+              <Link to="/cadastro" className="botao botao-primario botao-compacto">
+                Criar conta
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -56,6 +56,13 @@ export const BIBLIOTECAS: Credito[] = [
     uso: 'Navegação entre páginas',
   },
   {
+    nome: 'supabase-js',
+    autor: 'Supabase',
+    link: 'https://github.com/supabase/supabase-js',
+    licenca: 'MIT',
+    uso: 'Login, cadastro e acesso ao banco pelo site',
+  },
+  {
     nome: 'Vite',
     autor: 'Evan You e colaboradores',
     link: 'https://vite.dev',

@@ -12,7 +12,9 @@ import '@fontsource/press-start-2p/latin-400.css'
 
 import './styles/tokens.css'
 import './styles/global.css'
+import './styles/formularios.css'
 import { App } from './App'
+import { AuthProvider } from './auth/AuthProvider'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Elemento #root não encontrado no index.html')
@@ -20,7 +22,9 @@ if (!root) throw new Error('Elemento #root não encontrado no index.html')
 createRoot(root).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

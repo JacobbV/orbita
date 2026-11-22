@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import './Mensagem.css'
 
-/** Página provisória para telas das próximas etapas (Entrar e Cadastro). */
+/** Página provisória para telas das próximas etapas (ponte do aluno e painel do professor). */
 export function EmBreve({ titulo }: { titulo: string }) {
   return (
     <div className="mensagem container">
