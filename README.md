@@ -52,4 +52,12 @@ npx playwright test e2e/fluxo-completo.spec.ts   # só o fluxo principal
 
 Os testes criam contas com nomes inventados e e-mails com um número da execução, então podem rodar várias vezes no mesmo banco local. `npx supabase db reset` limpa tudo.
 
+## Testes automáticos no GitHub e publicação
+
+- `.github/workflows/testes.yml` (**Testes**): a cada push numa branch `fase-*` e em todo pull request para a `main`, roda lint, Vitest, build, testes do banco (pgTAP) e testes de ponta a ponta (Playwright) contra um Supabase local criado na própria máquina do GitHub. Não usa segredos.
+- `.github/workflows/publicar.yml` (**Publicar**): a cada merge na `main` (ou à mão, na aba Actions), aplica as migrations novas no Supabase da nuvem e publica o site em https://jacobbv.github.io/orbita/.
+  - Segredos do repositório (Settings → Secrets and variables → Actions): `SUPABASE_ACCESS_TOKEN` e `SUPABASE_DB_PASSWORD`.
+  - GitHub Pages com a fonte "GitHub Actions" (Settings → Pages).
+- `web/.env.production`: URL e chave **pública** do projeto orbita, usadas no build publicado. A chave secreta nunca entra em arquivo.
+
 Desenvolvido por QYUDEV. — https://jacobbv.github.io
