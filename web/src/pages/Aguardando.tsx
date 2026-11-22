@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { saudacao } from '../lib/saudacao'
 import { Aviso } from '../components/Aviso'
 import { Campo } from '../components/Campo'
 import { Carregando } from '../components/Carregando'
@@ -63,7 +64,6 @@ export function Aguardando() {
 
   if (!pedidos && !erro) return <Carregando />
 
-  const primeiroNome = perfil?.nome.trim().split(/\s+/)[0] ?? 'tripulante'
   const algumAprovado = situacoes.some((s) => s.pedido.status === 'aprovado')
   const algumPendente = situacoes.some((s) => s.pedido.status === 'pendente')
 
@@ -73,7 +73,7 @@ export function Aguardando() {
         <p className="pixel acesso-selo aguardando-selo">
           {algumAprovado ? 'Acesso liberado' : 'Aguardando aprovação'}
         </p>
-        <h1 id="aguardando-titulo">Olá, {primeiroNome}.</h1>
+        <h1 id="aguardando-titulo">{saudacao(perfil?.nome, 'tripulante')}</h1>
         <p className="acesso-intro">
           {algumPendente
             ? 'O professor confere cada pedido. Quando ele aprovar, as aulas da sua turma aparecem na sua área.'
