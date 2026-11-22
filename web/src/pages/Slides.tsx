@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { Link, useLocation, useNavigate, useParams, type To } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
@@ -14,6 +14,8 @@ import './Slides.css'
 export function Slides() {
   const { id } = useParams()
   const { perfil } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [slides, setSlides] = useState<SlidesDaAula | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [telaCheia, setTelaCheia] = useState(false)
@@ -53,7 +55,15 @@ export function Slides() {
 
   const ehProfessor = perfil?.papel === 'professor'
   const marca = ehProfessor ? null : [perfil?.nome, perfil?.email].filter(Boolean).join(' · ')
-  const voltar = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
+  const voltar: To = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
+  // Quem chegou por dentro do site volta para a mesma tela (mesma turma e
+  // disciplina no painel), como o botão Voltar do navegador ou do mouse.
+  const veioDoSite = location.key !== 'default'
+  function aoVoltar(e: MouseEvent<HTMLAnchorElement>) {
+    if (!veioDoSite || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    void navigate(-1)
+  }
 
   async function alternarTelaCheia() {
     if (document.fullscreenElement) await document.exitFullscreen()
@@ -78,7 +88,7 @@ export function Slides() {
   return (
     <div className="slides container">
       <div className="slides-barra">
-        <Link to={voltar} className="botao slides-voltar">
+        <Link to={voltar} className="botao slides-voltar" onClick={aoVoltar}>
           <span aria-hidden="true">←</span> Voltar
         </Link>
         <div className="slides-nome">

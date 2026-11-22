@@ -164,6 +164,10 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     // Professor abre os slides da aula bloqueada (modo apresentação).
     await prof.page.getByRole('link', { name: 'Apresentar slides da aula I.2' }).click()
     await expect(prof.page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide e2e da aula bloqueada' })).toBeVisible()
+    // Voltar leva à mesma turma e disciplina do painel.
+    await prof.page.getByRole('link', { name: /Voltar/ }).click()
+    await expect(prof.page).toHaveURL(new RegExp(`oferta=${ofertaId}`))
+    await expect(prof.page.getByLabel('Turma e disciplina')).toHaveValue(String(ofertaId))
     expect([...prof.erros, ...estudante.erros]).toEqual([])
   })
 
