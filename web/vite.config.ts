@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   base: '/orbita/',
   plugins: [react()],
+  // Os testes leem as migrations do banco (pasta supabase/, fora de web/).
+  server: { fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
     globals: true,
