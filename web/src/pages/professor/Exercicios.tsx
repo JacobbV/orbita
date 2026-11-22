@@ -8,6 +8,9 @@ import { ExecutorPython } from '../../lab/executor'
 import { mensagemDeErro } from '../../lib/erros'
 import {
   carregarAulaComExercicios,
+  conferirEntrega,
+  decidirReconferencia,
+  entregasParaReconferir,
   EXPLICACAO_DO_TIPO,
   MAX_TESTES,
   NOME_DO_TIPO,
@@ -18,6 +21,7 @@ import {
   type AulaComExercicios,
   type DadosDoExercicio,
   type ErrosDoExercicio,
+  type EntregaParaReconferir,
   type ExercicioDoPainel,
   type TesteDoProfessor,
   type TipoDeTeste,
@@ -59,6 +63,7 @@ export function Exercicios() {
   const [erro, setErro] = useState<string | null>(null)
   const [editando, setEditando] = useState<number | 'novo' | null>(null)
   const [removendo, setRemovendo] = useState<number | null>(null)
+  const [reconferindo, setReconferindo] = useState<number | null>(null)
   const [aviso, setAviso] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const [ocupado, setOcupado] = useState(false)
 
@@ -186,12 +191,27 @@ export function Exercicios() {
                   {NOME_DIFICULDADE[e.dificuldade]} · +{XP_POR_DIFICULDADE[e.dificuldade]} XP · {resumoDosTestes(e.testes)}
                   {' · '}
                   {e.entregas === 0 ? 'nenhuma entrega' : `${e.entregas} ${e.entregas === 1 ? 'entrega' : 'entregas'}`}
+                  {e.aConfirmar > 0 && <span className="exercicios-a-confirmar"> · {e.aConfirmar} a confirmar</span>}
                 </p>
               </div>
               <div className="painel-botoes">
                 <Link to={`/exercicio/${e.id}`} className="botao" aria-label={`Abrir ${e.titulo} como o aluno vê`}>
                   Abrir
                 </Link>
+                {e.aConfirmar > 0 && (
+                  <button
+                    type="button"
+                    className="botao botao-primario"
+                    disabled={editando !== null || ocupado || reconferindo !== null}
+                    aria-label={`Reconferir as entregas de ${e.titulo}`}
+                    onClick={() => {
+                      setAviso(null)
+                      setReconferindo(e.id)
+                    }}
+                  >
+                    Reconferir ({e.aConfirmar})
+                  </button>
+                )}
                 <button
                   type="button"
                   className="botao"
@@ -215,6 +235,15 @@ export function Exercicios() {
                   Remover
                 </button>
               </div>
+              {reconferindo === e.id && (
+                <Reconferencia
+                  exercicio={e}
+                  aoTerminar={async () => {
+                    await recarregar().catch(() => {})
+                  }}
+                  aoFechar={() => setReconferindo(null)}
+                />
+              )}
               {removendo === e.id && (
                 <div className="painel-confirmar painel-confirmar-perigo exercicios-confirmacao">
                   {e.entregas > 0 ? (
@@ -524,5 +553,94 @@ function PreencherComSolucao({ testes, aoPreencher }: { testes: TesteDoProfessor
         </Aviso>
       )}
     </details>
+  )
+}
+
+type LinhaDaReconferencia = { entrega: EntregaParaReconferir; confere: boolean; motivo: string }
+
+/**
+ * Roda, no navegador do professor, todos os testes (inclusive os secretos) no
+ * código de cada entrega "a confirmar" e registra se confere.
+ */
+function Reconferencia({
+  exercicio,
+  aoTerminar,
+  aoFechar,
+}: {
+  exercicio: ExercicioDoPainel
+  aoTerminar: () => Promise<void>
+  aoFechar: () => void
+}) {
+  const [estado, setEstado] = useState<'carregando' | 'rodando' | 'pronto'>('carregando')
+  const [linhas, setLinhas] = useState<LinhaDaReconferencia[]>([])
+  const [total, setTotal] = useState(0)
+  const [erro, setErro] = useState<string | null>(null)
+  const executor = useRef<ExecutorPython | null>(null)
+  const iniciou = useRef(false)
+
+  useEffect(() => {
+    if (iniciou.current) return
+    iniciou.current = true
+    const py = new ExecutorPython()
+    executor.current = py
+    ;(async () => {
+      try {
+        const entregas = await entregasParaReconferir(exercicio.id)
+        setTotal(entregas.length)
+        await py.carregar()
+        setEstado('rodando')
+        for (const entrega of entregas) {
+          const resultados: { tipo: TipoDeTeste; certo: boolean }[] = []
+          for (const t of exercicio.testes) {
+            const r = await py.rodar(entrega.codigo, t.entrada, false)
+            const certo = !r.erro && !r.tempoEsgotado && normalizarSaida(r.saida) === normalizarSaida(t.saidaEsperada)
+            resultados.push({ tipo: t.tipo, certo })
+          }
+          const decisao = decidirReconferencia(entrega, resultados)
+          await conferirEntrega(entrega.id, decisao.confere)
+          setLinhas((l) => [...l, { entrega, ...decisao }])
+        }
+        setEstado('pronto')
+        await aoTerminar()
+      } catch (e) {
+        setErro(e instanceof Error && e.message.startsWith('Não foi possível carregar o Python') ? e.message : mensagemDeErro(e))
+        setEstado('pronto')
+      }
+    })()
+    return () => py.encerrar()
+    // Roda uma vez por abertura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const confirmadas = linhas.filter((l) => l.confere).length
+  return (
+    <div className="exercicios-reconferencia" role="region" aria-label={`Reconferência de ${exercicio.titulo}`}>
+      <p className="exercicios-reconferencia-titulo">
+        {estado === 'carregando' && 'Carregando o Python…'}
+        {estado === 'rodando' && `Reconferindo… ${linhas.length} de ${total}`}
+        {estado === 'pronto' &&
+          !erro &&
+          `Pronto: ${confirmadas} ${confirmadas === 1 ? 'confirmada' : 'confirmadas'} e ${linhas.length - confirmadas} sem conferir.`}
+      </p>
+      <p className="campo-dica">
+        Todos os testes rodam de novo aqui, inclusive os secretos. Quando não confere, o XP do exercício sai do aluno.
+      </p>
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
+      {linhas.length > 0 && (
+        <ul className="exercicios-reconferencia-lista" role="list">
+          {linhas.map((l) => (
+            <li key={l.entrega.id} className={l.confere ? 'exercicios-confere' : 'exercicios-nao-confere'}>
+              <span aria-hidden="true">{l.confere ? '✓' : '✗'}</span>{' '}
+              <strong>{l.entrega.aluno}</strong> (entrega {l.entrega.tentativa}): {l.motivo}
+            </li>
+          ))}
+        </ul>
+      )}
+      {estado === 'pronto' && (
+        <button type="button" className="botao" onClick={aoFechar}>
+          Fechar
+        </button>
+      )}
+    </div>
   )
 }

@@ -50,6 +50,11 @@ const MENSAGENS_DO_BANCO = [
   'Coloque pelo menos um teste visível ou oculto: é com eles que o aluno confere o código.',
   'Exercício não encontrado.',
   'Este exercício já tem entregas de alunos e não pode ser removido.',
+  'Este exercício ainda não foi liberado para a sua turma.',
+  'Só o aluno entrega exercícios.',
+  'Escreva o código antes de entregar (até 20 mil caracteres).',
+  'Resultado dos testes inválido.',
+  'Entrega não encontrada.',
 ]
 
 export function mensagemDeErro(erro: unknown): string {

@@ -222,3 +222,47 @@
   white-space: pre-wrap;
   font-family: inherit;
 }
+
+/* Reconferência */
+
+.exercicios-a-confirmar {
+  color: var(--estrela);
+}
+
+.exercicios-reconferencia {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+}
+
+.exercicios-reconferencia .aviso {
+  align-self: stretch;
+}
+
+.exercicios-reconferencia-titulo {
+  font-weight: 800;
+}
+
+.exercicios-reconferencia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+}
+
+.exercicios-confere span[aria-hidden] {
+  color: var(--sucesso);
+}
+
+.exercicios-nao-confere span[aria-hidden] {
+  color: var(--plasma);
+}

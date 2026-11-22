@@ -5,9 +5,11 @@ import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErro
 // solução, rodando o Python de verdade) e o aluno resolve. Dados inventados.
 
 const aluno = emailDeTeste('exercicio-painel')
+const aluno2 = emailDeTeste('exercicio-painel-2')
 const professor = emailDeTeste('professor-exercicios')
 const TITULO = 'Dobro de um número'
 let aulaId = 0
+let aluno2Id = ''
 
 async function escrever(page: Page, rotulo: string, codigo: string) {
   const editor = page.locator(`.cm-content[aria-label="${rotulo}"]`)
@@ -24,6 +26,8 @@ test.describe.serial('Exercícios criados no painel', () => {
     const algV = await oferta('1º INFO V', 'ALG')
     const id = await criarConta(aluno, 'Nebulosa Exemplo Fictícia', { ofertaId: algV, quemEVoce: 'Nebulosa Exemplo Fictícia, 1º INFO V, tarde' })
     await rest(`matriculas?aluno_id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
+    aluno2Id = await criarConta(aluno2, 'Quasar Exemplo Fictício', { ofertaId: algV, quemEVoce: 'Quasar Exemplo Fictício, 1º INFO V, tarde' })
+    await rest(`matriculas?aluno_id=eq.${aluno2Id}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
     await criarProfessor(professor, 'Professor Fictício')
     aulaId =
       (
@@ -75,6 +79,46 @@ test.describe.serial('Exercícios criados no painel', () => {
     await escrever(page, 'Editor de código Python', 'n = int(input())\nprint(n * 2)')
     await page.getByRole('button', { name: '✓ Testar' }).click()
     await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible({ timeout: 60_000 })
+    await page.getByRole('button', { name: 'Entregar' }).click()
+    await expect(page.getByText('Entrega 1 enviada: 2 de 2 testes certos. +35 XP, a confirmar pelo professor.')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Suas entregas' })).toContainText('a confirmar pelo professor')
     expect(erros).toEqual([])
+  })
+
+  test('outro aluno acerta os testes abertos com um código que falha no secreto', async ({ page }) => {
+    const erros = registrarErros(page)
+    await entrar(page, aluno2)
+    await page.goto('ponte')
+    await page.getByRole('link', { name: new RegExp(`Exercício: ${TITULO}`) }).click()
+    await escrever(page, 'Editor de código Python', 'n = int(input())\nprint(n * 2 if n != 0 else 1)')
+    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible({ timeout: 60_000 })
+    await page.getByRole('button', { name: 'Entregar' }).click()
+    await expect(page.getByText(/Entrega 1 enviada: 2 de 2 testes certos/)).toBeVisible()
+    expect(erros).toEqual([])
+  })
+
+  test('professor reconfere: uma confirma, a outra não confere e perde o XP', async ({ page }) => {
+    const erros = registrarErros(page)
+    await entrar(page, professor)
+    await page.goto(`professor/exercicios/${aulaId}`)
+    const item = page.locator('li', { hasText: TITULO })
+    await expect(item).toContainText('2 entregas · 2 a confirmar')
+    await item.getByRole('button', { name: `Reconferir as entregas de ${TITULO}` }).click()
+    const painel = page.getByRole('region', { name: `Reconferência de ${TITULO}` })
+    await expect(painel.getByText('Pronto: 1 confirmada e 1 sem conferir.')).toBeVisible({ timeout: 60_000 })
+    await expect(painel).toContainText('Nebulosa Exemplo Fictícia (entrega 1): Confere: 2 de 2 testes e o secreto.')
+    await expect(painel).toContainText('Quasar Exemplo Fictício (entrega 1): Errou o teste secreto.')
+    await expect(item).not.toContainText('a confirmar')
+    const xp = await rest<Array<{ situacao: string }>>(`xp_eventos?aluno_id=eq.${aluno2Id}&motivo=eq.exercicio&select=situacao`)
+    expect(xp.map((x) => x.situacao)).toEqual(['retirado'])
+    expect(erros).toEqual([])
+  })
+
+  test('o aluno vê que a entrega não conferiu', async ({ page }) => {
+    await entrar(page, aluno2)
+    await page.goto('ponte')
+    await page.getByRole('link', { name: new RegExp(`Exercício: ${TITULO}`) }).click()
+    await expect(page.getByRole('region', { name: 'Suas entregas' })).toContainText('não conferiu na reconferência')
   })
 })

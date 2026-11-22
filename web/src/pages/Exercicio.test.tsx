@@ -4,7 +4,11 @@ import type { Session } from '@supabase/supabase-js'
 import { abrir, prepararNavegadorFalso, SEM_LOGIN } from '../test/renderizar'
 
 // Dados inventados. O Python e o editor de verdade são trocados por versões falsas.
-const falso = vi.hoisted(() => ({ saidas: new Map<string, string>(), codigosRodados: [] as string[] }))
+const falso = vi.hoisted(() => ({
+  saidas: new Map<string, string>(),
+  codigosRodados: [] as string[],
+  entregues: [] as { exercicioId: number; codigo: string; certos: number }[],
+}))
 
 vi.mock('../lib/supabase', () => ({
   supabaseConfigurado: () => true,
@@ -14,6 +18,20 @@ vi.mock('../lib/supabase', () => ({
 
 vi.mock('../lib/laboratorio', async (original) => ({
   ...(await original<typeof import('../lib/laboratorio')>()),
+  minhasEntregas: async () =>
+    falso.entregues.map((e, i) => ({
+      id: i + 1,
+      tentativa: i + 1,
+      testesCertos: e.certos,
+      testesTotal: 2,
+      situacao: 'a_confirmar',
+      criadoEm: '2026-11-22T13:00:00Z',
+    })).reverse(),
+  entregar: async (exercicioId: number, codigo: string, certos: number) => {
+    falso.entregues.push({ exercicioId, codigo, certos })
+    const tudo = certos === 2 && falso.entregues.filter((e) => e.certos === 2).length === 1
+    return { tentativa: falso.entregues.length, conquista: tudo ? { xp: 20, ganhos: [], medalhas: [] } : { xp: 0 } }
+  },
   carregarExercicio: async () => ({
     exercicio: {
       id: 7,
@@ -60,6 +78,7 @@ beforeAll(prepararNavegadorFalso)
 beforeEach(() => {
   falso.saidas.clear()
   falso.codigosRodados = []
+  falso.entregues = []
   localStorage.clear()
 })
 
@@ -103,5 +122,46 @@ describe('Exercício do laboratório', () => {
     abrir('/exercicio/7', ALUNO)
     await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
     expect(await screen.findByText('Soma: 3')).toBeInTheDocument()
+  })
+
+  it('Entregar envia o código testado e mostra o XP a confirmar', async () => {
+    const u = userEvent.setup()
+    falso.saidas.set('1\n2', '3')
+    falso.saidas.set('5\n5', '10')
+    abrir('/exercicio/7', ALUNO)
+    const editor = await screen.findByLabelText('Editor de código Python')
+    await u.clear(editor)
+    await u.type(editor, 'print(3)')
+    await u.click(screen.getByRole('button', { name: '✓ Testar' }))
+    await screen.findByRole('heading', { name: 'Todos os 2 testes certos!' })
+    await u.click(screen.getByRole('button', { name: 'Entregar' }))
+    expect(
+      await screen.findByText('Entrega 1 enviada: 2 de 2 testes certos. +20 XP, a confirmar pelo professor.'),
+    ).toBeInTheDocument()
+    expect(falso.entregues).toEqual([{ exercicioId: 7, codigo: 'print(3)', certos: 2 }])
+    const entregas = screen.getByRole('region', { name: 'Suas entregas' })
+    expect(entregas).toHaveTextContent('Entrega 1')
+    expect(entregas).toHaveTextContent('2 de 2 testes certos')
+    expect(entregas).toHaveTextContent('a confirmar pelo professor')
+  })
+
+  it('mudou o código depois de testar: não deixa entregar', async () => {
+    const u = userEvent.setup()
+    abrir('/exercicio/7', ALUNO)
+    const editor = await screen.findByLabelText('Editor de código Python')
+    await u.click(screen.getByRole('button', { name: '✓ Testar' }))
+    await screen.findByRole('heading', { name: '0 de 2 testes certos' })
+    expect(screen.getByRole('button', { name: 'Entregar' })).toBeEnabled()
+    await u.type(editor, 'x')
+    expect(screen.getByRole('button', { name: 'Entregar' })).toBeDisabled()
+    expect(screen.getByText(/Clique em Testar de novo para poder entregar/)).toBeInTheDocument()
+  })
+
+  it('o professor testa, mas não vê o botão Entregar', async () => {
+    const u = userEvent.setup()
+    abrir('/exercicio/7', { ...ALUNO, perfil: { ...ALUNO.perfil, papel: 'professor' as const } })
+    await u.click(await screen.findByRole('button', { name: '✓ Testar' }))
+    await screen.findByRole('heading', { name: '0 de 2 testes certos' })
+    expect(screen.queryByRole('button', { name: 'Entregar' })).toBeNull()
   })
 })

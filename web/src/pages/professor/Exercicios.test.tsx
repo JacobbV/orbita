@@ -11,6 +11,7 @@ const falso = vi.hoisted(() => ({
   removidos: [] as number[],
   erroAoSalvar: null as Error | null,
   saidas: new Map<string, string>(),
+  conferidas: [] as { id: number; confere: boolean }[],
 }))
 
 vi.mock('../../lib/supabase', () => ({
@@ -30,6 +31,13 @@ vi.mock('../../lib/exercicios', async (original) => ({
   removerExercicio: async (id: number) => {
     falso.removidos.push(id)
   },
+  entregasParaReconferir: async () => [
+    { id: 501, aluno: 'Lia Fictícia', tentativa: 1, codigo: 'certo', testesCertos: 2, testesTotal: 2 },
+    { id: 502, aluno: 'Caio Inventado', tentativa: 2, codigo: 'sem-o-zero', testesCertos: 2, testesTotal: 2 },
+  ],
+  conferirEntrega: async (id: number, confere: boolean) => {
+    falso.conferidas.push({ id, confere })
+  },
 }))
 
 vi.mock('../../lab/EditorCodigo', () => ({
@@ -42,8 +50,9 @@ vi.mock('../../lab/executor', async (original) => ({
   ...(await original<typeof import('../../lab/executor')>()),
   ExecutorPython: class {
     async carregar() {}
-    async rodar(_codigo: string, entrada: string) {
-      return { saida: `${falso.saidas.get(entrada) ?? ''}\n`, erro: null, tempoEsgotado: false, saidaGrande: false }
+    async rodar(codigo: string, entrada: string) {
+      const saida = falso.saidas.get(`${codigo}|${entrada}`) ?? falso.saidas.get(entrada) ?? ''
+      return { saida: `${saida}\n`, erro: null, tempoEsgotado: false, saidaGrande: false }
     }
     encerrar() {}
   },
@@ -71,8 +80,9 @@ function dados(): AulaComExercicios {
           { tipo: 'secreto', entrada: '0', saidaEsperada: '0' },
         ],
         entregas: 3,
+        aConfirmar: 2,
       },
-      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], entregas: 0 },
+      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], entregas: 0, aConfirmar: 0 },
     ],
   }
 }
@@ -84,6 +94,7 @@ beforeEach(() => {
   falso.removidos = []
   falso.erroAoSalvar = null
   falso.saidas = new Map()
+  falso.conferidas = []
 })
 
 describe('Exercícios da aula (painel)', () => {
@@ -179,6 +190,28 @@ describe('Exercícios da aula (painel)', () => {
     await u.click(screen.getByRole('button', { name: 'Sim, remover' }))
     expect(await screen.findByText('Exercício "Rascunho" removido.')).toBeInTheDocument()
     expect(falso.removidos).toEqual([8])
+  })
+
+  it('reconfere as entregas com os testes secretos', async () => {
+    const u = userEvent.setup()
+    for (const codigo of ['certo', 'sem-o-zero']) {
+      falso.saidas.set(`${codigo}|2`, '2\n1\n0')
+      falso.saidas.set(`${codigo}|1`, '1\n0')
+    }
+    falso.saidas.set('certo|0', '0')
+    falso.saidas.set('sem-o-zero|0', '')
+    abrir('/professor/exercicios/41', PROFESSOR)
+    const item = (await screen.findByRole('heading', { name: 'Contagem regressiva' })).closest('li') as HTMLElement
+    expect(item).toHaveTextContent('3 entregas · 2 a confirmar')
+    await u.click(within(item).getByRole('button', { name: 'Reconferir as entregas de Contagem regressiva' }))
+    const painel = screen.getByRole('region', { name: 'Reconferência de Contagem regressiva' })
+    expect(await within(painel).findByText('Pronto: 1 confirmada e 1 sem conferir.')).toBeInTheDocument()
+    expect(painel).toHaveTextContent('Lia Fictícia (entrega 1): Confere: 2 de 2 testes e o secreto.')
+    expect(painel).toHaveTextContent('Caio Inventado (entrega 2): Errou o teste secreto.')
+    expect(falso.conferidas).toEqual([
+      { id: 501, confere: true },
+      { id: 502, confere: false },
+    ])
   })
 
   it('aluno não entra', async () => {

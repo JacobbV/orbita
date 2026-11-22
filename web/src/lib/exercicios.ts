@@ -20,6 +20,8 @@ export interface ExercicioDoPainel {
   testes: TesteDoProfessor[]
   /** Quantas entregas de alunos já existem (com entregas, não pode remover). */
   entregas: number
+  /** Entregas esperando a reconferência do professor. */
+  aConfirmar: number
 }
 
 export interface AulaComExercicios {
@@ -45,7 +47,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
   const { data, error } = await supabase()
     .from('aulas')
     .select(
-      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, codigo_inicial, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(count))',
+      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, codigo_inicial, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
     )
     .eq('id', aulaId)
     .maybeSingle()
@@ -71,7 +73,8 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
         testes: [...e.testes]
           .sort((a, b) => a.ordem - b.ordem)
           .map((t) => ({ tipo: t.tipo as TipoDeTeste, entrada: t.entrada, saidaEsperada: t.saida_esperada })),
-        entregas: e.entregas[0]?.count ?? 0,
+        entregas: e.entregas.length,
+        aConfirmar: e.entregas.filter((x) => x.situacao === 'a_confirmar').length,
       })),
   }
 }
@@ -130,4 +133,74 @@ export async function salvarExercicio(id: number | null, aulaId: number, d: Dado
 export async function removerExercicio(id: number): Promise<void> {
   const { error } = await supabase().rpc('remover_exercicio', { p_id: id })
   if (error) throw error
+}
+
+// ---------------------------------------------------------------------------
+// Reconferência: o navegador do professor roda todos os testes de novo,
+// inclusive os secretos, no código de cada entrega "a confirmar".
+// ---------------------------------------------------------------------------
+
+export interface EntregaParaReconferir {
+  id: number
+  aluno: string
+  tentativa: number
+  codigo: string
+  testesCertos: number
+  testesTotal: number
+}
+
+export async function entregasParaReconferir(exercicioId: number): Promise<EntregaParaReconferir[]> {
+  const { data, error } = await supabase()
+    .from('entregas')
+    .select('id, tentativa, codigo, testes_certos, testes_total, aluno:perfis!inner(nome)')
+    .eq('exercicio_id', exercicioId)
+    .eq('situacao', 'a_confirmar')
+    .order('criado_em')
+  if (error) throw error
+  return data.map((e) => ({
+    id: e.id,
+    aluno: e.aluno.nome,
+    tentativa: e.tentativa,
+    codigo: e.codigo,
+    testesCertos: e.testes_certos,
+    testesTotal: e.testes_total,
+  }))
+}
+
+export async function conferirEntrega(id: number, confere: boolean): Promise<void> {
+  const { error } = await supabase().rpc('conferir_entrega', { p_entrega_id: id, p_confere: confere })
+  if (error) throw error
+}
+
+/**
+ * Confere quando o resultado medido agora bate com o que o aluno enviou e,
+ * para quem disse que acertou tudo, quando os testes secretos também passam.
+ */
+export function decidirReconferencia(
+  entrega: Pick<EntregaParaReconferir, 'testesCertos' | 'testesTotal'>,
+  resultados: { tipo: TipoDeTeste; certo: boolean }[],
+): { confere: boolean; motivo: string } {
+  const abertos = resultados.filter((r) => r.tipo !== 'secreto')
+  const certosAgora = abertos.filter((r) => r.certo).length
+  const secretos = resultados.filter((r) => r.tipo === 'secreto')
+  const secretosCertos = secretos.filter((r) => r.certo).length
+  if (certosAgora !== entrega.testesCertos) {
+    return {
+      confere: false,
+      motivo: `A entrega dizia ${entrega.testesCertos} de ${entrega.testesTotal} testes certos, e agora deu ${certosAgora} de ${abertos.length}.`,
+    }
+  }
+  const acertouTudo = entrega.testesTotal > 0 && entrega.testesCertos === entrega.testesTotal
+  if (acertouTudo && secretosCertos < secretos.length) {
+    const motivo =
+      secretos.length === 1 ? 'Errou o teste secreto.' : `Errou ${secretos.length - secretosCertos} de ${secretos.length} testes secretos.`
+    return { confere: false, motivo }
+  }
+  return {
+    confere: true,
+    motivo:
+      secretos.length > 0 && acertouTudo
+        ? `Confere: ${certosAgora} de ${abertos.length} testes e ${secretos.length === 1 ? 'o secreto' : `os ${secretos.length} secretos`}.`
+        : `Confere: ${certosAgora} de ${abertos.length} testes certos.`,
+  }
 }

@@ -236,3 +236,68 @@
   color: var(--texto-suave);
   font-style: italic;
 }
+
+/* Entregar e entregas anteriores */
+
+.exercicio-entregar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borda);
+}
+
+.exercicio-entregar p {
+  color: var(--texto-suave);
+}
+
+.exercicio-entregar .aviso {
+  align-self: stretch;
+}
+
+.exercicio-entregas {
+  padding: 20px;
+}
+
+.exercicio-entregas h2 {
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.exercicio-entregas-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercicio-entrega {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding-block: 10px;
+  border-top: 1px solid var(--borda);
+  font-size: 0.9375rem;
+}
+
+.exercicio-entrega-numero {
+  font-weight: 800;
+}
+
+.exercicio-entrega-situacao {
+  color: var(--estrela);
+}
+
+.exercicio-entrega-confirmada .exercicio-entrega-situacao {
+  color: var(--sucesso);
+}
+
+.exercicio-entrega-nao_confere .exercicio-entrega-situacao {
+  color: var(--plasma);
+}
+
+.exercicio-entrega-data {
+  color: var(--texto-suave);
+  margin-left: auto;
+}

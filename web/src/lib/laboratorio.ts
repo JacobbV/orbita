@@ -63,3 +63,55 @@ export function guardarRascunho(exercicioId: number, codigo: string) {
     // Sem armazenamento (aba anônima etc.): segue sem rascunho.
   }
 }
+
+// ---------------------------------------------------------------------------
+// Entregas do aluno
+// ---------------------------------------------------------------------------
+
+export type SituacaoDaEntrega = 'a_confirmar' | 'confirmada' | 'nao_confere'
+
+export const NOME_DA_SITUACAO: Record<SituacaoDaEntrega, string> = {
+  a_confirmar: 'a confirmar pelo professor',
+  confirmada: 'confirmada pelo professor',
+  nao_confere: 'não conferiu na reconferência',
+}
+
+export interface EntregaDoAluno {
+  id: number
+  tentativa: number
+  testesCertos: number
+  testesTotal: number
+  situacao: SituacaoDaEntrega
+  criadoEm: string
+}
+
+/** Entregas do próprio aluno neste exercício, da mais nova para a mais antiga. */
+export async function minhasEntregas(exercicioId: number, alunoId: string): Promise<EntregaDoAluno[]> {
+  const { data, error } = await supabase()
+    .from('entregas')
+    .select('id, tentativa, testes_certos, testes_total, situacao, criado_em')
+    .eq('exercicio_id', exercicioId)
+    .eq('aluno_id', alunoId)
+    .order('tentativa', { ascending: false })
+  if (error) throw error
+  return data.map((e) => ({
+    id: e.id,
+    tentativa: e.tentativa,
+    testesCertos: e.testes_certos,
+    testesTotal: e.testes_total,
+    situacao: e.situacao as SituacaoDaEntrega,
+    criadoEm: e.criado_em,
+  }))
+}
+
+/** Guarda o código e o resultado medido no navegador. Acertou tudo pela primeira vez: XP a confirmar. */
+export async function entregar(exercicioId: number, codigo: string, testesCertos: number): Promise<{ tentativa: number; conquista: unknown }> {
+  const { data, error } = await supabase().rpc('entregar', {
+    p_exercicio_id: exercicioId,
+    p_codigo: codigo,
+    p_testes_certos: testesCertos,
+  })
+  if (error) throw error
+  const d = (data ?? {}) as { tentativa?: number }
+  return { tentativa: d.tentativa ?? 0, conquista: data }
+}

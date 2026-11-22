@@ -7,9 +7,14 @@ import { saidaConfere, type TesteDoAluno } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import { ExecutorPython, TEMPO_LIMITE_MS, type ResultadoDaExecucao } from '../lab/executor'
 import { mensagemDeErro } from '../lib/erros'
+import { anunciarConquista, lerConquista } from '../lib/progresso'
 import {
   carregarExercicio,
+  entregar,
   ExercicioIndisponivel,
+  minhasEntregas,
+  NOME_DA_SITUACAO,
+  type EntregaDoAluno,
   guardarRascunho,
   lerRascunho,
   NOME_DIFICULDADE,
@@ -34,7 +39,13 @@ export function Exercicio() {
   const [falhaPython, setFalhaPython] = useState<string | null>(null)
   const [consoleSaida, setConsoleSaida] = useState<Console | null>(null)
   const [resultados, setResultados] = useState<ResultadoTeste[] | null>(null)
+  // Código que gerou os resultados: só ele pode ser entregue.
+  const [codigoTestado, setCodigoTestado] = useState<string | null>(null)
+  const [entregas, setEntregas] = useState<EntregaDoAluno[]>([])
+  const [entregando, setEntregando] = useState(false)
+  const [avisoEntrega, setAvisoEntrega] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const executor = useRef<ExecutorPython | null>(null)
+  const ehAluno = perfil?.papel === 'aluno'
 
   useEffect(() => {
     let ativo = true
@@ -55,6 +66,21 @@ export function Exercicio() {
   }, [id])
 
   useEffect(() => () => executor.current?.encerrar(), [])
+
+  useEffect(() => {
+    if (!ehAluno || !perfil) return
+    let ativo = true
+    // As entregas anteriores são um extra: se falhar, a página abre do mesmo jeito.
+    minhasEntregas(Number(id), perfil.id).then(
+      (e) => {
+        if (ativo) setEntregas(e)
+      },
+      () => {},
+    )
+    return () => {
+      ativo = false
+    }
+  }, [id, ehAluno, perfil])
 
   if (erro) {
     return (
@@ -112,7 +138,31 @@ export function Exercicio() {
       lista.push({ teste, numero: i + 1, certo, resultado })
     }
     setResultados(lista)
+    setCodigoTestado(codigo)
+    setAvisoEntrega(null)
     setOcupado(null)
+  }
+
+  async function enviarEntrega() {
+    if (!resultados || codigoTestado === null || !perfil) return
+    setEntregando(true)
+    setAvisoEntrega(null)
+    try {
+      const acertos = resultados.filter((r) => r.certo).length
+      const { tentativa, conquista } = await entregar(exercicio.id, codigoTestado, acertos)
+      const c = lerConquista(conquista)
+      anunciarConquista(c)
+      const xpTexto = c.xp > 0 ? ` +${c.xp} XP, a confirmar pelo professor.` : ''
+      setAvisoEntrega({
+        tipo: 'sucesso',
+        texto: `Entrega ${tentativa} enviada: ${acertos} de ${resultados.length} testes certos.${xpTexto}`,
+      })
+      setEntregas(await minhasEntregas(exercicio.id, perfil.id).catch(() => entregas))
+    } catch (e) {
+      setAvisoEntrega({ tipo: 'erro', texto: mensagemDeErro(e) })
+    } finally {
+      setEntregando(false)
+    }
   }
 
   const certos = resultados?.filter((r) => r.certo).length ?? 0
@@ -233,9 +283,54 @@ export function Exercicio() {
               </li>
             ))}
           </ol>
+          {ehAluno && (
+            <div className="exercicio-entregar">
+              {codigoTestado === codigo ? (
+                <p>
+                  Entregar guarda este código e o resultado dos testes para o professor.
+                  {certos === resultados.length && ` Acertando tudo, você ganha +${xp} XP na hora, a confirmar pelo professor.`}
+                </p>
+              ) : (
+                <p>Você mudou o código depois de testar. Clique em Testar de novo para poder entregar.</p>
+              )}
+              <button
+                type="button"
+                className="botao botao-primario"
+                onClick={enviarEntrega}
+                disabled={entregando || ocupado !== null || codigoTestado !== codigo}
+              >
+                {entregando ? 'Entregando…' : 'Entregar'}
+              </button>
+              {avisoEntrega && <Aviso tipo={avisoEntrega.tipo}>{avisoEntrega.texto}</Aviso>}
+            </div>
+          )}
         </section>
       )}
+
+      {ehAluno && entregas.length > 0 && <SuasEntregas entregas={entregas} />}
     </div>
+  )
+}
+
+const formatoData = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+
+function SuasEntregas({ entregas }: { entregas: EntregaDoAluno[] }) {
+  return (
+    <section className="cartao exercicio-entregas" aria-labelledby="exercicio-entregas-titulo">
+      <h2 id="exercicio-entregas-titulo">Suas entregas</h2>
+      <ol className="exercicio-entregas-lista" role="list">
+        {entregas.map((e) => (
+          <li key={e.id} className={`exercicio-entrega exercicio-entrega-${e.situacao}`}>
+            <span className="exercicio-entrega-numero">Entrega {e.tentativa}</span>
+            <span>
+              {e.testesCertos} de {e.testesTotal} testes certos
+            </span>
+            <span className="exercicio-entrega-situacao">{NOME_DA_SITUACAO[e.situacao]}</span>
+            <span className="exercicio-entrega-data">{formatoData.format(new Date(e.criadoEm))}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
