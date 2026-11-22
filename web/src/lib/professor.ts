@@ -1,4 +1,5 @@
 import type { Oferta, StatusPedido } from './api'
+import { numeroRomano } from './ponte'
 import { supabase } from './supabase'
 
 // Consultas e ações do painel do professor. O banco confere em cada uma se
@@ -175,6 +176,8 @@ export interface AulaDoPainel {
   titulo: string
   liberada: boolean
   link: { titulo: string; url: string } | null
+  /** Slides HTML enviados para a aula (arquivo no armazenamento privado). */
+  slides: { id: number; caminho: string } | null
 }
 
 export interface UnidadeDoPainel {
@@ -187,13 +190,17 @@ export interface UnidadeDoPainel {
 export interface EstruturaDoBanco {
   unidades: Array<{ id: number; numero: number; titulo: string; aulas: Array<{ id: number; numero: number; titulo: string }> }>
   liberadas: number[]
-  links: Array<{ aula_id: number; titulo: string; url: string | null; tipo: string }>
+  links: Array<{ id: number; aula_id: number; titulo: string; url: string | null; tipo: string; caminho_storage: string | null }>
 }
 
 export function montarEstrutura({ unidades, liberadas, links }: EstruturaDoBanco): UnidadeDoPainel[] {
   const liberadasSet = new Set(liberadas)
   const linkPorAula = new Map<number, { titulo: string; url: string }>()
-  for (const l of links) if (l.tipo === 'link' && l.url) linkPorAula.set(l.aula_id, { titulo: l.titulo, url: l.url })
+  const slidesPorAula = new Map<number, { id: number; caminho: string }>()
+  for (const l of links) {
+    if (l.tipo === 'link' && l.url) linkPorAula.set(l.aula_id, { titulo: l.titulo, url: l.url })
+    if (l.tipo === 'slide' && l.caminho_storage) slidesPorAula.set(l.aula_id, { id: l.id, caminho: l.caminho_storage })
+  }
   return [...unidades]
     .sort((a, b) => a.numero - b.numero)
     .map((u) => ({
@@ -208,6 +215,7 @@ export function montarEstrutura({ unidades, liberadas, links }: EstruturaDoBanco
           titulo: a.titulo,
           liberada: liberadasSet.has(a.id),
           link: linkPorAula.get(a.id) ?? null,
+          slides: slidesPorAula.get(a.id) ?? null,
         })),
     }))
 }
@@ -228,7 +236,7 @@ export async function carregarEstrutura(oferta: Oferta): Promise<UnidadeDoPainel
   if (aulaIds.length > 0) {
     const { data, error } = await supabase()
       .from('materiais')
-      .select('aula_id, titulo, url, tipo')
+      .select('id, aula_id, titulo, url, tipo, caminho_storage')
       .in('aula_id', aulaIds)
     if (error) throw error
     links = data
@@ -259,8 +267,12 @@ export async function adicionarUnidade(disciplinaId: number, titulo: string): Pr
 }
 
 export async function removerUnidade(unidadeId: number): Promise<void> {
+  const { data: aulas, error: erroAulas } = await supabase().from('aulas').select('id').eq('unidade_id', unidadeId)
+  if (erroAulas) throw erroAulas
+  const arquivos = await caminhosDosSlides(aulas.map((a) => a.id))
   const { error } = await supabase().rpc('remover_unidade', { p_unidade_id: unidadeId })
   if (error) throw error
+  await apagarArquivos(arquivos)
 }
 
 export async function renomearUnidade(unidadeId: number, titulo: string): Promise<void> {
@@ -274,8 +286,10 @@ export async function adicionarAula(unidadeId: number, titulo: string): Promise<
 }
 
 export async function removerAula(aulaId: number): Promise<void> {
+  const arquivos = await caminhosDosSlides([aulaId])
   const { error } = await supabase().rpc('remover_aula', { p_aula_id: aulaId })
   if (error) throw error
+  await apagarArquivos(arquivos)
 }
 
 /** Salva título e link da aula. Link vazio remove o link. */
@@ -288,6 +302,103 @@ export async function salvarAula(aulaId: number, titulo: string, url: string): P
     p_titulo: 'Material da aula',
   })
   if (erroLink) throw erroLink
+}
+
+// ---------------------------------------------------------------------------
+// Slides HTML (arquivos no armazenamento privado)
+// ---------------------------------------------------------------------------
+
+export const BUCKET_MATERIAIS = 'materiais'
+export const TAMANHO_MAXIMO_SLIDES = 10 * 1024 * 1024
+
+async function caminhosDosSlides(aulaIds: number[]): Promise<string[]> {
+  if (aulaIds.length === 0) return []
+  const { data, error } = await supabase()
+    .from('materiais')
+    .select('caminho_storage')
+    .eq('tipo', 'slide')
+    .in('aula_id', aulaIds)
+  if (error) throw error
+  return data.flatMap((m) => (m.caminho_storage ? [m.caminho_storage] : []))
+}
+
+/** Apaga arquivos que já não estão ligados a nenhuma aula. Falha aqui não desfaz a ação. */
+async function apagarArquivos(caminhos: Array<string | null>): Promise<void> {
+  const lista = caminhos.filter((c): c is string => Boolean(c))
+  if (lista.length > 0) await supabase().storage.from(BUCKET_MATERIAIS).remove(lista)
+}
+
+/** Envia o arquivo .html e registra como os slides da aula (substitui os anteriores). */
+export async function enviarSlides(aulaId: number, arquivo: File): Promise<void> {
+  const problema = validarArquivoDeSlides(arquivo)
+  if (problema) throw new Error(problema)
+  const caminho = `aulas/${aulaId}/slides-${Date.now()}.html`
+  const armazenamento = supabase().storage.from(BUCKET_MATERIAIS)
+  const { error: erroEnvio } = await armazenamento.upload(caminho, arquivo, {
+    contentType: 'text/html',
+    upsert: false,
+  })
+  if (erroEnvio) throw erroEnvio
+  const { data: anterior, error } = await supabase().rpc('definir_slides_da_aula', {
+    p_aula_id: aulaId,
+    p_caminho: caminho,
+    p_titulo: 'Slides da aula',
+  })
+  if (error) {
+    await armazenamento.remove([caminho])
+    throw error
+  }
+  await apagarArquivos([anterior])
+}
+
+export async function removerSlides(aulaId: number): Promise<void> {
+  const { data: caminho, error } = await supabase().rpc('remover_slides_da_aula', { p_aula_id: aulaId })
+  if (error) throw error
+  await apagarArquivos([caminho])
+}
+
+export function validarArquivoDeSlides(arquivo: Pick<File, 'name' | 'size'>): string | null {
+  if (!/\.html?$/i.test(arquivo.name)) return 'Escolha um arquivo .html.'
+  if (arquivo.size === 0) return 'O arquivo está vazio.'
+  if (arquivo.size > TAMANHO_MAXIMO_SLIDES) return 'O arquivo passa de 10 MB.'
+  return null
+}
+
+/** "DAW_U1_A3.html" → unidade 1, aula 3. Aceita também "u1-a3", "U01_A03" etc. */
+export function lerNomeDoSlide(nome: string): { unidade: number; aula: number } | null {
+  const achado = /(?:^|[^a-z0-9])u0*(\d{1,2})[ _.-]*a0*(\d{1,2})(?![0-9])/i.exec(nome.replace(/\.html?$/i, ''))
+  if (!achado) return null
+  return { unidade: Number(achado[1]), aula: Number(achado[2]) }
+}
+
+export interface ItemDoEnvio {
+  arquivo: File
+  aula: { id: number; rotulo: string; titulo: string; temSlides: boolean } | null
+  problema: string | null
+}
+
+/** Casa cada arquivo com a aula da disciplina pelo nome (unidade e aula). */
+export function planejarEnvioEmLote(arquivos: File[], unidades: UnidadeDoPainel[]): ItemDoEnvio[] {
+  const usadas = new Set<number>()
+  const itens = [...arquivos]
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true }))
+    .map((arquivo): ItemDoEnvio => {
+      const problemaArquivo = validarArquivoDeSlides(arquivo)
+      if (problemaArquivo) return { arquivo, aula: null, problema: problemaArquivo }
+      const nome = lerNomeDoSlide(arquivo.name)
+      if (!nome) return { arquivo, aula: null, problema: 'O nome não diz a unidade e a aula (ex.: ALG_U1_A2).' }
+      const unidade = unidades.find((u) => u.numero === nome.unidade)
+      const aula = unidade?.aulas.find((a) => a.numero === nome.aula)
+      if (!unidade || !aula) return { arquivo, aula: null, problema: 'Esta disciplina não tem essa aula.' }
+      if (usadas.has(aula.id)) return { arquivo, aula: null, problema: 'Outro arquivo já vai para essa aula.' }
+      usadas.add(aula.id)
+      return {
+        arquivo,
+        aula: { id: aula.id, rotulo: `${numeroRomano(unidade.numero)}.${aula.numero}`, titulo: aula.titulo, temSlides: Boolean(aula.slides) },
+        problema: null,
+      }
+    })
+  return itens
 }
 
 // ---------------------------------------------------------------------------

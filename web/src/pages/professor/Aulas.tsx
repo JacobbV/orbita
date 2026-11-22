@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
 import { nomeTurno } from '../../lib/api'
@@ -9,15 +9,20 @@ import {
   adicionarAula,
   adicionarUnidade,
   carregarEstrutura,
+  enviarSlides,
   liberarAula,
   liberarUnidade,
   listarOfertasDoPainel,
+  planejarEnvioEmLote,
   removerAula,
+  removerSlides,
   removerUnidade,
   renomearUnidade,
   salvarAula,
+  validarArquivoDeSlides,
   validarLink,
   validarTitulo,
+  type ItemDoEnvio,
   type AulaDoPainel,
   type OfertaDoPainel,
   type UnidadeDoPainel,
@@ -128,6 +133,7 @@ export function Aulas() {
           <p className="painel-resumo">
             {oferta.turma.nome}: {liberadas} de {total} {total === 1 ? 'aula liberada' : 'aulas liberadas'}.
           </p>
+          <EnvioEmLote unidades={unidades} disciplina={oferta.disciplina.nome} ocupado={ocupado} executar={executar} />
           <div className="painel-unidades">
             {unidades.map((u) => (
               <CartaoUnidade
@@ -246,7 +252,7 @@ function CartaoUnidade({
         <div className="painel-confirmar painel-confirmar-perigo">
           <p>
             Remover a unidade {romano} e {unidade.aulas.length === 1 ? 'a aula dela' : `as ${unidade.aulas.length} aulas dela`}{' '}
-            em todas as turmas? Os links e as liberações também saem.
+            em todas as turmas? Os links, os slides e as liberações também saem.
             {unidade.numero < totalUnidades && ' As unidades seguintes mudam de número.'}
           </p>
           <div className="painel-botoes">
@@ -317,6 +323,14 @@ function ItemAula({
               </a>
             ) : (
               <span className="painel-sem-link">sem link</span>
+            )}
+            {' · '}
+            {aula.slides ? (
+              <Link to={`/slides/${aula.slides.id}`} className="painel-link-aula">
+                abrir slides<span className="sr-only"> da aula {rotulo}</span>
+              </Link>
+            ) : (
+              <span className="painel-sem-link">sem slides</span>
             )}
           </p>
         </div>
@@ -421,6 +435,7 @@ function FormAula({
           </p>
         )}
       </div>
+      <CampoSlides aula={aula} rotulo={rotulo} ocupado={ocupado} executar={executar} />
       <div className="painel-botoes">
         <button type="submit" className="botao botao-primario" disabled={ocupado}>
           Salvar aula
@@ -434,7 +449,7 @@ function FormAula({
       </div>
       {removendo && (
         <div className="painel-confirmar painel-confirmar-perigo">
-          <p>Remover a aula {rotulo} em todas as turmas? O link e as liberações dela também saem, e as aulas seguintes mudam de número.</p>
+          <p>Remover a aula {rotulo} em todas as turmas? O link, os slides e as liberações dela também saem, e as aulas seguintes mudam de número.</p>
           <div className="painel-botoes">
             <button
               type="button"
@@ -451,6 +466,210 @@ function FormAula({
         </div>
       )}
     </form>
+  )
+}
+
+/** Slides HTML de uma aula: enviar, trocar ou remover o arquivo. */
+function CampoSlides({
+  aula,
+  rotulo,
+  ocupado,
+  executar,
+}: {
+  aula: AulaDoPainel
+  rotulo: string
+  ocupado: boolean
+  executar: Executar
+}) {
+  const [arquivo, setArquivo] = useState<File | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [removendo, setRemovendo] = useState(false)
+  const entrada = useRef<HTMLInputElement>(null)
+  const id = `aula-${aula.id}-slides`
+
+  async function enviar() {
+    const problema = arquivo ? validarArquivoDeSlides(arquivo) : 'Escolha o arquivo .html dos slides.'
+    setErro(problema)
+    if (problema || !arquivo) return
+    const ok = await executar(
+      () => enviarSlides(aula.id, arquivo),
+      `Slides da aula ${rotulo} ${aula.slides ? 'trocados' : 'enviados'}.`,
+    )
+    if (ok) {
+      setArquivo(null)
+      if (entrada.current) entrada.current.value = ''
+    }
+  }
+
+  return (
+    <fieldset className={`painel-slides campo${erro ? ' campo-com-erro' : ''}`}>
+      <legend>Slides da aula {rotulo} (HTML)</legend>
+      <p className="campo-dica" id={`${id}-dica`}>
+        {aula.slides ? (
+          <>
+            Esta aula tem slides.{' '}
+            <Link to={`/slides/${aula.slides.id}`} className="painel-link-aula">
+              Abrir os slides
+            </Link>
+            . Enviar outro arquivo substitui o atual.
+          </>
+        ) : (
+          'Arquivo .html de até 10 MB. O aluno só abre quando a aula está liberada para a turma dele.'
+        )}
+      </p>
+      <label htmlFor={id} className="sr-only">
+        Arquivo de slides da aula {rotulo}
+      </label>
+      <input
+        ref={entrada}
+        id={id}
+        type="file"
+        accept=".html,.htm,text/html"
+        className="painel-arquivo"
+        onChange={(e) => {
+          setArquivo(e.target.files?.[0] ?? null)
+          setErro(null)
+        }}
+        aria-invalid={erro ? true : undefined}
+        aria-describedby={`${id}-dica${erro ? ` ${id}-erro` : ''}`}
+      />
+      {erro && (
+        <p id={`${id}-erro`} className="campo-erro">
+          {erro}
+        </p>
+      )}
+      <div className="painel-botoes">
+        <button type="button" className="botao" disabled={ocupado} onClick={enviar}>
+          {aula.slides ? 'Trocar slides' : 'Enviar slides'}
+        </button>
+        {aula.slides && (
+          <button type="button" className="botao painel-botao-perigo" disabled={ocupado} onClick={() => setRemovendo(true)}>
+            Remover slides
+          </button>
+        )}
+      </div>
+      {removendo && aula.slides && (
+        <div className="painel-confirmar painel-confirmar-perigo">
+          <p>Remover os slides da aula {rotulo}? O arquivo é apagado e sai para todas as turmas.</p>
+          <div className="painel-botoes">
+            <button
+              type="button"
+              className="botao painel-botao-perigo"
+              disabled={ocupado}
+              onClick={async () => {
+                if (await executar(() => removerSlides(aula.id), `Slides da aula ${rotulo} removidos.`)) setRemovendo(false)
+              }}
+            >
+              Sim, remover slides
+            </button>
+            <button type="button" className="botao" disabled={ocupado} onClick={() => setRemovendo(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  )
+}
+
+/** Vários arquivos de uma vez: cada um vai para a aula indicada no nome (ex.: ALG_U1_A2). */
+function EnvioEmLote({
+  unidades,
+  disciplina,
+  ocupado,
+  executar,
+}: {
+  unidades: UnidadeDoPainel[]
+  disciplina: string
+  ocupado: boolean
+  executar: Executar
+}) {
+  const [itens, setItens] = useState<ItemDoEnvio[]>([])
+  const [progresso, setProgresso] = useState<string | null>(null)
+  const entrada = useRef<HTMLInputElement>(null)
+  const validos = itens.filter((i) => i.aula)
+  const substitui = validos.filter((i) => i.aula?.temSlides).length
+
+  async function enviarTodos() {
+    const falhas: string[] = []
+    const ok = await executar(async () => {
+      for (const [n, item] of validos.entries()) {
+        setProgresso(`Enviando ${n + 1} de ${validos.length}…`)
+        try {
+          if (item.aula) await enviarSlides(item.aula.id, item.arquivo)
+        } catch {
+          falhas.push(item.arquivo.name)
+        }
+      }
+      setProgresso(null)
+      if (falhas.length > 0) {
+        throw new Error(
+          `${validos.length - falhas.length} de ${validos.length} enviados. Não foi possível enviar: ${falhas.join(', ')}.`,
+        )
+      }
+    }, `${validos.length} ${validos.length === 1 ? 'arquivo de slides enviado' : 'arquivos de slides enviados'}.`)
+    setProgresso(null)
+    if (ok || falhas.length > 0) {
+      setItens([])
+      if (entrada.current) entrada.current.value = ''
+    }
+  }
+
+  return (
+    <details className="cartao painel-lote">
+      <summary>Enviar vários slides de uma vez</summary>
+      <div className="painel-lote-corpo">
+        <p className="campo-dica">
+          Escolha os arquivos .html de {disciplina}. O nome de cada arquivo diz a aula: <code>ALG_U1_A2.html</code> vai
+          para a Unidade I, Aula 2. Os slides valem para todas as turmas desta disciplina e só aparecem para o aluno
+          quando a aula é liberada.
+        </p>
+        <div className="campo">
+          <label htmlFor="lote-arquivos">Arquivos de slides</label>
+          <input
+            ref={entrada}
+            id="lote-arquivos"
+            type="file"
+            multiple
+            accept=".html,.htm,text/html"
+            className="painel-arquivo"
+            onChange={(e) => setItens(planejarEnvioEmLote([...(e.target.files ?? [])], unidades))}
+          />
+        </div>
+        {itens.length > 0 && (
+          <>
+            <ul className="painel-lote-lista" role="list">
+              {itens.map((i) => (
+                <li key={i.arquivo.name} className={i.aula ? 'painel-lote-ok' : 'painel-lote-problema'}>
+                  <span className="painel-lote-arquivo">{i.arquivo.name}</span>
+                  <span>
+                    {i.aula
+                      ? `→ Aula ${i.aula.rotulo}: ${i.aula.titulo}${i.aula.temSlides ? ' (substitui)' : ''}`
+                      : i.problema}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="painel-resumo" aria-live="polite">
+              {progresso ??
+                `${validos.length} de ${itens.length} ${itens.length === 1 ? 'arquivo pronto' : 'arquivos prontos'} para enviar${
+                  substitui > 0 ? `, ${substitui} substituindo slides que já existem` : ''
+                }.`}
+            </p>
+            <div className="painel-botoes">
+              <button
+                type="button"
+                className="botao botao-primario"
+                disabled={ocupado || validos.length === 0}
+                onClick={enviarTodos}
+              >
+                Enviar {validos.length} {validos.length === 1 ? 'arquivo' : 'arquivos'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </details>
   )
 }
 

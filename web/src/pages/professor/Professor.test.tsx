@@ -15,6 +15,8 @@ const acoes = vi.hoisted(() => ({
   removerAula: vi.fn(async () => {}),
   adicionarUnidade: vi.fn(async () => {}),
   salvarTurma: vi.fn(async () => {}),
+  enviarSlides: vi.fn(async (_aula: number, _arquivo: File) => {}),
+  removerSlides: vi.fn(async () => {}),
 }))
 
 const ALG_M: OfertaDoPainel = {
@@ -77,8 +79,8 @@ beforeEach(() => {
       numero: 1,
       titulo: 'Primeiros passos',
       aulas: [
-        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' } },
-        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null },
+        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' }, slides: { id: 90, caminho: 'aulas/11/slides-1.html' } },
+        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null, slides: null },
       ],
     },
   ]
@@ -142,6 +144,48 @@ describe('Painel do professor: aulas', () => {
     expect(acoes.liberarAula).toHaveBeenCalledWith(11, 11, false)
     await usuario.click(screen.getByRole('button', { name: 'Liberar unidade I' }))
     expect(acoes.liberarUnidade).toHaveBeenCalledWith(11, 1, true)
+  })
+
+  it('envia, troca e remove os slides de uma aula', async () => {
+    const usuario = userEvent.setup()
+    abrir('/professor?aba=aulas', PROFESSOR)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar aula I.2' }))
+    await usuario.click(screen.getByRole('button', { name: 'Enviar slides' }))
+    expect(screen.getByText('Escolha o arquivo .html dos slides.')).toBeInTheDocument()
+    const entrada = screen.getByLabelText('Arquivo de slides da aula I.2')
+    const arquivo = new File(['<h1>Aula</h1>'], 'ALG_U1_A2.html', { type: 'text/html' })
+    await usuario.upload(entrada, arquivo)
+    await usuario.click(screen.getByRole('button', { name: 'Enviar slides' }))
+    expect(acoes.enviarSlides).toHaveBeenCalledWith(12, arquivo)
+    expect(await screen.findByText('Slides da aula I.2 enviados.')).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Editar aula I.1' }))
+    expect(screen.getByRole('link', { name: 'Abrir os slides' })).toHaveAttribute('href', '/slides/90')
+    await usuario.click(screen.getByRole('button', { name: 'Remover slides' }))
+    expect(acoes.removerSlides).not.toHaveBeenCalled()
+    await usuario.click(screen.getByRole('button', { name: 'Sim, remover slides' }))
+    expect(acoes.removerSlides).toHaveBeenCalledWith(11)
+  })
+
+  it('envia vários slides de uma vez, cada um na aula do nome', async () => {
+    const usuario = userEvent.setup()
+    abrir('/professor?aba=aulas', PROFESSOR)
+    await usuario.click(await screen.findByText('Enviar vários slides de uma vez'))
+    const arquivos = [
+      new File(['a'], 'ALG_U1_A1.html', { type: 'text/html' }),
+      new File(['b'], 'ALG_U1_A2.html', { type: 'text/html' }),
+      new File(['c'], 'ALG_U3_A1.html', { type: 'text/html' }),
+    ]
+    await usuario.upload(screen.getByLabelText('Arquivos de slides'), arquivos)
+    expect(screen.getByText('→ Aula I.1: O que é um algoritmo? (substitui)')).toBeInTheDocument()
+    expect(screen.getByText('→ Aula I.2: Do algoritmo ao programa')).toBeInTheDocument()
+    expect(screen.getByText('Esta disciplina não tem essa aula.')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Enviar 2 arquivos' }))
+    expect(acoes.enviarSlides.mock.calls.map(([aula, arquivo]) => [aula, arquivo.name])).toEqual([
+      [11, 'ALG_U1_A1.html'],
+      [12, 'ALG_U1_A2.html'],
+    ])
+    expect(await screen.findByText('2 arquivos de slides enviados.')).toBeInTheDocument()
   })
 
   it('edita título e link e recusa link sem https', async () => {

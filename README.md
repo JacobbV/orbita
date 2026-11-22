@@ -32,6 +32,8 @@ npx supabase stop       # desliga
 Com o Supabase local ligado, rode `npx supabase status` e copie `API_URL` e `ANON_KEY` para `web/.env.local`.
 Os e-mails de confirmação e de nova senha do ambiente local aparecem no Mailpit: http://127.0.0.1:54324
 
+Os slides HTML das aulas ficam no bucket privado `materiais` do Supabase Storage (caminho `aulas/<id da aula>/`). O professor envia pelo painel (Aulas → Editar, ou "Enviar vários slides de uma vez" com nomes como `ALG_U1_A2.html`), e o aluno abre em `/slides/<id>` quando a aula está liberada para a turma dele. O arquivo roda numa moldura isolada (`iframe` com `sandbox`), sem acesso à página nem à sessão.
+
 Os modelos dos e-mails (confirmar cadastro, criar senha nova e trocar e-mail) ficam em `supabase/templates/`, com os assuntos em `supabase/config.toml`. No projeto da nuvem, os mesmos textos são colados à mão em Authentication → Emails. A imagem do topo fica em `web/public/email/topo.jpg` e é publicada junto com o site.
 
 - `supabase/migrations/`: uma migration por mudança (tabelas, regras RLS, conteúdo inicial).

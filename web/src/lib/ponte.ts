@@ -6,12 +6,10 @@ import { supabase } from './supabase'
 // aulas e o que está liberado para a turma. O banco (RLS) só entrega os links
 // das aulas liberadas; aqui a montagem apenas organiza o que chegou.
 
-export interface Material {
-  id: number
-  tipo: string
-  titulo: string
-  url: string
-}
+/** Link externo (abre em outra aba) ou slides HTML do Órbita (tela própria, /slides/:id). */
+export type Material =
+  | { id: number; tipo: 'slide'; titulo: string; url: null }
+  | { id: number; tipo: string; titulo: string; url: string }
 
 export interface AulaDaPonte {
   id: number
@@ -59,6 +57,7 @@ export interface MaterialDoBanco {
   tipo: string
   titulo: string
   url: string | null
+  caminho_storage?: string | null
   ordem: number
 }
 
@@ -88,6 +87,7 @@ const ROTULO_TIPO: Record<string, string> = {
 }
 
 export function rotuloMaterial(m: Pick<Material, 'tipo' | 'titulo'>): string {
+  if (m.tipo === 'slide') return 'Abrir slides'
   return m.titulo.trim() || ROTULO_TIPO[m.tipo] || 'Abrir material'
 }
 
@@ -100,9 +100,12 @@ export function montarPonte(
 ): DisciplinaDaPonte[] {
   const materiaisPorAula = new Map<number, Material[]>()
   for (const m of [...materiais].sort((a, b) => a.ordem - b.ordem || a.id - b.id)) {
-    if (!linkSeguro(m.url)) continue
+    let material: Material
+    if (m.tipo === 'slide' && m.caminho_storage) material = { id: m.id, tipo: 'slide', titulo: m.titulo, url: null }
+    else if (m.tipo !== 'slide' && linkSeguro(m.url)) material = { id: m.id, tipo: m.tipo, titulo: m.titulo, url: m.url }
+    else continue
     const lista = materiaisPorAula.get(m.aula_id) ?? []
-    lista.push({ id: m.id, tipo: m.tipo, titulo: m.titulo, url: m.url })
+    lista.push(material)
     materiaisPorAula.set(m.aula_id, lista)
   }
 
@@ -193,7 +196,7 @@ export async function carregarPonte(): Promise<DadosDaPonte> {
   if (aulasLiberadas.length > 0) {
     const { data, error } = await supabase()
       .from('materiais')
-      .select('id, aula_id, tipo, titulo, url, ordem')
+      .select('id, aula_id, tipo, titulo, url, caminho_storage, ordem')
       .in('aula_id', aulasLiberadas)
     if (error) throw error
     materiais = data as MaterialDoBanco[]

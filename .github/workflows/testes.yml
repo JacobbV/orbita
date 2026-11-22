@@ -49,7 +49,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
 
       - name: Subir o Supabase local
-        run: npx --yes $SUPABASE_CLI start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,storage-api,postgres-meta,supavisor
+        # O Storage fica ligado: os slides HTML das aulas são enviados e baixados nos testes.
+        run: npx --yes $SUPABASE_CLI start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,postgres-meta,supavisor
 
       - name: Testes das regras do banco (pgTAP)
         run: npx --yes $SUPABASE_CLI test db

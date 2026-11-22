@@ -48,7 +48,10 @@ function dadosComUmaAulaLiberada(): DadosDaPonte {
     titulo: 'O que é um algoritmo?',
     liberada: true,
     liberadaEm: '2026-11-02T10:00:00Z',
-    materiais: [{ id: 1, tipo: 'slide', titulo: '', url: 'https://exemplo.org/slides' }],
+    materiais: [
+      { id: 2, tipo: 'slide' as const, titulo: 'Slides da aula', url: null },
+      { id: 1, tipo: 'link', titulo: 'Apostila', url: 'https://exemplo.org/apostila' },
+    ],
   }
   const bloqueada = {
     id: 12,
@@ -87,13 +90,16 @@ describe('Ponte de comando', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   })
 
-  it('aula liberada tem o link do material, que abre em outra aba', async () => {
+  it('aula liberada tem os slides do Órbita e o link externo, que abre em outra aba', async () => {
     carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
     abrir('/ponte', ALUNO)
     const item = (await screen.findAllByText('O que é um algoritmo?')).at(-1)?.closest('li')
     expect(item).toBeTruthy()
-    const link = within(item as HTMLElement).getByRole('link', { name: /Abrir slides/ })
-    expect(link).toHaveAttribute('href', 'https://exemplo.org/slides')
+    const slides = within(item as HTMLElement).getByRole('link', { name: 'Abrir slides' })
+    expect(slides).toHaveAttribute('href', '/slides/2')
+    expect(slides).not.toHaveAttribute('target')
+    const link = within(item as HTMLElement).getByRole('link', { name: /Apostila/ })
+    expect(link).toHaveAttribute('href', 'https://exemplo.org/apostila')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
