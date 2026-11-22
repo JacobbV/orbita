@@ -52,6 +52,36 @@ export async function carregarSlides(id: number): Promise<SlidesDaAula> {
     id: material.id,
     onde: `${aula.unidade.disciplina.sigla} · Unidade ${numeroRomano(aula.unidade.numero)} · Aula ${aula.numero}`,
     titulo: aula.titulo,
-    html: await arquivo.text(),
+    html: protegerSlides(await arquivo.text()),
   }
+}
+
+// Barreiras contra salvar o slide pelo navegador: sem menu do botão direito,
+// sem arrastar, sem selecionar, sem Ctrl+S / Ctrl+P / Ctrl+U e com a
+// impressão em branco. Não impede print de tela nem foto do celular.
+const PROTECAO =
+  '<style data-orbita-protecao>' +
+  'html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}' +
+  'img,video,svg,canvas{-webkit-user-drag:none}' +
+  'input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}' +
+  '@media print{html,body{display:none!important}}' +
+  '</style>' +
+  '<script data-orbita-protecao>(function(){' +
+  'function parar(e){e.preventDefault();e.stopPropagation()}' +
+  "['contextmenu','dragstart','copy','cut'].forEach(function(t){window.addEventListener(t,parar,true)});" +
+  "window.addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();" +
+  "if((e.ctrlKey||e.metaKey)&&(k==='s'||k==='p'||k==='u'))parar(e)},true);" +
+  "window.addEventListener('beforeprint',function(){document.documentElement.style.display='none'});" +
+  "window.addEventListener('afterprint',function(){document.documentElement.style.display=''});" +
+  '})()</script>'
+
+/**
+ * Coloca as barreiras no começo do slide, depois do <!doctype> (antes dele, o
+ * navegador cairia no modo antigo de exibição e o slide mudaria de aparência).
+ */
+export function protegerSlides(html: string): string {
+  const ponto = /<head(?:\s[^>]*)?>/i.exec(html) ?? /<html(?:\s[^>]*)?>/i.exec(html) ?? /<!doctype[^>]*>/i.exec(html)
+  if (!ponto) return PROTECAO + html
+  const fim = ponto.index + ponto[0].length
+  return html.slice(0, fim) + PROTECAO + html.slice(fim)
 }

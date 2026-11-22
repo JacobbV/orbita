@@ -37,6 +37,7 @@
 }
 
 .slides-palco {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--borda);
   border-radius: var(--raio);
@@ -72,4 +73,28 @@
 
 .slides > .slides-voltar {
   align-self: flex-start;
+}
+
+/* Marca-d'água: por cima do slide, sem atrapalhar cliques nem toques. */
+.slides-marca {
+  position: absolute;
+  inset: -50%;
+  display: grid;
+  grid-template-columns: repeat(8, max-content);
+  place-content: center;
+  gap: 72px 96px;
+  transform: rotate(-24deg);
+  pointer-events: none;
+  user-select: none;
+  color: rgb(100 116 139 / 0.16);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Imprimir a página não leva o slide. */
+@media print {
+  .slides-palco {
+    display: none !important;
+  }
 }

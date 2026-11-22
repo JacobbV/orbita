@@ -145,6 +145,12 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     const moldura = estudante.page.frameLocator('iframe.slides-moldura')
     await expect(moldura.getByRole('heading', { name: 'Slide e2e da aula liberada' })).toBeVisible()
     await expect(moldura.locator('#js')).toHaveText('script isolado')
+    // Barreiras contra salvar: botão direito bloqueado no slide e marca-d'água com o nome do aluno.
+    const bloqueouMenu = await estudante.page
+      .frame({ url: /about:srcdoc/ })
+      ?.evaluate(() => !document.body.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })))
+    expect(bloqueouMenu).toBe(true)
+    await expect(estudante.page.getByTestId('marca-dagua')).toContainText(aluno.nome)
 
     // A aula bloqueada (I.2) não abre nem pelo endereço direto.
     const [bloqueada] = await rest<Array<{ id: number }>>(
