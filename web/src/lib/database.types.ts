@@ -1,4 +1,3 @@
-// Tipos gerados do banco. Não edite à mão: rode `npx supabase gen types typescript --local > web/src/lib/database.types.ts` na raiz.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
@@ -228,7 +227,35 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "aprovar_todos":
+            "adicionar_aula":
+{ Args: { "p_titulo": string,"p_unidade_id": number }; Returns: {
+              "criado_em": string,
+"id": number,
+"numero": number,
+"publica": boolean,
+"titulo": string,
+"unidade_id": number
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "aulas"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"adicionar_unidade":
+{ Args: { "p_disciplina_id": number,"p_titulo": string }; Returns: {
+              "disciplina_id": number,
+"id": number,
+"numero": number,
+"titulo": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "unidades"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"aprovar_todos":
 { Args: { "p_turma_disciplina_id": number }; Returns: number
                            },
 "decidir_pedido":
@@ -251,6 +278,12 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"definir_link_da_aula":
+{ Args: { "p_aula_id": number,"p_titulo"?: string,"p_url": string }; Returns: undefined
+                           },
+"liberar_unidade":
+{ Args: { "p_liberar": boolean,"p_turma_disciplina_id": number,"p_unidade_id": number }; Returns: number
+                           },
 "pedir_acesso":
 { Args: { "p_quem_e_voce": string,"p_turma_disciplina_id": number }; Returns: {
               "aluno_id": string,
@@ -270,7 +303,13 @@ isOneToOne: false
         to: "matriculas"
         isOneToOne: true
         isSetofReturn: false
-      } }
+      } },
+"remover_aula":
+{ Args: { "p_aula_id": number }; Returns: undefined
+                           },
+"remover_unidade":
+{ Args: { "p_unidade_id": number }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never

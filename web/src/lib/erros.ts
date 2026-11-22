@@ -15,6 +15,11 @@ const MAPA: Array<[RegExp, string]> = [
   [/rate limit|too many requests|security purposes/i, 'Muitas tentativas seguidas. Espere um minuto e tente de novo.'],
   [/database error saving new user/i, 'Não foi possível criar a conta. Confira se o e-mail é @academico.ifpb.edu.br, se escolheu a turma e se preencheu "Quem é você".'],
   [/signups not allowed|signup is disabled/i, 'O cadastro está fechado no momento. Fale com o professor.'],
+  [/turmas_nome_ano_letivo_key/i, 'Já existe uma turma com esse nome nesse ano letivo.'],
+  [/unidades_numero_check/i, 'Uma disciplina pode ter no máximo 20 unidades.'],
+  [/aulas_numero_check/i, 'Uma unidade pode ter no máximo 60 aulas.'],
+  [/materiais_url_check/i, 'O link precisa começar com https:// e não pode ter espaços.'],
+  [/ano_letivo_check/i, 'Use um ano entre 2020 e 2100.'],
   [/failed to fetch|network|load failed/i, 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
   [/auth session missing|invalid.*(token|jwt)|expired/i, 'O link expirou ou já foi usado. Peça um novo.'],
 ]
@@ -28,6 +33,11 @@ const MENSAGENS_DO_BANCO = [
   'Só alunos fazem pedido de acesso.',
   'Entre na sua conta primeiro.',
   'Use o seu e-mail @academico.ifpb.edu.br.',
+  'Só o professor pode fazer isso.',
+  'Só o professor decide pedidos.',
+  'Pedido não encontrado ou já decidido.',
+  'Unidade não encontrada.',
+  'Aula não encontrada.',
 ]
 
 export function mensagemDeErro(erro: unknown): string {

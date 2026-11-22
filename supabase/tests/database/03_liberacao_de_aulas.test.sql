@@ -28,6 +28,11 @@ $$;
 
 grant execute on function pg_temp.oferta(text, text), pg_temp.aula(text, int, int) to anon, authenticated;
 
+-- Os testes partem de nenhuma liberação e nenhum link (o banco local pode ter
+-- dados de testes manuais; tudo volta no rollback do fim).
+delete from public.liberacoes;
+delete from public.materiais;
+
 -- Professor
 select pg_temp.criar_conta('c0000000-0000-0000-0000-00000000000f', 'professor.ficticio@academico.ifpb.edu.br');
 update public.perfis set papel = 'professor' where id = 'c0000000-0000-0000-0000-00000000000f';

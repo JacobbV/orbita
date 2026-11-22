@@ -5,12 +5,12 @@ import { Starfield } from './components/Starfield'
 import { Aguardando } from './pages/Aguardando'
 import { Cadastro } from './pages/Cadastro'
 import { Creditos } from './pages/Creditos'
-import { EmBreve } from './pages/EmBreve'
 import { Entrar } from './pages/Entrar'
 import { Inicio } from './pages/Inicio'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
+import { Professor } from './pages/professor/Professor'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 
 export function App() {
@@ -41,12 +41,11 @@ export function App() {
               </RotaProtegida>
             }
           />
-          {/* Próxima etapa: painel do professor (5) */}
           <Route
             path="professor"
             element={
               <RotaProtegida papel="professor">
-                <EmBreve titulo="Painel do professor" />
+                <Professor />
               </RotaProtegida>
             }
           />
