@@ -90,6 +90,20 @@ export const BIBLIOTECAS: Credito[] = [
     licenca: 'MIT',
     uso: 'Revisão automática do código (lint)',
   },
+  {
+    nome: 'Supabase CLI',
+    autor: 'Supabase',
+    link: 'https://github.com/supabase/cli',
+    licenca: 'MIT',
+    uso: 'Banco local, migrations e testes',
+  },
+  {
+    nome: 'pgTAP',
+    autor: 'David E. Wheeler e colaboradores',
+    link: 'https://pgtap.org',
+    licenca: 'PostgreSQL License',
+    uso: 'Testes das regras do banco',
+  },
 ]
 
 export const ARTE: Credito[] = [

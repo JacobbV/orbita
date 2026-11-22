@@ -26,6 +26,8 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 | Testing Library | Kent C. Dodds e colaboradores | https://testing-library.com | MIT | Testes de interface |
 | jsdom | Colaboradores do jsdom | https://github.com/jsdom/jsdom | MIT | Navegador simulado nos testes |
 | Oxlint | Boshen e colaboradores do Oxc | https://oxc.rs | MIT | Revisão automática do código (lint) |
+| Supabase CLI | Supabase | https://github.com/supabase/cli | MIT | Banco local, migrations e testes |
+| pgTAP | David E. Wheeler e colaboradores | https://pgtap.org | PostgreSQL License | Testes das regras do banco |
 
 ## Arte
 
