@@ -1,0 +1,67 @@
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid color-mix(in srgb, var(--borda) 70%, transparent);
+  background: color-mix(in srgb, var(--espaco) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.topo-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--altura-topo);
+}
+
+.topo-esquerda {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* No celular os atalhos somem; Créditos continua no rodapé. */
+.topo-nav {
+  display: none;
+}
+
+.topo-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  padding-inline: 8px;
+  color: var(--texto);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.topo-nav a:hover {
+  color: var(--ciano);
+}
+
+.topo-acoes {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.botao-compacto {
+  padding-inline: 12px;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 600px) {
+  .botao-compacto {
+    padding-inline: 16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .topo-nav {
+    display: flex;
+    gap: 4px;
+  }
+}

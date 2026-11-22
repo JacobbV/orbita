@@ -1,0 +1,44 @@
+.rodape {
+  margin-top: auto;
+  border-top: 1px solid color-mix(in srgb, var(--borda) 70%, transparent);
+  background: color-mix(in srgb, var(--espaco) 80%, transparent);
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.rodape-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 12px;
+}
+
+.rodape-creditos a,
+.rodape-marca a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+}
+
+/* Logo QYUDEV.: ciano, caixa alta e negrito */
+.qyudev {
+  color: var(--ciano);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.qyudev:hover {
+  color: var(--ciano-claro);
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .rodape-linha {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+}

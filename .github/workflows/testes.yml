@@ -1,0 +1,89 @@
+# Testes a cada push nas branches de fase e em todo pull request para a main.
+# Tudo roda contra um Supabase local criado dentro da própria máquina do GitHub:
+# nenhum segredo é usado aqui.
+name: Testes
+
+on:
+  push:
+    branches: ['fase-*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SUPABASE_CLI: supabase@3.2.0
+
+jobs:
+  site:
+    name: Lint, Vitest e build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  banco-e-navegador:
+    name: Testes do banco e de ponta a ponta
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Subir o Supabase local
+        run: npx --yes $SUPABASE_CLI start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,storage-api,postgres-meta,supavisor
+
+      - name: Testes das regras do banco (pgTAP)
+        run: npx --yes $SUPABASE_CLI test db
+
+      - name: Endereços e chaves do Supabase local para os testes
+        # Chaves de demonstração do Supabase local, que só existem nesta máquina temporária.
+        run: |
+          npx --yes $SUPABASE_CLI status -o json > /tmp/status.json
+          node -e '
+            const s = require("/tmp/status.json");
+            const linhas = [
+              `SUPABASE_URL=${s.API_URL}`,
+              `SUPABASE_ANON_KEY=${s.ANON_KEY}`,
+              `SUPABASE_SERVICE_ROLE_KEY=${s.SERVICE_ROLE_KEY}`,
+              `MAILPIT_URL=${s.MAILPIT_URL ?? "http://127.0.0.1:54324"}`,
+            ];
+            require("fs").appendFileSync(process.env.GITHUB_ENV, linhas.join("\n") + "\n");
+          '
+          rm /tmp/status.json
+
+      - name: Instalar o site e o Chromium
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Testes de ponta a ponta (Playwright)
+        working-directory: web
+        run: npm run e2e
+
+      - name: Relatório do Playwright (só quando falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: web/playwright-report
+          retention-days: 7

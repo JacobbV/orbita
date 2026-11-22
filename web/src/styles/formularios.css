@@ -1,0 +1,255 @@
+/* Formulários e telas de acesso (cadastro, login, senha, aguardando) */
+
+.acesso {
+  display: flex;
+  justify-content: center;
+  padding-block: 24px 48px;
+}
+
+.acesso-cartao {
+  width: 100%;
+  max-width: 32rem;
+  padding: 24px 20px;
+}
+
+.acesso-largo {
+  max-width: 44rem;
+}
+
+.acesso-selo {
+  color: var(--nebulosa);
+  margin-bottom: 8px;
+}
+
+.acesso-cartao h1 {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  font-weight: 800;
+}
+
+.acesso-intro {
+  margin-top: 8px;
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.campo label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: var(--alvo-toque);
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  color: var(--texto);
+  /* 16px evita o zoom automático do iPhone ao tocar no campo */
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.campo textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.campo select {
+  appearance: none;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--texto-suave) 50%),
+    linear-gradient(135deg, var(--texto-suave) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 50%,
+    calc(100% - 15px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.campo select:disabled {
+  opacity: 0.6;
+}
+
+.campo input::placeholder,
+.campo textarea::placeholder {
+  color: #6b7299;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: 2px solid var(--ciano);
+  outline-offset: 1px;
+  border-color: var(--ciano);
+}
+
+.campo-com-erro input,
+.campo-com-erro select,
+.campo-com-erro textarea {
+  border-color: var(--plasma);
+}
+
+.campo-dica {
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.campo-erro {
+  color: var(--plasma);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.senha-linha {
+  display: flex;
+  gap: 8px;
+}
+
+.senha-linha input {
+  flex: 1;
+  min-width: 0;
+}
+
+.senha-mostrar {
+  flex-shrink: 0;
+  padding-inline: 12px;
+  font-size: 0.8125rem;
+}
+
+.botao-largo {
+  width: 100%;
+}
+
+/* Botões comuns dentro do formulário não esticam */
+.formulario > .botao:not(.botao-largo) {
+  align-self: flex-start;
+}
+
+/* No celular, os pares de campos ficam um embaixo do outro, com o mesmo espaço */
+.formulario-duas-colunas {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.botao:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.acesso-rodape {
+  margin-top: 16px;
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.acesso-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-top: 12px;
+  font-size: 0.875rem;
+}
+
+.acesso-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+}
+
+/* Avisos */
+.aviso {
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-left-width: 4px;
+  border-radius: var(--raio-pequeno);
+  background: color-mix(in srgb, var(--espaco) 70%, var(--casco));
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.aviso-titulo {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.aviso-info {
+  border-left-color: var(--ciano);
+}
+
+.aviso-atencao {
+  border-color: color-mix(in srgb, var(--estrela) 50%, var(--borda));
+  border-left-color: var(--estrela);
+  background: color-mix(in srgb, var(--estrela) 8%, var(--espaco));
+}
+
+.aviso-erro {
+  border-color: color-mix(in srgb, var(--plasma) 50%, var(--borda));
+  border-left-color: var(--plasma);
+  background: color-mix(in srgb, var(--plasma) 8%, var(--espaco));
+}
+
+.aviso-sucesso {
+  border-left-color: var(--sucesso);
+}
+
+.carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-block: 64px;
+  color: var(--texto-suave);
+}
+
+.carregando-ponto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ciano);
+  animation: pulsar 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulsar {
+  to {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+@media (min-width: 600px) {
+  .acesso {
+    padding-block: 48px 72px;
+  }
+
+  .acesso-cartao {
+    padding: 32px;
+  }
+
+  .formulario-duas-colunas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}

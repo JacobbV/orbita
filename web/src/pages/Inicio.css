@@ -1,0 +1,199 @@
+.inicio {
+  padding-block: 32px 56px;
+}
+
+/* Âncoras não ficam escondidas atrás do topo fixo */
+.inicio section {
+  scroll-margin-top: calc(var(--altura-topo) + 16px);
+}
+
+.heroi {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+}
+
+.heroi-selo {
+  color: var(--nebulosa);
+  margin-bottom: 12px;
+}
+
+.heroi h1 {
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.25rem);
+  font-weight: 800;
+}
+
+.heroi-resumo {
+  max-width: 38rem;
+  margin-top: 16px;
+  color: var(--texto);
+  font-size: 1.0625rem;
+}
+
+.heroi-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.heroi-arte {
+  display: flex;
+  justify-content: center;
+}
+
+.heroi-svg {
+  width: min(55vw, 200px);
+  height: auto;
+}
+
+.heroi-satelite {
+  transform-origin: 120px 120px;
+  animation: orbitar 24s linear infinite;
+}
+
+@keyframes orbitar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroi-satelite {
+    animation: none;
+  }
+}
+
+.secao {
+  margin-top: 56px;
+}
+
+.secao h2 {
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.grade-disciplinas,
+.grade-passos {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.disciplina {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+}
+
+.disciplina h3 {
+  font-size: 1.1875rem;
+  font-weight: 700;
+}
+
+.disciplina-resumo {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.disciplina-detalhe {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 0.875rem;
+}
+
+.disciplina-ciano .disciplina-ano {
+  color: var(--ciano);
+}
+
+.disciplina-nebulosa .disciplina-ano {
+  color: var(--nebulosa);
+}
+
+.disciplina-estrela .disciplina-ano {
+  color: var(--estrela);
+}
+
+.passo h3 {
+  margin-top: 6px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.passo p {
+  margin-top: 4px;
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.passo-numero {
+  font-size: 0.875rem;
+}
+
+.passo-1 .passo-numero {
+  color: var(--ciano);
+}
+
+.passo-2 .passo-numero {
+  color: var(--nebulosa);
+}
+
+.passo-3 .passo-numero {
+  color: var(--estrela);
+}
+
+@media (min-width: 600px) {
+  .heroi-svg {
+    width: 240px;
+  }
+
+  .heroi-acoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 768px) {
+  .inicio {
+    padding-block: 48px 72px;
+  }
+
+  .grade-disciplinas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grade-passos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .heroi {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 48px;
+    min-height: 360px;
+  }
+
+  .heroi-svg {
+    width: min(100%, 320px);
+  }
+
+  .grade-disciplinas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .secao {
+    margin-top: 72px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .heroi-svg {
+    width: min(100%, 380px);
+  }
+}

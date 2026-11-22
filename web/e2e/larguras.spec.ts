@@ -1,0 +1,176 @@
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
+import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
+
+// Todas as telas em larguras de celular pequeno até monitor ultrawide:
+// sem rolagem horizontal, céu cobrindo a tela, alvos de toque com 44px ou
+// mais e nenhum erro de JavaScript.
+
+const LARGURAS: Array<[number, number]> = [
+  [320, 568],
+  [360, 800],
+  [393, 852],
+  [768, 1024],
+  [1280, 800],
+  [1920, 1080],
+  [2560, 1440],
+]
+
+type Papel = 'visitante' | 'aluno' | 'professor'
+
+interface Tela {
+  nome: string
+  caminho: string
+  papel: Papel
+  /** Deixa a tela no pior caso (erros à mostra, tudo aberto) antes de medir. */
+  preparar?: (page: Page) => Promise<void>
+}
+
+const TELAS: Tela[] = [
+  { nome: 'Início', caminho: '', papel: 'visitante' },
+  { nome: 'Créditos', caminho: 'creditos', papel: 'visitante' },
+  {
+    nome: 'Cadastro com erros',
+    caminho: 'cadastro',
+    papel: 'visitante',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: 'Enviar pedido de acesso' }).click()
+      await expect(page.getByText(/A senha precisa ter/)).toBeVisible()
+    },
+  },
+  { nome: 'Entrar', caminho: 'entrar', papel: 'visitante' },
+  { nome: 'Esqueci minha senha', caminho: 'recuperar-senha', papel: 'visitante' },
+  { nome: 'Página inexistente', caminho: 'nao-existe', papel: 'visitante' },
+  {
+    nome: 'Aguardando',
+    caminho: 'aguardando',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: /Pedir de novo/ }).click()
+    },
+  },
+  {
+    nome: 'Ponte com tudo aberto',
+    caminho: 'ponte',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByText('Última aula liberada')).toBeVisible()
+      await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)))
+    },
+  },
+  {
+    nome: 'Painel: pedidos',
+    caminho: 'professor?aba=pedidos',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: /^Recusados/ }).click()
+    },
+  },
+  {
+    nome: 'Painel: aulas com edição aberta',
+    caminho: 'professor?aba=aulas',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: 'Editar aula I.1', exact: true }).click()
+      await page.getByRole('button', { name: 'Remover aula' }).click()
+      await page.getByRole('button', { name: 'Remover unidade II', exact: true }).click()
+    },
+  },
+  {
+    nome: 'Painel: turmas',
+    caminho: 'professor?aba=turmas',
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: '1º INFO M' })).toBeVisible()
+    },
+  },
+]
+
+const sessoes: Partial<Record<Papel, Awaited<ReturnType<BrowserContext['storageState']>>>> = {}
+
+async function guardarSessao(browser: Browser, papel: Papel, email: string) {
+  const ctx = await browser.newContext()
+  await entrar(await ctx.newPage(), email)
+  sessoes[papel] = await ctx.storageState()
+  await ctx.close()
+}
+
+test.beforeAll(async ({ browser }) => {
+  // Aluno aprovado em Algoritmos (1º INFO M) com a aula I.1 liberada e recusado em Fundamentos.
+  const algM = await oferta('1º INFO M', 'ALG')
+  const fundM = await oferta('1º INFO M', 'FUND')
+  const aluno = emailDeTeste('larguras')
+  const id = await criarConta(aluno, 'Plutão Exemplo de Oliveira Fictício', {
+    ofertaId: algM,
+    quemEVoce: 'Plutão Exemplo de Oliveira Fictício, 1º INFO M, manhã',
+  })
+  await rest(`matriculas?aluno_id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
+  await rest('matriculas', {
+    method: 'POST',
+    body: JSON.stringify({
+      aluno_id: id,
+      turma_disciplina_id: fundM,
+      disciplina_id: (await rest<Array<{ disciplina_id: number }>>(`turma_disciplinas?id=eq.${fundM}&select=disciplina_id`))[0]?.disciplina_id,
+      status: 'recusado',
+      motivo_recusa: 'Motivo de teste um pouco mais longo, para conferir a quebra de linha no cartão.',
+      quem_e_voce: 'Plutão Exemplo de Oliveira Fictício, 1º INFO M, manhã',
+      tentativa: 1,
+    }),
+  })
+  const aula = (
+    await rest<Array<{ id: number }>>(
+      'aulas?select=id,unidades!inner(numero,disciplinas!inner(sigla))&numero=eq.1&unidades.numero=eq.1&unidades.disciplinas.sigla=eq.ALG',
+    )
+  )[0]?.id
+  await rest('liberacoes?on_conflict=turma_disciplina_id,aula_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=ignore-duplicates' },
+    body: JSON.stringify({ turma_disciplina_id: algM, aula_id: aula }),
+  })
+
+  const professor = emailDeTeste('professor-larguras')
+  await criarProfessor(professor, 'Professor Fictício')
+  await guardarSessao(browser, 'aluno', aluno)
+  await guardarSessao(browser, 'professor', professor)
+})
+
+for (const [largura, altura] of LARGURAS) {
+  test.describe(`${largura}×${altura}`, () => {
+    for (const tela of TELAS) {
+      test(tela.nome, async ({ browser }) => {
+        const sessao = sessoes[tela.papel]
+        const ctx = await browser.newContext({
+          viewport: { width: largura, height: altura },
+          ...(sessao ? { storageState: sessao } : {}),
+        })
+        const page = await ctx.newPage()
+        const erros = registrarErros(page)
+        await page.goto(tela.caminho, { waitUntil: 'networkidle' })
+        await tela.preparar?.(page)
+
+        const medida = await page.evaluate(() => {
+          const raiz = document.documentElement
+          const ceu = document.querySelector('.ceu-estrelas')?.getBoundingClientRect()
+          const alvos = [...document.querySelectorAll('a, button, input:not([type=checkbox]), select, textarea, summary, label.painel-caixa')]
+          const pequenos = alvos
+            .filter((el) => {
+              const r = el.getBoundingClientRect()
+              return r.width > 0 && r.height < 44 && !el.classList.contains('pular-link')
+            })
+            .map((el) => `${(el.textContent || el.tagName).trim().slice(0, 30)} (${Math.round(el.getBoundingClientRect().height)}px)`)
+          return {
+            rolagemHorizontal: raiz.scrollWidth > raiz.clientWidth,
+            ceu: ceu ? [Math.round(ceu.width), Math.round(ceu.height)] : null,
+            tela: [innerWidth, innerHeight],
+            pequenos,
+          }
+        })
+
+        expect(medida.rolagemHorizontal, 'sem rolagem horizontal').toBe(false)
+        expect(medida.ceu, 'o céu cobre a tela').toEqual(medida.tela)
+        expect(medida.pequenos, 'alvos de toque com 44px ou mais').toEqual([])
+        expect(erros, 'sem erros de JavaScript').toEqual([])
+        await ctx.close()
+      })
+    }
+  })
+}

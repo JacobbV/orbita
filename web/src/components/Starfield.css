@@ -1,0 +1,18 @@
+/* Fica preso à tela (fixed) e atrás de tudo, em qualquer tamanho. */
+.ceu {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--espaco);
+  background-image:
+    radial-gradient(ellipse 60% 45% at 85% 10%, rgb(167 139 250 / 0.12), transparent 70%),
+    radial-gradient(ellipse 55% 40% at 10% 90%, rgb(34 211 238 / 0.08), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgb(244 114 182 / 0.04), transparent 70%);
+}
+
+.ceu-estrelas {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}

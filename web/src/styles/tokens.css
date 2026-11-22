@@ -1,0 +1,52 @@
+/* Paleta e medidas do tema galáxia. Mude aqui e o site inteiro acompanha. */
+:root {
+  /* Cores */
+  --espaco: #0b0e1f;
+  --casco: #161b33;
+  --borda: #2a3160;
+  --ciano: #22d3ee;
+  --ciano-claro: #7de8f8;
+  --nebulosa: #a78bfa;
+  --estrela: #fbbf24;
+  --plasma: #f472b6;
+  --texto: #e5e7f5;
+  --texto-suave: #9ca3c7;
+  --sucesso: #34d399;
+
+  /* Fontes (todas hospedadas no próprio site) */
+  --fonte-texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fonte-codigo: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --fonte-pixel: 'Press Start 2P', var(--fonte-codigo);
+
+  /* Layout: margens pequenas no celular, maiores em telas grandes */
+  --margem: 16px;
+  --largura-max: 1200px;
+  --raio: 12px;
+  --raio-pequeno: 8px;
+  --alvo-toque: 44px;
+  --altura-topo: 64px;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --margem: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --margem: 32px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --largura-max: 1360px;
+  }
+}
+
+@media (min-width: 2560px) {
+  :root {
+    --largura-max: 1560px;
+  }
+}

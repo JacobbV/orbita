@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+# Chave pública do Supabase da nuvem, usada no build do site (ver o arquivo).
+!web/.env.production
+*.local
+.DS_Store
+test-results/
+playwright-report/
+supabase/.temp/
+supabase/.branches/
