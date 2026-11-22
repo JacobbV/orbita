@@ -41,6 +41,14 @@ vi.mock('../lib/progresso', async (original) => {
   }
 })
 
+// Professor da nave falso: null = não carregou (o cartão não aparece).
+const professorFalso = vi.hoisted(() => ({ valor: null as unknown }))
+
+vi.mock('../lib/avatar', async (original) => ({
+  ...(await original<typeof import('../lib/avatar')>()),
+  carregarProfessorDaNave: async () => professorFalso.valor,
+}))
+
 vi.mock('../lib/api', async (original) => ({
   ...(await original<typeof import('../lib/api')>()),
   meusPedidos: async () => [],
@@ -103,6 +111,24 @@ describe('Ponte de comando', () => {
   beforeEach(() => {
     progressoFalso.valor = null
     progressoFalso.aberturas = []
+    professorFalso.valor = null
+  })
+
+  it('mostra o boneco e o nome do professor da nave', async () => {
+    const { PADRAO_PROFESSOR } = await import('../arte/avatar')
+    professorFalso.valor = { nome: 'Prof. Fictício', escolhas: PADRAO_PROFESSOR }
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const cartao = await screen.findByRole('complementary', { name: 'Seu professor' })
+    expect(within(cartao).getByText('Prof. Fictício')).toBeInTheDocument()
+    expect(within(cartao).getByText('Comandante da nave')).toBeInTheDocument()
+  })
+
+  it('sem o professor carregado, a ponte abre sem o cartão', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    expect(await screen.findByText('Última aula liberada')).toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Seu professor' })).toBeNull()
   })
 
   it('mostra a patente, o XP e quanto falta para a próxima', async () => {

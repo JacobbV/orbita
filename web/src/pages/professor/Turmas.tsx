@@ -140,6 +140,13 @@ function CartaoTurma({
                     ({turma.nome}, {o.disciplina.nome})
                   </span>
                 </Link>
+                <Link to={`/professor/xp/${o.id}`} className="botao botao-compacto">
+                  XP da turma{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
+                  <span className="sr-only">
+                    {' '}
+                    ({turma.nome}, {o.disciplina.nome})
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

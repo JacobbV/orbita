@@ -531,6 +531,11 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"professor_da_nave":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "escolhas": Json,"nome": string
+            }[]
+                           },
 "registrar_abertura_da_aula":
 { Args: { "p_aula_id": number }; Returns: Json
                            },

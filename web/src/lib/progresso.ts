@@ -117,3 +117,37 @@ export function frasesDaConquista(c: Conquista): string[] {
   for (const m of c.medalhas) frases.push(`Nova medalha: ${NOMES_DAS_MEDALHAS[m] ?? m}!`)
   return frases
 }
+
+// ---------------------------------------------------------------------------
+// Painel do professor: XP da turma e XP manual (participação)
+// ---------------------------------------------------------------------------
+
+export interface XpDoAluno {
+  alunoId: string
+  nome: string
+  xp: number
+  patente: string
+}
+
+/** Alunos aprovados de uma turma com XP e patente. Só o professor consegue. */
+export async function carregarXpDaTurma(ofertaId: number): Promise<XpDoAluno[]> {
+  const { data, error } = await supabase().rpc('xp_da_turma', { p_turma_disciplina_id: ofertaId })
+  if (error) throw error
+  return ((data ?? []) as { aluno_id: string; nome: string; xp: number; patente: string }[]).map((l) => ({
+    alunoId: l.aluno_id,
+    nome: l.nome,
+    xp: l.xp,
+    patente: l.patente,
+  }))
+}
+
+export const XP_MANUAL_MAXIMO = 100
+
+export async function darXp(alunoId: string, quantidade: number, descricao: string): Promise<void> {
+  const { error } = await supabase().rpc('dar_xp', {
+    p_aluno_id: alunoId,
+    p_quantidade: quantidade,
+    p_descricao: descricao.trim(),
+  })
+  if (error) throw error
+}

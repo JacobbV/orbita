@@ -29,3 +29,17 @@ export async function salvarAvatar(escolhas: Escolhas): Promise<void> {
   const { error } = await supabase().rpc('salvar_avatar', { p_escolhas: limparEscolhas(escolhas) })
   if (error) throw error
 }
+
+export interface ProfessorDaNave {
+  nome: string
+  escolhas: Escolhas
+}
+
+/** Nome e boneco do professor, para os alunos aprovados (null para os demais). */
+export async function carregarProfessorDaNave(): Promise<ProfessorDaNave | null> {
+  const { data, error } = await supabase().rpc('professor_da_nave')
+  if (error) throw error
+  const linha = (data as { nome: string; escolhas: unknown }[] | null)?.[0]
+  if (!linha) return null
+  return { nome: linha.nome, escolhas: { ...avatarPadrao('professor'), ...limparEscolhas(linha.escolhas) } }
+}

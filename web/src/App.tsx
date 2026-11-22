@@ -15,6 +15,7 @@ import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
 import { VerComoAluno } from './pages/professor/VerComoAluno'
+import { XpDaTurma } from './pages/professor/XpDaTurma'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 import { Slides } from './pages/Slides'
 
@@ -62,6 +63,14 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <VerComoAluno />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/xp/:ofertaId"
+            element={
+              <RotaProtegida papel="professor">
+                <XpDaTurma />
               </RotaProtegida>
             }
           />

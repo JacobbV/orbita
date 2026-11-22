@@ -55,7 +55,7 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] XP e patente na ponte do aluno, com aviso de conquista ao abrir uma aula.
 - [x] Hangar: aluno e professor montam o boneco, com peças trancadas por XP.
 - [x] Botão "Ver como aluno" no painel (aba Turmas), com a marca-d'água de exemplo nos slides.
-- [ ] Painel do professor: avatar, XP da turma e XP à mão.
+- [x] Painel do professor: boneco do professor na ponte dos alunos, XP da turma e XP por participação (1 a 100 por vez, com motivo).
 - [ ] Medalhas na tela.
 - [x] Arte original em pixel art aprovada (46 peças, aluno e professor).
 - [x] Laboratório: editor de código e botões Rodar e Testar em Python, no navegador.
