@@ -192,7 +192,10 @@ function CartaoPedido({
     <li className="cartao painel-pedido">
       <div className="painel-pedido-topo">
         <div className="painel-pedido-quem">
-          <p className="painel-pedido-nome">{pedido.aluno.nome}</p>
+          <p className="painel-pedido-nome">
+            {pedido.aluno.nome}
+            {pedido.aluno.apelido && <span className="painel-pedido-apelido"> · {pedido.aluno.apelido}</span>}
+          </p>
           <p className="painel-pedido-email">{pedido.aluno.email}</p>
         </div>
         <p className="painel-pedido-data">

@@ -13,7 +13,7 @@ export const ALTURA = 52
 export type Ret = readonly [number, number, number, number, string]
 
 export type Camada = 'corpo' | 'pele' | 'rosto' | 'cabelo' | 'cor-do-cabelo' | 'roupa' | 'acessorio'
-export type Para = 'aluno' | 'professor' | 'todos'
+export type Para = 'aluno' | 'professor' | 'ninja' | 'todos'
 
 export type Escolhas = Partial<Record<Camada, string>>
 
@@ -33,6 +33,15 @@ const CONTORNO = '#0b0e1c'
 const OLHO = '#1b1f33'
 const BOCA = '#a8484f'
 const BRANCO = '#f4f6fb'
+
+// Modo Ninja do professor: tecido escuro e faixa vermelha.
+const NINJA = '#232a3d'
+const NINJA_SOMBRA = '#161b2a'
+const NINJA_LUZ = '#3a4562'
+const FAIXA = '#d23b43'
+const FAIXA_SOMBRA = '#9c2930'
+const METAL = '#c9ccd6'
+const METAL_SOMBRA = '#8e92a6'
 
 // -----------------------------------------------------------------------------
 // Corpo: cabeça, pescoço, braços, calça e tênis. Três larguras de tronco.
@@ -127,6 +136,14 @@ const BARBA: Ret[] = [
   [22, 18, 4, 1, BOCA],
 ]
 
+// Máscara ninja: cobre nariz e boca, deixa os olhos e a testa de fora.
+const MASCARA_NINJA: Ret[] = [
+  [19, 12, 3, 1, 'cs'], [26, 12, 3, 1, 'cs'], [21, 13, 1, 1, 'cs'], [26, 13, 1, 1, 'cs'],
+  ...olhos(),
+  [17, 16, 14, 5, NINJA], [18, 21, 12, 1, NINJA], [17, 16, 14, 1, NINJA_LUZ],
+  [20, 19, 8, 1, NINJA_SOMBRA], [24, 17, 1, 2, NINJA_SOMBRA],
+]
+
 // -----------------------------------------------------------------------------
 // Cabelos (por cima do rosto)
 // -----------------------------------------------------------------------------
@@ -169,6 +186,15 @@ function desenharCabelo(id: string): Ret[] {
       ]
     case 'cabelo-raspado':
       return [[19, 7, 10, 1, 'cs'], [18, 8, 12, 3, 'cs'], [17, 9, 1, 4, 'cs'], [30, 9, 1, 4, 'cs']]
+    case 'cabelo-capuz-ninja':
+      // Capuz: cobre a cabeça e as orelhas, abre só a janela do rosto.
+      return [
+        [19, 5, 10, 1, NINJA], [17, 6, 14, 1, NINJA], [16, 7, 16, 5, NINJA],
+        [15, 9, 1, 12, NINJA], [32, 9, 1, 12, NINJA],
+        [16, 12, 3, 10, NINJA], [29, 12, 3, 10, NINJA], [17, 22, 14, 2, NINJA_SOMBRA],
+        [19, 6, 8, 1, NINJA_LUZ], [17, 7, 2, 2, NINJA_LUZ],
+        [16, 11, 16, 1, NINJA_SOMBRA], [18, 12, 1, 10, NINJA_SOMBRA], [29, 12, 1, 10, NINJA_SOMBRA],
+      ]
     case 'cabelo-coque':
       return [...CURTO, [21, 1, 6, 1, 'c'], [20, 2, 8, 3, 'c'], [21, 5, 6, 1, 'cs'], [22, 2, 2, 1, 'cs']]
     default:
@@ -247,6 +273,21 @@ function desenharRoupa(id: string, c: Corpo): Ret[] {
         [17, 30, 1, 1, '#d7c79a'], [30, 30, 1, 1, '#d7c79a'], [17, 34, 1, 1, '#d7c79a'], [30, 34, 1, 1, '#d7c79a'],
         [be, 34, c.braco, 2, '#4a6035'], [bd, 34, c.braco, 2, '#4a6035'],
       ]
+    case 'roupa-traje-ninja':
+      return [
+        ...tronco(c, NINJA),
+        // gola cruzada
+        [20, 24, 2, 1, NINJA_LUZ], [21, 25, 2, 1, NINJA_LUZ], [22, 26, 2, 1, NINJA_LUZ], [23, 27, 2, 1, NINJA_LUZ],
+        [26, 24, 2, 1, NINJA_SOMBRA], [25, 25, 2, 1, NINJA_SOMBRA], [24, 26, 2, 1, NINJA_SOMBRA],
+        [t0, 28, 1, 5, NINJA_SOMBRA], [t1, 28, 1, 5, NINJA_SOMBRA],
+        // faixa da cintura com nó
+        [t0, 33, t1 - t0 + 1, 2, FAIXA], [t0, 34, t1 - t0 + 1, 1, FAIXA_SOMBRA],
+        [t0 + 2, 35, 2, 3, FAIXA], [t0 + 3, 36, 1, 2, FAIXA_SOMBRA],
+        [t0, 35, 2, 3, NINJA_SOMBRA], [t0 + 4, 35, t1 - t0 - 3, 3, NINJA_SOMBRA],
+        // punhos enfaixados
+        [be, 32, c.braco, 1, NINJA_LUZ], [bd, 32, c.braco, 1, NINJA_LUZ],
+        [be, 34, c.braco, 2, NINJA_SOMBRA], [bd, 34, c.braco, 2, NINJA_SOMBRA],
+      ]
     case 'roupa-camisa-xadrez':
       return [
         ...tronco(c, '#2f5fb3'),
@@ -296,6 +337,24 @@ function desenharAcessorio(id: string, c: Corpo): Ret[] {
         [15, 21, 1, 1, '#c9ccd6'], [32, 21, 1, 1, '#c9ccd6'],
         [14, 22, 20, 2, '#8e92a6'], [16, 4, 1, 3, '#eef9fc'], [17, 3, 2, 1, '#eef9fc'],
       ]
+    case 'acessorio-faixa-ninja':
+      // Faixa na testa, com o nó e as pontas voando para o lado.
+      return [
+        [16, 10, 16, 2, FAIXA], [16, 11, 16, 1, FAIXA_SOMBRA],
+        [32, 9, 2, 4, FAIXA], [33, 10, 1, 2, FAIXA_SOMBRA],
+        [34, 10, 3, 1, FAIXA], [37, 11, 3, 1, FAIXA], [40, 12, 2, 1, FAIXA],
+        [34, 12, 2, 1, FAIXA_SOMBRA], [36, 13, 3, 1, FAIXA_SOMBRA], [39, 14, 2, 1, FAIXA_SOMBRA],
+      ]
+    case 'acessorio-estrela-ninja': {
+      // Estrela de quatro pontas na mão.
+      const x = t1 + c.braco + 3
+      return [
+        [x + 1, 31, 3, 3, METAL], [x + 2, 28, 1, 3, METAL], [x + 2, 34, 1, 3, METAL],
+        [x - 2, 32, 3, 1, METAL], [x + 4, 32, 3, 1, METAL],
+        [x + 3, 33, 1, 1, METAL_SOMBRA], [x + 2, 35, 1, 2, METAL_SOMBRA], [x + 4, 32, 1, 1, METAL_SOMBRA],
+        [x + 2, 32, 1, 1, CONTORNO],
+      ]
+    }
     case 'acessorio-caneca': {
       const x = t1 + c.braco + 2
       return [
@@ -331,6 +390,7 @@ export const PECAS: Peca[] = [
   { id: 'rosto-surpreso', camada: 'rosto', nome: 'Surpreso', para: 'todos', xpMinimo: 100, desenho: () => [[19, 11, 3, 1, 'cs'], [26, 11, 3, 1, 'cs'], ...olhos(), NARIZ, [23, 17, 2, 1, BOCA], [22, 18, 1, 1, BOCA], [25, 18, 1, 1, BOCA], [23, 19, 2, 1, BOCA]] },
   { id: 'rosto-barba-e-oculos', camada: 'rosto', nome: 'Barba e óculos', para: 'professor', xpMinimo: 0, desenho: () => [...SOBRANCELHAS, NARIZ, ...BARBA, ...OCULOS_GRANDES] },
   { id: 'rosto-barba', camada: 'rosto', nome: 'Barba', para: 'professor', xpMinimo: 0, desenho: () => [...SOBRANCELHAS, ...olhos(), NARIZ, ...BARBA] },
+  { id: 'rosto-ninja-mascara', camada: 'rosto', nome: 'Máscara ninja', para: 'ninja', xpMinimo: 0, desenho: () => MASCARA_NINJA },
   { id: 'rosto-oculos', camada: 'rosto', nome: 'Óculos de nerd', para: 'professor', xpMinimo: 0, desenho: () => [...SOBRANCELHAS, NARIZ, ...SORRISO, ...OCULOS_GRANDES] },
   ...([
     ['cabelo-curto', 'Curto', 0],
@@ -344,6 +404,7 @@ export const PECAS: Peca[] = [
   ] as const).map(([id, nome, xp]): Peca => ({
     id, camada: 'cabelo', nome, para: 'todos', xpMinimo: xp, desenho: () => desenharCabelo(id),
   })),
+  { id: 'cabelo-capuz-ninja', camada: 'cabelo', nome: 'Capuz ninja', para: 'ninja', xpMinimo: 0, desenho: () => desenharCabelo('cabelo-capuz-ninja') },
   ...CORES_CABELO.map(([id, nome, c, cs]): Peca => ({
     id, camada: 'cor-do-cabelo', nome, para: 'todos', xpMinimo: id === 'cabelo-azul' ? 500 : 0, cores: { c, cs },
   })),
@@ -354,6 +415,7 @@ export const PECAS: Peca[] = [
     ['roupa-jaqueta-de-piloto', 'Jaqueta de piloto', 'aluno', 250],
     ['roupa-cardiga', 'Cardigã e camisa xadrez', 'professor', 0],
     ['roupa-camisa-xadrez', 'Camisa xadrez azul', 'professor', 0],
+    ['roupa-traje-ninja', 'Traje ninja', 'ninja', 0],
   ] as const).map(([id, nome, para, xp]): Peca => ({
     id, camada: 'roupa', nome, para, xpMinimo: xp, desenho: (c) => desenharRoupa(id, c),
   })),
@@ -366,6 +428,8 @@ export const PECAS: Peca[] = [
     ['acessorio-capacete', 'Capacete espacial', 'aluno', 900],
     ['acessorio-caneca', 'Caneca de café', 'professor', 0],
     ['acessorio-notebook', 'Notebook com adesivos', 'professor', 0],
+    ['acessorio-faixa-ninja', 'Faixa ninja', 'ninja', 0],
+    ['acessorio-estrela-ninja', 'Estrela ninja', 'ninja', 0],
   ] as const).map(([id, nome, para, xp]): Peca => ({
     id, camada: 'acessorio', nome, para, xpMinimo: xp, desenho: (c) => desenharAcessorio(id, c),
   })),
@@ -381,6 +445,12 @@ export const PADRAO_ALUNO: Escolhas = {
 export const PADRAO_PROFESSOR: Escolhas = {
   corpo: 'corpo-medio', pele: 'pele-3', rosto: 'rosto-barba-e-oculos', cabelo: 'cabelo-curto',
   'cor-do-cabelo': 'cabelo-castanho', roupa: 'roupa-cardiga', acessorio: 'acessorio-caneca',
+}
+
+/** O boneco do Modo Ninja do professor, antes de ele mudar qualquer coisa. */
+export const PADRAO_NINJA: Escolhas = {
+  corpo: 'corpo-medio', pele: 'pele-3', rosto: 'rosto-ninja-mascara', cabelo: 'cabelo-capuz-ninja',
+  'cor-do-cabelo': 'cabelo-preto', roupa: 'roupa-traje-ninja', acessorio: 'acessorio-faixa-ninja',
 }
 
 const ORDEM: Camada[] = ['rosto', 'roupa', 'cabelo', 'acessorio']

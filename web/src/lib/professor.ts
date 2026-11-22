@@ -66,7 +66,7 @@ export interface PedidoDoPainel {
   motivoRecusa: string | null
   criadoEm: string
   decididoEm: string | null
-  aluno: { nome: string; email: string }
+  aluno: { nome: string; email: string; apelido?: string | null }
   oferta: OfertaDoPainel
 }
 
@@ -78,7 +78,7 @@ interface PedidoDoBanco {
   motivo_recusa: string | null
   criado_em: string
   decidido_em: string | null
-  aluno: { nome: string; email: string }
+  aluno: { nome: string; email: string; apelido?: string | null }
   oferta: OfertaDoBanco
 }
 
@@ -87,7 +87,7 @@ export async function listarPedidos(): Promise<PedidoDoPainel[]> {
     .from('matriculas')
     .select(
       `id, status, tentativa, quem_e_voce, motivo_recusa, criado_em, decidido_em,
-       aluno:perfis!matriculas_aluno_id_fkey!inner(nome, email),
+       aluno:perfis!matriculas_aluno_id_fkey!inner(nome, email, apelido),
        oferta:turma_disciplinas!inner(${CAMPOS_OFERTA})`,
     )
     .order('criado_em', { ascending: true })

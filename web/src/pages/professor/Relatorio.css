@@ -197,3 +197,10 @@
   font-size: 0.875rem;
   white-space: pre;
 }
+
+.relatorio-apelido {
+  display: block;
+  color: var(--estrela);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

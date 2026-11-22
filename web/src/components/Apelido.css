@@ -1,0 +1,45 @@
+/* Sorteio do apelido (ponte e Hangar) */
+.apelido {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.apelido-selo {
+  color: var(--ciano);
+}
+
+.apelido-nome {
+  font-size: clamp(0.875rem, 0.8rem + 0.6vw, 1.125rem);
+  line-height: 1.5;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+.apelido-sugestao {
+  color: var(--estrela);
+}
+
+.apelido-texto {
+  color: var(--texto-suave);
+}
+
+.apelido-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apelido-status:empty {
+  display: none;
+}
+
+.apelido-status {
+  color: var(--sucesso);
+  font-weight: 600;
+}
+
+.apelido-erro {
+  color: #fca5a5;
+}

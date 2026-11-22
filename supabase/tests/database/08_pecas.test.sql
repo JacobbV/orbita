@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(4);
 
-select is((select count(*) from public.pecas where id not like 'teste-%'), 46::bigint, 'catálogo com as 46 peças do primeiro lote');
+select is((select count(*) from public.pecas where id not like 'teste-%' and para <> 'ninja'), 46::bigint, 'catálogo com as 46 peças do primeiro lote');
 select is((select count(*) from public.pecas where para = 'professor'), 7::bigint, 'sete peças só do professor');
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)

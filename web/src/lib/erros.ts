@@ -55,6 +55,15 @@ const MENSAGENS_DO_BANCO = [
   'Escreva o código antes de entregar (até 20 mil caracteres).',
   'Resultado dos testes inválido.',
   'Entrega não encontrada.',
+  'Entre na sua conta para sortear um apelido.',
+  'Entre na sua conta para escolher um apelido.',
+  'Esse apelido não está na lista. Use o botão Sortear.',
+  'Alguém acabou de pegar esse apelido. Sorteie outro.',
+  'Só o professor pode trocar o apelido de um aluno.',
+  'Só o professor pode apagar o apelido de um aluno.',
+  'Todos os apelidos da lista já estão em uso. Avise o professor.',
+  'O Modo Ninja é só do professor.',
+  'Conta não encontrada.',
 ]
 
 export function mensagemDeErro(erro: unknown): string {

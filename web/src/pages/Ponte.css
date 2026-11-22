@@ -43,6 +43,15 @@
   font-weight: 600;
 }
 
+.ponte-apelido {
+  padding: 2px 10px;
+  border: 1px solid var(--estrela);
+  border-radius: 999px;
+  color: var(--estrela);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
 .ponte-pedidos {
   align-self: flex-start;
 }
@@ -91,7 +100,16 @@
     padding: 24px 28px;
   }
 
-  .ponte-pedidos {
+  .ponte-apelido {
+  padding: 2px 10px;
+  border: 1px solid var(--estrela);
+  border-radius: 999px;
+  color: var(--estrela);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.ponte-pedidos {
     align-self: center;
     flex-shrink: 0;
   }

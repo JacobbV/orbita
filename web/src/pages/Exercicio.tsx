@@ -23,6 +23,7 @@ import {
   type Exercicio as ExercicioDados,
 } from '../lib/laboratorio'
 import { numeroRomano } from '../lib/ponte'
+import { useModoNinja } from '../ninja/ModoNinja'
 import './Exercicio.css'
 
 type Console = { titulo: string; resultado: ResultadoDaExecucao }
@@ -47,6 +48,8 @@ export function Exercicio() {
   const [avisoEntrega, setAvisoEntrega] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const executor = useRef<Executor | null>(null)
   const ehAluno = perfil?.papel === 'aluno'
+  const ninja = useModoNinja().ativo
+  const voltarPara = ninja ? '/ninja' : perfil?.papel === 'professor' ? '/professor' : '/ponte'
 
   useEffect(() => {
     let ativo = true
@@ -89,7 +92,7 @@ export function Exercicio() {
         <Aviso tipo="erro" titulo="Não foi possível abrir o exercício">
           {erro}
         </Aviso>
-        <Link to={perfil?.papel === 'professor' ? '/professor' : '/ponte'} className="botao">
+        <Link to={voltarPara} className="botao">
           Voltar
         </Link>
       </div>
@@ -173,7 +176,7 @@ export function Exercicio() {
 
   return (
     <div className="exercicio container">
-      <Link to={perfil?.papel === 'professor' ? '/professor' : '/ponte'} className="exercicio-voltar">
+      <Link to={voltarPara} className="exercicio-voltar">
         ← Voltar
       </Link>
 

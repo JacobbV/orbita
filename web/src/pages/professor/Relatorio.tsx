@@ -151,7 +151,10 @@ export function Relatorio() {
                 <tbody>
                   {dados.linhas.map((l) => (
                     <tr key={l.alunoId}>
-                      <th scope="row">{l.nome}</th>
+                      <th scope="row">
+                        {l.nome}
+                        {l.apelido && <span className="relatorio-apelido">{l.apelido}</span>}
+                      </th>
                       {l.celulas.map((c, i) => {
                         const exercicio = dados.exercicios[i] as ExercicioDoRelatorio
                         return (

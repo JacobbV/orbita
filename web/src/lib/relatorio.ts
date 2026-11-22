@@ -37,6 +37,7 @@ export interface CelulaDoRelatorio {
 export interface LinhaDoRelatorio {
   alunoId: string
   nome: string
+  apelido?: string | null
   celulas: CelulaDoRelatorio[]
   feitos: number
   /** Média das notas, contando zero nos exercícios sem entrega. */
@@ -60,7 +61,7 @@ function celula(entregas: EntregaDoRelatorio[]): CelulaDoRelatorio {
 
 /** Junta alunos, exercícios e entregas numa tabela, um aluno por linha. */
 export function montarRelatorio(
-  alunos: { alunoId: string; nome: string }[],
+  alunos: { alunoId: string; nome: string; apelido?: string | null }[],
   exercicios: ExercicioDoRelatorio[],
   entregas: EntregaDoRelatorio[],
 ): Relatorio {
@@ -77,6 +78,7 @@ export function montarRelatorio(
       return {
         alunoId: a.alunoId,
         nome: a.nome,
+        apelido: a.apelido ?? null,
         celulas,
         feitos: celulas.filter((c) => c.situacao !== 'sem_entrega').length,
         media: exercicios.length > 0 ? Math.round((soma / exercicios.length) * 10) / 10 : 0,

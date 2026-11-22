@@ -28,7 +28,10 @@ export function ProfessorDaNave() {
       </span>
       <div>
         <p className="pixel professor-da-nave-selo">Comandante da nave</p>
-        <p className="professor-da-nave-nome">{professor.nome}</p>
+        <p className="professor-da-nave-nome">
+          {professor.nome}
+          {professor.apelido && <span className="professor-da-nave-apelido"> · {professor.apelido}</span>}
+        </p>
         <p className="professor-da-nave-texto">Libera as aulas e dá XP por participação.</p>
       </div>
     </aside>

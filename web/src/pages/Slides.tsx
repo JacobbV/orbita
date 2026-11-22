@@ -7,6 +7,7 @@ import { mensagemDeErro } from '../lib/erros'
 import { registrarAberturaEmSilencio } from '../lib/progresso'
 import { carregarSlides, SlidesIndisponiveis, type SlidesDaAula } from '../lib/slides'
 import './Slides.css'
+import { useModoNinja } from '../ninja/ModoNinja'
 
 /**
  * Slides HTML de uma aula, dentro de uma moldura isolada: os scripts do slide
@@ -59,6 +60,7 @@ export function Slides() {
   }, [])
 
   const ehProfessor = perfil?.papel === 'professor'
+  const ninja = useModoNinja().ativo
   // "Ver como aluno": o professor vê a marca-d'água como o aluno veria (com um nome de exemplo).
   const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
   const marca = comoAluno
@@ -66,7 +68,7 @@ export function Slides() {
     : ehProfessor
       ? null
       : [perfil?.nome, perfil?.email].filter(Boolean).join(' · ')
-  const voltar: To = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
+  const voltar: To = ninja ? '/ninja' : perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
   // Quem chegou por dentro do site volta para a mesma tela (mesma turma e
   // disciplina no painel), como o botão Voltar do navegador ou do mouse.
   const veioDoSite = location.key !== 'default'

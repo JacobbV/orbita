@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
 import { buscarOferta, nomeTurno, type Oferta } from '../../lib/api'
+import { apagarApelido, sortearApelidoDoAluno } from '../../lib/apelidos'
 import { mensagemDeErro } from '../../lib/erros'
 import { carregarXpDaTurma, darXp, XP_MANUAL_MAXIMO, type XpDoAluno } from '../../lib/progresso'
 import './Professor.css'
@@ -24,6 +25,8 @@ export function XpDaTurma() {
   const [erroForm, setErroForm] = useState<string | null>(null)
   const [sucesso, setSucesso] = useState<string | null>(null)
   const campoAluno = useRef<HTMLSelectElement>(null)
+  const [mexendoApelido, setMexendoApelido] = useState<string | null>(null)
+  const [avisoApelido, setAvisoApelido] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
 
   const recarregar = useCallback(async () => {
     const lista = await carregarXpDaTurma(id)
@@ -76,6 +79,24 @@ export function XpDaTurma() {
       setErroForm(mensagemDeErro(falha))
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function mudarApelido(aluno: XpDoAluno, acao: 'sortear' | 'apagar') {
+    setMexendoApelido(aluno.alunoId)
+    setAvisoApelido(null)
+    try {
+      const novo = acao === 'sortear' ? await sortearApelidoDoAluno(aluno.alunoId) : null
+      if (acao === 'apagar') await apagarApelido(aluno.alunoId)
+      setAlunos((lista) => lista?.map((a) => (a.alunoId === aluno.alunoId ? { ...a, apelido: novo } : a)) ?? lista)
+      setAvisoApelido({
+        tipo: 'sucesso',
+        texto: novo ? `Novo apelido de ${aluno.nome}: ${novo}.` : `Apelido de ${aluno.nome} apagado. Ele pode sortear outro.`,
+      })
+    } catch (falha) {
+      setAvisoApelido({ tipo: 'erro', texto: mensagemDeErro(falha) })
+    } finally {
+      setMexendoApelido(null)
     }
   }
 
@@ -184,10 +205,14 @@ export function XpDaTurma() {
             <h2 id="titulo-alunos-xp">
               {alunos.length} {alunos.length === 1 ? 'aluno' : 'alunos'}
             </h2>
+            {avisoApelido && <Aviso tipo={avisoApelido.tipo}>{avisoApelido.texto}</Aviso>}
             <ul role="list">
               {alunos.map((a) => (
                 <li key={a.alunoId} className="xp-turma-aluno">
-                  <span className="xp-turma-nome">{a.nome}</span>
+                  <span className="xp-turma-nome">
+                    {a.nome}
+                    <span className="xp-turma-apelido">{a.apelido ? `Apelido: ${a.apelido}` : 'Sem apelido'}</span>
+                  </span>
                   <span className="xp-turma-patente">
                     <span className="pixel">{a.patente}</span> · {a.xp} XP
                   </span>
@@ -199,6 +224,28 @@ export function XpDaTurma() {
                   >
                     Dar XP
                   </button>
+                  <span className="xp-turma-acoes-apelido">
+                    <button
+                      type="button"
+                      className="botao botao-compacto"
+                      aria-label={`Sortear outro apelido para ${a.nome}`}
+                      disabled={mexendoApelido !== null}
+                      onClick={() => void mudarApelido(a, 'sortear')}
+                    >
+                      Sortear apelido
+                    </button>
+                    {a.apelido && (
+                      <button
+                        type="button"
+                        className="botao botao-compacto"
+                        aria-label={`Apagar o apelido de ${a.nome}`}
+                        disabled={mexendoApelido !== null}
+                        onClick={() => void mudarApelido(a, 'apagar')}
+                      >
+                        Apagar apelido
+                      </button>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>

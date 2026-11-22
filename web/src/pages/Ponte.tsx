@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { EscolherApelido } from '../components/Apelido'
 import { Aviso } from '../components/Aviso'
 import { BonecoDoHangar } from '../components/BonecoDoHangar'
 import { Carregando } from '../components/Carregando'
@@ -81,6 +82,12 @@ export function Ponte() {
           <h1>{saudacao(nome, 'Tripulante')}</h1>
           <p className="ponte-quem">
             {nome}
+            {perfil?.apelido && (
+              <span className="ponte-apelido" title="Seu apelido (troque no Hangar)">
+                <span className="sr-only">Apelido: </span>
+                {perfil.apelido}
+              </span>
+            )}
             {turmas.map((t) => (
               <span key={t.id} className="ponte-turma">
                 {t.nome} · {nomeTurno(t.turno)} · {t.anoLetivo}
@@ -93,6 +100,8 @@ export function Ponte() {
           {dados.temOutrosPedidos ? 'Meus pedidos de acesso' : 'Pedir outra disciplina'}
         </Link>
       </header>
+
+      {!perfil?.apelido && <EscolherApelido />}
 
       <ProfessorDaNave />
 
