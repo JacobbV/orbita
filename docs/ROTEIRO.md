@@ -54,6 +54,6 @@ Site: https://jacobbv.github.io/orbita/
 
 ## Próximas fases (detalhes em PROJETO.md)
 
-- [ ] Gamificação: XP, patentes, medalhas e avatar em pixel art no Hangar (plano em revisão, 22/11).
-- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada) e modo prova, a partir da Fase 3.
+- [ ] Gamificação: XP, patentes, medalhas e avatar em pixel art no Hangar (plano junto com o laboratório em revisão, 22/11).
+- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada), junto com a gamificação; modo prova na Fase 4.
 - [ ] Java, C e C++ com servidor de execução, na Fase 5.
