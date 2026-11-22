@@ -125,6 +125,21 @@ const TELAS: Tela[] = [
     },
   },
   {
+    nome: 'Painel: relatório da turma',
+    get caminho() {
+      return `professor/relatorio/${ofertaAlgM}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByText('Notas da turma', { exact: true })).toBeVisible()
+      const nota = page.locator('.relatorio-nota').first()
+      if (await nota.count()) {
+        await nota.click()
+        await page.getByRole('button', { name: /^Ver código da entrega/ }).first().click()
+      }
+    },
+  },
+  {
     nome: 'Painel: exercícios com formulário aberto',
     get caminho() {
       return `professor/exercicios/${aulaI1}`

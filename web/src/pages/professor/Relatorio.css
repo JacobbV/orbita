@@ -1,0 +1,199 @@
+/* Relatório do professor */
+.relatorio-tabela-cartao,
+.relatorio-detalhe,
+.relatorio-vazio {
+  margin-top: 16px;
+  padding: 20px;
+}
+
+.relatorio-tabela-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.relatorio-tabela-topo h2 {
+  font-size: 1.125rem;
+}
+
+/* A tabela rola só dentro da caixa, nunca a página. */
+.relatorio-rolagem {
+  margin-top: 12px;
+  overflow-x: auto;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+}
+
+.relatorio-rolagem:focus-visible {
+  outline: 2px solid var(--ciano);
+  outline-offset: 2px;
+}
+
+.relatorio-tabela {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 0.9375rem;
+}
+
+.relatorio-tabela th,
+.relatorio-tabela td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--borda);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.relatorio-tabela thead th {
+  vertical-align: bottom;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.relatorio-tabela th[scope='row'],
+.relatorio-tabela thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background: var(--casco);
+}
+
+/* O nome quebra a linha para a coluna fixa não cobrir as notas no celular. */
+.relatorio-tabela th[scope='row'] {
+  min-width: 7rem;
+  max-width: 11rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.relatorio-aula {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.relatorio-exercicio {
+  display: block;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--texto);
+}
+
+.relatorio-nota {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: var(--alvo-toque);
+  min-height: var(--alvo-toque);
+  justify-content: center;
+  padding: 4px 8px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.relatorio-nota:hover {
+  border-color: var(--ciano);
+}
+
+.relatorio-tentativas {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+.relatorio-acertou {
+  border-color: var(--sucesso);
+}
+.relatorio-parcial {
+  border-color: var(--nebulosa);
+}
+.relatorio-a_confirmar {
+  border-color: var(--estrela);
+}
+.relatorio-nao_confere {
+  border-color: var(--plasma);
+}
+
+.relatorio-vazia {
+  color: var(--texto-suave);
+}
+
+.relatorio-media {
+  font-weight: 700;
+}
+
+.relatorio-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+.relatorio-bolinha {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+.relatorio-entregas {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.relatorio-entrega {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-block: 12px;
+  border-top: 1px solid var(--borda);
+}
+
+.relatorio-entrega-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.relatorio-entrega-situacao,
+.relatorio-entrega-data {
+  color: var(--texto-suave);
+}
+
+.relatorio-entrega-nao_confere .relatorio-entrega-situacao {
+  color: var(--plasma);
+}
+
+.relatorio-entrega-a_confirmar .relatorio-entrega-situacao {
+  color: var(--estrela);
+}
+
+.relatorio-codigo {
+  align-self: stretch;
+  max-height: 24rem;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  font-family: var(--fonte-codigo);
+  font-size: 0.875rem;
+  white-space: pre;
+}

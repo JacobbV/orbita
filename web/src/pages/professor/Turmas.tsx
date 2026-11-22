@@ -147,6 +147,13 @@ function CartaoTurma({
                     ({turma.nome}, {o.disciplina.nome})
                   </span>
                 </Link>
+                <Link to={`/professor/relatorio/${o.id}`} className="botao botao-compacto">
+                  Relatório{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
+                  <span className="sr-only">
+                    {' '}
+                    ({turma.nome}, {o.disciplina.nome})
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
