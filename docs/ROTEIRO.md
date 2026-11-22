@@ -50,6 +50,7 @@ Site: https://jacobbv.github.io/orbita/
 ## Ideias
 
 - 💡 **Ver como aluno** (pedido em 22/11): um botão no painel para o professor ver a ponte de uma turma exatamente como o aluno vê, com as aulas liberadas e bloqueadas e os slides com marca-d'água. Esforço estimado: uma etapa pequena. Dá para reaproveitar a tela da ponte do aluno com os dados da turma escolhida, só para ver, sem criar conta de teste nem mudar as regras do banco.
+- 💡 **Avatar do professor** (pedido em 22/11): o professor também tem boneco em pixel art, montado por ele no Hangar, com visual de nerd (óculos, barba e roupas próprias), sem jaleco. Entra junto com o avatar dos alunos, na gamificação.
 
 ## Próximas fases (detalhes em PROJETO.md)
 
