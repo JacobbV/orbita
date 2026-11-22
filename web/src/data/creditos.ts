@@ -32,6 +32,13 @@ export const FONTES: Credito[] = [
     uso: 'Detalhes em pixel (logo e selos)',
   },
   {
+    nome: 'Orbita Pixel Acentos (derivada da Press Start 2P)',
+    autor: 'Cody "CodeMan38" Boisclair; maiúsculas acentuadas redesenhadas para o Órbita',
+    link: 'https://fonts.google.com/specimen/Press+Start+2P',
+    licenca: 'SIL Open Font License 1.1',
+    uso: 'Maiúsculas acentuadas nos selos em pixel',
+  },
+  {
     nome: 'Fontsource',
     autor: 'Fontsource contributors',
     link: 'https://fontsource.org',

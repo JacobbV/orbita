@@ -301,3 +301,17 @@
   color: var(--texto-suave);
   margin-left: auto;
 }
+
+/* Prévia ao vivo dos exercícios de HTML e CSS */
+.exercicio-previa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.exercicio-previa-moldura {
+  width: 100%;
+  min-height: 16rem;
+  border: 1px solid var(--borda, #2a3358);
+  border-radius: 8px;
+  background: #fff;
+}

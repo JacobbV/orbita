@@ -1,4 +1,14 @@
 /* Paleta e medidas do tema galáxia. Mude aqui e o site inteiro acompanha. */
+
+/* Maiúsculas acentuadas em pixel, com o tamanho das outras letras
+   (derivada da Press Start 2P; veja scripts/fonte-pixel-acentos.py). */
+@font-face {
+  font-family: 'Orbita Pixel Acentos';
+  src: url('./fontes/orbita-pixel-acentos.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+00C0-00DD;
+}
+
 :root {
   /* Cores */
   --espaco: #0b0e1f;
@@ -16,7 +26,7 @@
   /* Fontes (todas hospedadas no próprio site) */
   --fonte-texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --fonte-codigo: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
-  --fonte-pixel: 'Press Start 2P', var(--fonte-codigo);
+  --fonte-pixel: 'Orbita Pixel Acentos', 'Press Start 2P', var(--fonte-codigo);
 
   /* Layout: margens pequenas no celular, maiores em telas grandes */
   --margem: 16px;

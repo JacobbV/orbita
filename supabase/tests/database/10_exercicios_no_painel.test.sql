@@ -1,7 +1,7 @@
 -- Testes de criar, editar e remover exercícios pelo painel. Nomes inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(15);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -85,6 +85,15 @@ insert into ids select 'vazio', public.salvar_exercicio(null, pg_temp.aula('ALG'
   '[{"tipo": "visivel", "saida_esperada": "1"}]');
 select lives_ok($$ select public.remover_exercicio((select id from ids where nome = 'vazio')) $$, 'remove exercício sem entregas');
 select is((select count(*) from public.exercicios where id = (select id from ids where nome = 'vazio')), 0::bigint, 'e ele some');
+
+-- Linguagem
+insert into ids select 'pagina', public.salvar_exercicio(null, pg_temp.aula('ALG', 3, 1), 'Minha página', 'Faça um h1.', 1, '',
+  '[{"tipo": "visivel", "entrada": "h1", "saida_esperada": "Olá"}]', 'html');
+select is((select linguagem from public.exercicios where id = (select id from ids where nome = 'pagina')), 'html', 'cria exercício de HTML e CSS');
+select is((select linguagem from public.exercicios where id = (select id from ids where nome = 'dobro')), 'python', 'sem linguagem, fica Python');
+select throws_ok($$ select public.salvar_exercicio(null, pg_temp.aula('ALG', 3, 1), 'x', 'y', 1, '',
+  '[{"tipo": "visivel", "entrada": "", "saida_esperada": "1"}]', 'cobol') $$,
+  '22023', 'Escolha a linguagem: Python, JavaScript ou HTML e CSS.', 'recusa linguagem desconhecida');
 reset role;
 
 select * from finish();

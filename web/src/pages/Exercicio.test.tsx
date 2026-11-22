@@ -8,6 +8,7 @@ const falso = vi.hoisted(() => ({
   saidas: new Map<string, string>(),
   codigosRodados: [] as string[],
   entregues: [] as { exercicioId: number; codigo: string; certos: number }[],
+  linguagem: 'python' as 'python' | 'javascript' | 'html',
 }))
 
 vi.mock('../lib/supabase', () => ({
@@ -37,7 +38,7 @@ vi.mock('../lib/laboratorio', async (original) => ({
       id: 7,
       titulo: 'Soma de dois números',
       enunciado: 'Leia dois números e mostre a soma.',
-      linguagem: 'python',
+      linguagem: falso.linguagem,
       codigoInicial: 'a = int(input())\n',
       dificuldade: 1,
       aula: { id: 11, numero: 1, titulo: 'Entrada e saída', unidade: 1, sigla: 'ALG' },
@@ -68,6 +69,18 @@ vi.mock('../lab/executor', async (original) => ({
   },
 }))
 
+vi.mock('../lab/html', async (original) => ({
+  ...(await original<typeof import('../lab/html')>()),
+  ExecutorHtml: class {
+    async carregar() {}
+    async rodar(codigo: string, consulta: string) {
+      falso.codigosRodados.push(codigo)
+      return { saida: falso.saidas.get(consulta) ?? '', erro: null, tempoEsgotado: false, saidaGrande: false }
+    }
+    encerrar() {}
+  },
+}))
+
 const ALUNO = {
   ...SEM_LOGIN,
   sessao: { user: { id: 'a1' } } as unknown as Session,
@@ -79,6 +92,7 @@ beforeEach(() => {
   falso.saidas.clear()
   falso.codigosRodados = []
   falso.entregues = []
+  falso.linguagem = 'python'
   localStorage.clear()
 })
 
@@ -163,5 +177,28 @@ describe('Exercício do laboratório', () => {
     await u.click(await screen.findByRole('button', { name: '✓ Testar' }))
     await screen.findByRole('heading', { name: '0 de 2 testes certos' })
     expect(screen.queryByRole('button', { name: 'Entregar' })).toBeNull()
+  })
+
+  it('HTML e CSS: prévia ao vivo, sem Rodar, e Testar confere a página', async () => {
+    const u = userEvent.setup()
+    falso.linguagem = 'html'
+    falso.saidas.set('1\n2', '3')
+    falso.saidas.set('5\n5', '10')
+    abrir('/exercicio/7', ALUNO)
+    expect(await screen.findByText('HTML e CSS')).toBeInTheDocument()
+    expect(screen.getByText('index.html')).toBeInTheDocument()
+    expect(screen.getByText('O que é conferido')).toBeInTheDocument()
+    expect(screen.getByTitle('Prévia da sua página')).toHaveAttribute('sandbox', '')
+    expect(screen.queryByRole('button', { name: '▶ Rodar' })).toBeNull()
+    await u.click(screen.getByRole('button', { name: '✓ Testar' }))
+    expect(await screen.findByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeInTheDocument()
+  })
+
+  it('JavaScript: editor e entrada do prompt()', async () => {
+    falso.linguagem = 'javascript'
+    abrir('/exercicio/7', ALUNO)
+    expect(await screen.findByLabelText('Editor de código JavaScript')).toBeInTheDocument()
+    expect(screen.getByText('main.js')).toBeInTheDocument()
+    expect(screen.getByLabelText(/input\(\) ou prompt\(\)/)).toBeInTheDocument()
   })
 })

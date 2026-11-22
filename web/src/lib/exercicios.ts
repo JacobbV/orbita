@@ -1,3 +1,4 @@
+import type { Linguagem } from '../lab/linguagens'
 import { supabase } from './supabase'
 
 // Exercícios no painel do professor: lista da aula, criar, editar e remover.
@@ -16,6 +17,7 @@ export interface ExercicioDoPainel {
   titulo: string
   enunciado: string
   dificuldade: 1 | 2 | 3
+  linguagem: Linguagem
   codigoInicial: string
   testes: TesteDoProfessor[]
   /** Quantas entregas de alunos já existem (com entregas, não pode remover). */
@@ -47,7 +49,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
   const { data, error } = await supabase()
     .from('aulas')
     .select(
-      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, codigo_inicial, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
+      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
     )
     .eq('id', aulaId)
     .maybeSingle()
@@ -69,6 +71,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
         titulo: e.titulo,
         enunciado: e.enunciado,
         dificuldade: e.dificuldade as 1 | 2 | 3,
+        linguagem: e.linguagem as Linguagem,
         codigoInicial: e.codigo_inicial,
         testes: [...e.testes]
           .sort((a, b) => a.ordem - b.ordem)
@@ -83,6 +86,7 @@ export interface DadosDoExercicio {
   titulo: string
   enunciado: string
   dificuldade: 1 | 2 | 3
+  linguagem: Linguagem
   codigoInicial: string
   testes: TesteDoProfessor[]
 }
@@ -125,6 +129,7 @@ export async function salvarExercicio(id: number | null, aulaId: number, d: Dado
     p_dificuldade: d.dificuldade,
     p_codigo_inicial: d.codigoInicial,
     p_testes: d.testes.map((t) => ({ tipo: t.tipo, entrada: t.entrada, saida_esperada: t.saidaEsperada })),
+    p_linguagem: d.linguagem,
   })
   if (error) throw error
   return data

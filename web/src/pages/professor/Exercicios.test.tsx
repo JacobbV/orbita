@@ -73,6 +73,7 @@ function dados(): AulaComExercicios {
         titulo: 'Contagem regressiva',
         enunciado: 'Leia n e conte até zero.',
         dificuldade: 2,
+        linguagem: 'python',
         codigoInicial: '',
         testes: [
           { tipo: 'visivel', entrada: '2', saidaEsperada: '2\n1\n0' },
@@ -82,7 +83,7 @@ function dados(): AulaComExercicios {
         entregas: 3,
         aConfirmar: 2,
       },
-      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], entregas: 0, aConfirmar: 0 },
+      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, linguagem: 'python', codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], entregas: 0, aConfirmar: 0 },
     ],
   }
 }
@@ -103,7 +104,7 @@ describe('Exercícios da aula (painel)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Repetição com while' })).toBeInTheDocument()
     expect(screen.getByText(/ALG · Unidade III · Aula 1/)).toBeInTheDocument()
     const item = screen.getByRole('heading', { name: 'Contagem regressiva' }).closest('li') as HTMLElement
-    expect(item).toHaveTextContent('Médio · +35 XP · 1 visível, 1 oculto, 1 secreto · 3 entregas')
+    expect(item).toHaveTextContent('Python · Médio · +35 XP · 1 visível, 1 oculto, 1 secreto · 3 entregas')
     expect(within(item).getByRole('link', { name: 'Abrir Contagem regressiva como o aluno vê' })).toHaveAttribute('href', '/exercicio/7')
   })
 
@@ -134,6 +135,7 @@ describe('Exercícios da aula (painel)', () => {
           titulo: 'Soma',
           enunciado: 'Leia dois números e mostre a soma.',
           dificuldade: 3,
+          linguagem: 'python',
           codigoInicial: '',
           testes: [
             { tipo: 'visivel', entrada: '2 3', saidaEsperada: '5' },
@@ -142,6 +144,23 @@ describe('Exercícios da aula (painel)', () => {
         },
       },
     ])
+  })
+
+  it('cria exercício de HTML e CSS com consultas', async () => {
+    const u = userEvent.setup()
+    abrir('/professor/exercicios/41', PROFESSOR)
+    await u.click(await screen.findByRole('button', { name: '+ Novo exercício' }))
+    const form = screen.getByRole('form', { name: 'Novo exercício' })
+    await u.type(within(form).getByLabelText('Título'), 'Meu cartão')
+    await u.type(within(form).getByLabelText('Enunciado'), 'Faça um título.')
+    await u.selectOptions(within(form).getByLabelText('Linguagem'), 'html')
+    expect(within(form).getByText(/o valor final de uma propriedade CSS/)).toBeInTheDocument()
+    await u.click(within(form).getByRole('button', { name: 'Remover teste 2' }))
+    await u.type(within(form).getByLabelText('Entrada do teste 1'), 'h1')
+    await u.type(within(form).getByLabelText('Saída esperada do teste 1'), 'Olá')
+    await u.click(within(form).getByRole('button', { name: 'Salvar exercício' }))
+    expect(await screen.findByText('Exercício "Meu cartão" criado.')).toBeInTheDocument()
+    expect((falso.salvos[0]?.dados as DadosDoExercicio | undefined)?.linguagem).toBe('html')
   })
 
   it('confere os campos antes de salvar', async () => {

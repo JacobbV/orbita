@@ -1,9 +1,14 @@
+import { html } from '@codemirror/lang-html'
+import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView, basicSetup } from 'codemirror'
 import { indentUnit } from '@codemirror/language'
 import { useEffect, useRef } from 'react'
+import type { Linguagem } from './linguagens'
 import './EditorCodigo.css'
+
+const CORES = { python: () => python(), javascript: () => javascript(), html: () => html() }
 
 interface Props {
   valor: string
@@ -11,10 +16,11 @@ interface Props {
   rotulo: string
   /** Editor mais baixo, para trechos curtos (código inicial, solução). */
   baixo?: boolean
+  linguagem?: Linguagem
 }
 
-/** Editor de código (CodeMirror 6) com cores do Python e números de linha. */
-export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false }: Props) {
+/** Editor de código (CodeMirror 6) com cores da linguagem e números de linha. */
+export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false, linguagem = 'python' }: Props) {
   const caixa = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const aoMudarAtual = useRef(aoMudar)
@@ -27,9 +33,9 @@ export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false }: Props) {
       parent: caixa.current,
       extensions: [
         basicSetup,
-        python(),
+        CORES[linguagem](),
         oneDark,
-        indentUnit.of('    '),
+        indentUnit.of(linguagem === 'python' ? '    ' : '  '),
         EditorView.contentAttributes.of({ 'aria-label': rotulo }),
         EditorView.updateListener.of((u) => {
           if (u.docChanged) aoMudarAtual.current(u.state.doc.toString())
@@ -41,7 +47,7 @@ export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false }: Props) {
       editor.destroy()
       view.current = null
     }
-    // O editor nasce uma vez; mudanças de fora entram pelo efeito abaixo.
+    // O editor nasce uma vez (a linguagem não muda); mudanças de fora entram pelo efeito abaixo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
