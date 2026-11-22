@@ -4,11 +4,13 @@ import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { BonecoDoHangar } from '../components/BonecoDoHangar'
 import { Carregando } from '../components/Carregando'
+import { Medalha } from '../components/Medalha'
 import { ProfessorDaNave } from '../components/ProfessorDaNave'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
 import { PreviaDoProfessor } from '../lib/previa'
+import { carregarMedalhas, ultimasGanhas, type MedalhaDoAluno } from '../lib/medalhas'
 import { saudacao } from '../lib/saudacao'
 import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
@@ -288,6 +290,46 @@ function CartaoPatente({ progresso }: { progresso: Progresso }) {
           ? `Faltam ${xpDaProxima - xp} XP para ${proxima}.`
           : 'Patente máxima da nave!'}
       </p>
+      <UltimasMedalhas />
+    </div>
+  )
+}
+
+/** As últimas medalhas ganhas e o atalho para todas. Se não carregar, só o atalho. */
+function UltimasMedalhas() {
+  const { perfil } = useAuth()
+  const [medalhas, setMedalhas] = useState<MedalhaDoAluno[] | null>(null)
+
+  useEffect(() => {
+    if (!perfil) return
+    let ativo = true
+    carregarMedalhas(perfil.id).then(
+      (m) => {
+        if (ativo) setMedalhas(m)
+      },
+      () => {},
+    )
+    return () => {
+      ativo = false
+    }
+  }, [perfil])
+
+  const ultimas = medalhas ? ultimasGanhas(medalhas) : []
+  const ganhas = medalhas?.filter((m) => m.ganhaEm).length ?? 0
+  return (
+    <div className="ponte-medalhas">
+      {ultimas.length > 0 && (
+        <ul className="ponte-medalhas-lista" role="list" aria-label="Últimas medalhas">
+          {ultimas.map((m) => (
+            <li key={m.codigo} title={m.nome}>
+              <Medalha codigo={m.codigo} tamanho={36} rotulo={m.nome} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link to="/medalhas" className="ponte-medalhas-link">
+        {medalhas ? `Medalhas: ${ganhas} de ${medalhas.length}` : 'Medalhas'}
+      </Link>
     </div>
   )
 }

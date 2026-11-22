@@ -10,6 +10,7 @@ import { Creditos } from './pages/Creditos'
 import { Entrar } from './pages/Entrar'
 import { Hangar } from './pages/Hangar'
 import { Inicio } from './pages/Inicio'
+import { Medalhas } from './pages/Medalhas'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
@@ -71,6 +72,14 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <XpDaTurma />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="medalhas"
+            element={
+              <RotaProtegida>
+                <Medalhas />
               </RotaProtegida>
             }
           />

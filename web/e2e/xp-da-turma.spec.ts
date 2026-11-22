@@ -31,7 +31,7 @@ test.describe.serial('XP da turma', () => {
     expect(erros).toEqual([])
   })
 
-  test('aluno vê o XP ganho e o professor da nave na ponte', async ({ page }) => {
+  test('aluno vê o XP, a medalha e o professor da nave na ponte', async ({ page }) => {
     const erros = registrarErros(page)
     await entrar(page, aluno)
     await page.goto('ponte')
@@ -39,6 +39,13 @@ test.describe.serial('XP da turma', () => {
     const cartao = page.getByRole('complementary', { name: 'Seu professor' })
     await expect(cartao).toBeVisible()
     await expect(cartao.getByText('Comandante da nave')).toBeVisible()
+
+    // O XP do professor dá a medalha Destaque da Aula.
+    await expect(page.getByRole('list', { name: 'Últimas medalhas' }).getByRole('img', { name: 'Destaque da Aula' })).toBeVisible()
+    await page.getByRole('link', { name: /Medalhas: 1 de/ }).click()
+    await expect(page.getByRole('heading', { name: 'Suas medalhas' })).toBeVisible()
+    await expect(page.locator('li', { hasText: 'Destaque da Aula' })).toContainText('Ganha em')
+    await expect(page.locator('li', { hasText: 'Maratonista' })).toContainText('Como ganhar')
     expect(erros).toEqual([])
   })
 })

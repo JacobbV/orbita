@@ -49,6 +49,17 @@ vi.mock('../lib/avatar', async (original) => ({
   carregarProfessorDaNave: async () => professorFalso.valor,
 }))
 
+// Medalhas falsas: null = o banco falhou (só o atalho aparece).
+const medalhasFalsas = vi.hoisted(() => ({ valor: null as unknown }))
+
+vi.mock('../lib/medalhas', async (original) => ({
+  ...(await original<typeof import('../lib/medalhas')>()),
+  carregarMedalhas: async () => {
+    if (!medalhasFalsas.valor) throw new Error('sem medalhas')
+    return medalhasFalsas.valor
+  },
+}))
+
 vi.mock('../lib/api', async (original) => ({
   ...(await original<typeof import('../lib/api')>()),
   meusPedidos: async () => [],
@@ -112,6 +123,21 @@ describe('Ponte de comando', () => {
     progressoFalso.valor = null
     progressoFalso.aberturas = []
     professorFalso.valor = null
+    medalhasFalsas.valor = null
+  })
+
+  it('mostra as últimas medalhas ganhas e o atalho para todas', async () => {
+    progressoFalso.valor = { xp: 175, nivel: 2, patente: 'Piloto', xpDaPatente: 100, proxima: 'Navegador', xpDaProxima: 250 }
+    medalhasFalsas.valor = [
+      { codigo: 'primeira-aula', nome: 'Primeira Aula', descricao: '', ganhaEm: '2026-11-20T13:00:00Z' },
+      { codigo: 'maratonista', nome: 'Maratonista', descricao: '', ganhaEm: null },
+      { codigo: 'destaque', nome: 'Destaque da Aula', descricao: '', ganhaEm: '2026-11-21T13:00:00Z' },
+    ]
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const lista = await screen.findByRole('list', { name: 'Últimas medalhas' })
+    expect(within(lista).getAllByRole('img').map((i) => i.getAttribute('aria-label'))).toEqual(['Destaque da Aula', 'Primeira Aula'])
+    expect(screen.getByRole('link', { name: 'Medalhas: 2 de 3' })).toHaveAttribute('href', '/medalhas')
   })
 
   it('mostra o boneco e o nome do professor da nave', async () => {

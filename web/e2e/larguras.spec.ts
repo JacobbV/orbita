@@ -19,6 +19,8 @@ type Papel = 'visitante' | 'aluno' | 'professor'
 
 /** Material de slides da aula I.1 de Algoritmos, criado no beforeAll. */
 let slidesId = 0
+/** Oferta de Algoritmos do 1º INFO M, para o XP da turma. */
+let ofertaAlgM = 0
 
 interface Tela {
   nome: string
@@ -58,6 +60,14 @@ const TELAS: Tela[] = [
     preparar: async (page) => {
       await expect(page.getByText('Última aula liberada')).toBeVisible()
       await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)))
+    },
+  },
+  {
+    nome: 'Medalhas',
+    caminho: 'medalhas',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Suas medalhas' })).toBeVisible()
     },
   },
   {
@@ -102,6 +112,16 @@ const TELAS: Tela[] = [
       await expect(page.getByRole('heading', { name: '1º INFO M' })).toBeVisible()
     },
   },
+  {
+    nome: 'Painel: XP da turma',
+    get caminho() {
+      return `professor/xp/${ofertaAlgM}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Dar XP por participação' })).toBeVisible()
+    },
+  },
 ]
 
 const sessoes: Partial<Record<Papel, Awaited<ReturnType<BrowserContext['storageState']>>>> = {}
@@ -116,6 +136,7 @@ async function guardarSessao(browser: Browser, papel: Papel, email: string) {
 test.beforeAll(async ({ browser }) => {
   // Aluno aprovado em Algoritmos (1º INFO M) com a aula I.1 liberada e recusado em Fundamentos.
   const algM = await oferta('1º INFO M', 'ALG')
+  ofertaAlgM = algM
   const fundM = await oferta('1º INFO M', 'FUND')
   const aluno = emailDeTeste('larguras')
   const id = await criarConta(aluno, 'Plutão Exemplo de Oliveira Fictício', {

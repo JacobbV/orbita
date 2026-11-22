@@ -384,3 +384,33 @@
 .ponte-previa .ponte-selo {
   color: var(--estrela);
 }
+
+/* Últimas medalhas (no cartão da patente) */
+.ponte-medalhas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.ponte-medalhas-lista {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ponte-medalhas-lista li {
+  display: inline-flex;
+}
+
+.ponte-medalhas-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  color: var(--ciano-claro);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
