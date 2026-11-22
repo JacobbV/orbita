@@ -50,6 +50,14 @@ describe('Slides da aula', () => {
     expect(screen.getByText('ALG · Unidade IV · Aula 1')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tela cheia' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Voltar/ })).toHaveAttribute('href', '/ponte')
+    expect(screen.getByTestId('marca-dagua')).toHaveTextContent('Estrela Cadente · estrela@academico.ifpb.edu.br')
+  })
+
+  it('professor apresenta sem marca-d\'água', async () => {
+    falso.resposta = { id: 7, onde: 'ALG · Unidade IV · Aula 1', titulo: 'Listas', html: '<h1>Slide 1</h1>' }
+    abrir('/slides/7', { ...ALUNO, perfil: { ...ALUNO.perfil, nome: 'Professor Fictício', papel: 'professor' as const } })
+    await screen.findByTitle('Slides: Listas')
+    expect(screen.queryByTestId('marca-dagua')).not.toBeInTheDocument()
   })
 
   it('explica quando os slides não estão liberados', async () => {

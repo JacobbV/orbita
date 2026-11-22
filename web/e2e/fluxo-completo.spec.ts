@@ -121,7 +121,8 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     const slide = (texto: string) =>
       Buffer.from(
         `<!doctype html><html lang="pt-BR"><body><h1>${texto}</h1><p id="js">sem script</p>` +
-          `<script>document.getElementById('js').textContent = (() => {` +
+          // Slides que guardam o número no endereço (#2) usam history.replaceState, que a moldura recusaria.
+          `<script>history.replaceState(null, '', '#1');document.getElementById('js').textContent = (() => {` +
           `try { void parent.document.title; return 'saiu da moldura' } catch { return 'script isolado' } })()</script>` +
           `</body></html>`,
       )
@@ -145,6 +146,12 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     const moldura = estudante.page.frameLocator('iframe.slides-moldura')
     await expect(moldura.getByRole('heading', { name: 'Slide e2e da aula liberada' })).toBeVisible()
     await expect(moldura.locator('#js')).toHaveText('script isolado')
+    // Barreiras contra salvar: botão direito bloqueado no slide e marca-d'água com o nome do aluno.
+    const bloqueouMenu = await estudante.page
+      .frame({ url: /about:srcdoc/ })
+      ?.evaluate(() => !document.body.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })))
+    expect(bloqueouMenu).toBe(true)
+    await expect(estudante.page.getByTestId('marca-dagua')).toContainText(aluno.nome)
 
     // A aula bloqueada (I.2) não abre nem pelo endereço direto.
     const [bloqueada] = await rest<Array<{ id: number }>>(
@@ -155,8 +162,12 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     await expect(estudante.page.getByText(/ainda não foram liberados para a sua turma/)).toBeVisible()
 
     // Professor abre os slides da aula bloqueada (modo apresentação).
-    await prof.page.getByRole('link', { name: 'abrir slides da aula I.2' }).click()
+    await prof.page.getByRole('link', { name: 'Apresentar slides da aula I.2' }).click()
     await expect(prof.page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide e2e da aula bloqueada' })).toBeVisible()
+    // Voltar leva à mesma turma e disciplina do painel.
+    await prof.page.getByRole('link', { name: /Voltar/ }).click()
+    await expect(prof.page).toHaveURL(new RegExp(`oferta=${ofertaId}`))
+    await expect(prof.page.getByLabel('Turma e disciplina')).toHaveValue(String(ofertaId))
     expect([...prof.erros, ...estudante.erros]).toEqual([])
   })
 

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { Link, useLocation, useNavigate, useParams, type To } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
@@ -14,6 +14,8 @@ import './Slides.css'
 export function Slides() {
   const { id } = useParams()
   const { perfil } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [slides, setSlides] = useState<SlidesDaAula | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [telaCheia, setTelaCheia] = useState(false)
@@ -40,7 +42,28 @@ export function Slides() {
     return () => document.removeEventListener('fullscreenchange', aoMudar)
   }, [])
 
-  const voltar = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
+  // Na página do Órbita em volta do slide: sem botão direito no palco e sem
+  // Ctrl+S / Ctrl+P (salvar ou imprimir a página levaria o slide junto).
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent) => {
+      const tecla = e.key.toLowerCase()
+      if ((e.ctrlKey || e.metaKey) && (tecla === 's' || tecla === 'p' || tecla === 'u')) e.preventDefault()
+    }
+    document.addEventListener('keydown', aoTeclar)
+    return () => document.removeEventListener('keydown', aoTeclar)
+  }, [])
+
+  const ehProfessor = perfil?.papel === 'professor'
+  const marca = ehProfessor ? null : [perfil?.nome, perfil?.email].filter(Boolean).join(' · ')
+  const voltar: To = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
+  // Quem chegou por dentro do site volta para a mesma tela (mesma turma e
+  // disciplina no painel), como o botão Voltar do navegador ou do mouse.
+  const veioDoSite = location.key !== 'default'
+  function aoVoltar(e: MouseEvent<HTMLAnchorElement>) {
+    if (!veioDoSite || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    void navigate(-1)
+  }
 
   async function alternarTelaCheia() {
     if (document.fullscreenElement) await document.exitFullscreen()
@@ -65,7 +88,7 @@ export function Slides() {
   return (
     <div className="slides container">
       <div className="slides-barra">
-        <Link to={voltar} className="botao slides-voltar">
+        <Link to={voltar} className="botao slides-voltar" onClick={aoVoltar}>
           <span aria-hidden="true">←</span> Voltar
         </Link>
         <div className="slides-nome">
@@ -76,7 +99,7 @@ export function Slides() {
           {telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
         </button>
       </div>
-      <div ref={palco} className="slides-palco">
+      <div ref={palco} className="slides-palco" onContextMenu={(e) => e.preventDefault()} onDragStart={(e) => e.preventDefault()}>
         <iframe
           ref={moldura}
           className="slides-moldura"
@@ -87,6 +110,14 @@ export function Slides() {
           referrerPolicy="no-referrer"
           onLoad={() => moldura.current?.focus()}
         />
+        {marca ? (
+          // Marca-d'água com o nome do aluno: uma cópia ou foto da tela mostra de quem veio.
+          <div className="slides-marca" aria-hidden="true" data-testid="marca-dagua">
+            {Array.from({ length: 80 }, (_, i) => (
+              <span key={i}>{marca}</span>
+            ))}
+          </div>
+        ) : null}
       </div>
       <p className="slides-dica">Clique no slide e use as setas do teclado, ou deslize o dedo, para avançar e voltar. No celular, toque em Tela cheia e deite o aparelho.</p>
     </div>
