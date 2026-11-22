@@ -281,6 +281,9 @@ isOneToOne: false
 "definir_link_da_aula":
 { Args: { "p_aula_id": number,"p_titulo"?: string,"p_url": string }; Returns: undefined
                            },
+"definir_slides_da_aula":
+{ Args: { "p_aula_id": number,"p_caminho": string,"p_titulo"?: string }; Returns: string
+                           },
 "liberar_unidade":
 { Args: { "p_liberar": boolean,"p_turma_disciplina_id": number,"p_unidade_id": number }; Returns: number
                            },
@@ -306,6 +309,9 @@ isOneToOne: false
       } },
 "remover_aula":
 { Args: { "p_aula_id": number }; Returns: undefined
+                           },
+"remover_slides_da_aula":
+{ Args: { "p_aula_id": number }; Returns: string
                            },
 "remover_unidade":
 { Args: { "p_unidade_id": number }; Returns: undefined

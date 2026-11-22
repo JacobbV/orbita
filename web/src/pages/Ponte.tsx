@@ -196,16 +196,22 @@ function Materiais({ materiais, primario = false }: { materiais: Material[]; pri
     <ul className="ponte-materiais" role="list">
       {materiais.map((m) => (
         <li key={m.id}>
-          <a
-            href={m.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}
-          >
-            {rotuloMaterial(m)}
-            <span aria-hidden="true">↗</span>
-            <span className="sr-only"> (abre em outra aba)</span>
-          </a>
+          {m.url === null ? (
+            <Link to={`/slides/${m.id}`} className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}>
+              {rotuloMaterial(m)}
+            </Link>
+          ) : (
+            <a
+              href={m.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}
+            >
+              {rotuloMaterial(m)}
+              <span aria-hidden="true">↗</span>
+              <span className="sr-only"> (abre em outra aba)</span>
+            </a>
+          )}
         </li>
       ))}
     </ul>

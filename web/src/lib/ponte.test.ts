@@ -50,7 +50,8 @@ describe('montarPonte', () => {
       { aula_id: 22, turma_disciplina_id: 12, liberado_em: '2026-11-06T10:00:00Z' },
     ],
     [
-      { id: 2, aula_id: 11, tipo: 'slide', titulo: '', url: 'https://exemplo.org/slides', ordem: 2 },
+      { id: 2, aula_id: 11, tipo: 'slide', titulo: 'Slides da aula', url: null, caminho_storage: 'aulas/11/slides-1.html', ordem: 2 },
+      { id: 5, aula_id: 11, tipo: 'slide', titulo: 'Sem arquivo', url: 'https://exemplo.org/s', caminho_storage: null, ordem: 3 },
       { id: 1, aula_id: 11, tipo: 'link', titulo: 'Apostila', url: 'https://exemplo.org/apostila', ordem: 1 },
       { id: 3, aula_id: 21, tipo: 'link', titulo: 'Inseguro', url: 'http://exemplo.org/x', ordem: 1 },
       { id: 4, aula_id: 22, tipo: 'link', titulo: 'Não deveria aparecer', url: 'https://exemplo.org/y', ordem: 1 },
@@ -75,6 +76,10 @@ describe('montarPonte', () => {
 
   it('mantém a ordem dos materiais e descarta links sem https', () => {
     expect(alg?.unidades[0]?.aulas[0]?.materiais.map((m) => m.id)).toEqual([1, 2])
+  })
+
+  it('slides HTML viram material interno, sem link externo', () => {
+    expect(alg?.unidades[0]?.aulas[0]?.materiais[1]).toEqual({ id: 2, tipo: 'slide', titulo: 'Slides da aula', url: null })
     expect(alg?.unidades[1]?.aulas[0]?.materiais).toEqual([])
   })
 

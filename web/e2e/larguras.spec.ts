@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
-import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, criarProfessor, emailDeTeste, entrar, enviarSlidesDeTeste, oferta, registrarErros, rest } from './apoio.ts'
 
 // Todas as telas em larguras de celular pequeno até monitor ultrawide:
 // sem rolagem horizontal, céu cobrindo a tela, alvos de toque com 44px ou
@@ -16,6 +16,9 @@ const LARGURAS: Array<[number, number]> = [
 ]
 
 type Papel = 'visitante' | 'aluno' | 'professor'
+
+/** Material de slides da aula I.1 de Algoritmos, criado no beforeAll. */
+let slidesId = 0
 
 interface Tela {
   nome: string
@@ -58,6 +61,16 @@ const TELAS: Tela[] = [
     },
   },
   {
+    nome: 'Slides da aula',
+    get caminho() {
+      return `slides/${slidesId}`
+    },
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide de teste' })).toBeVisible()
+    },
+  },
+  {
     nome: 'Painel: pedidos',
     caminho: 'professor?aba=pedidos',
     papel: 'professor',
@@ -73,6 +86,12 @@ const TELAS: Tela[] = [
       await page.getByRole('button', { name: 'Editar aula I.1', exact: true }).click()
       await page.getByRole('button', { name: 'Remover aula' }).click()
       await page.getByRole('button', { name: 'Remover unidade II', exact: true }).click()
+      await page.getByRole('button', { name: 'Remover slides' }).click()
+      await page.getByText('Enviar vários slides de uma vez').click()
+      await page.getByLabel('Arquivos de slides').setInputFiles([
+        { name: 'ALG_U1_A1_com_um_nome_de_arquivo_bem_comprido_para_quebrar.html', mimeType: 'text/html', buffer: Buffer.from('<p>a</p>') },
+        { name: 'capa.html', mimeType: 'text/html', buffer: Buffer.from('<p>b</p>') },
+      ])
     },
   },
   {
@@ -126,6 +145,12 @@ test.beforeAll(async ({ browser }) => {
     headers: { Prefer: 'resolution=ignore-duplicates' },
     body: JSON.stringify({ turma_disciplina_id: algM, aula_id: aula }),
   })
+
+  slidesId = await enviarSlidesDeTeste(
+    aula ?? 0,
+    '<!doctype html><html lang="pt-BR"><body style="margin:0;font-family:sans-serif">' +
+      '<h1 style="padding:24px">Slide de teste</h1><div style="width:1600px;height:40px;background:#22d3ee"></div></body></html>',
+  )
 
   const professor = emailDeTeste('professor-larguras')
   await criarProfessor(professor, 'Professor Fictício')

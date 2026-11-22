@@ -117,6 +117,49 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     expect([...prof.erros, ...estudante.erros]).toEqual([])
   })
 
+  test('professor envia slides em lote e o aluno abre só os da aula liberada', async ({ browser }) => {
+    const slide = (texto: string) =>
+      Buffer.from(
+        `<!doctype html><html lang="pt-BR"><body><h1>${texto}</h1><p id="js">sem script</p>` +
+          `<script>document.getElementById('js').textContent = (() => {` +
+          `try { void parent.document.title; return 'saiu da moldura' } catch { return 'script isolado' } })()</script>` +
+          `</body></html>`,
+      )
+    const prof = await novaAba(browser, professor.email)
+    await prof.page.goto(`professor?aba=aulas&oferta=${ofertaId}`)
+    await prof.page.getByText('Enviar vários slides de uma vez').click()
+    await prof.page.getByLabel('Arquivos de slides').setInputFiles([
+      { name: 'DAW_U1_A1.html', mimeType: 'text/html', buffer: slide('Slide e2e da aula liberada') },
+      { name: 'DAW_U1_A2.html', mimeType: 'text/html', buffer: slide('Slide e2e da aula bloqueada') },
+      { name: 'capa.html', mimeType: 'text/html', buffer: slide('Sem aula no nome') },
+    ])
+    await expect(prof.page.getByText('O nome não diz a unidade e a aula (ex.: ALG_U1_A2).')).toBeVisible()
+    await prof.page.getByRole('button', { name: 'Enviar 2 arquivos' }).click()
+    await expect(prof.page.getByText('2 arquivos de slides enviados.')).toBeVisible()
+
+    // Aluno: a aula liberada (I.1) tem o botão; os slides abrem e o script roda isolado.
+    const estudante = await novaAba(browser, aluno.email)
+    await expect(aulaNaPonte(estudante.page, 'I.2').getByRole('link')).toHaveCount(0)
+    await aulaNaPonte(estudante.page, 'I.1').getByRole('link', { name: 'Abrir slides' }).click()
+    await expect(estudante.page).toHaveURL(/\/orbita\/slides\/\d+/)
+    const moldura = estudante.page.frameLocator('iframe.slides-moldura')
+    await expect(moldura.getByRole('heading', { name: 'Slide e2e da aula liberada' })).toBeVisible()
+    await expect(moldura.locator('#js')).toHaveText('script isolado')
+
+    // A aula bloqueada (I.2) não abre nem pelo endereço direto.
+    const [bloqueada] = await rest<Array<{ id: number }>>(
+      `materiais?select=id,aulas!inner(numero,unidades!inner(numero,disciplinas!inner(sigla)))&tipo=eq.slide` +
+        `&aulas.numero=eq.2&aulas.unidades.numero=eq.1&aulas.unidades.disciplinas.sigla=eq.WEB`,
+    )
+    await estudante.page.goto(`slides/${bloqueada?.id}`)
+    await expect(estudante.page.getByText(/ainda não foram liberados para a sua turma/)).toBeVisible()
+
+    // Professor abre os slides da aula bloqueada (modo apresentação).
+    await prof.page.getByRole('link', { name: 'abrir slides da aula I.2' }).click()
+    await expect(prof.page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide e2e da aula bloqueada' })).toBeVisible()
+    expect([...prof.erros, ...estudante.erros]).toEqual([])
+  })
+
   test('professor bloqueia a aula e o link some para o aluno', async ({ browser }) => {
     const prof = await novaAba(browser, professor.email)
     await prof.page.goto(`professor?aba=aulas&oferta=${ofertaId}`)

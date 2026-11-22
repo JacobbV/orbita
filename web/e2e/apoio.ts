@@ -102,6 +102,24 @@ export async function entrar(page: Page, email: string): Promise<void> {
 }
 
 /** Guarda os erros de JavaScript da página para conferir no fim do teste. */
+/** Envia um arquivo de slides para a aula (como o painel faz) e devolve o id do material. */
+export async function enviarSlidesDeTeste(aulaId: number, html: string): Promise<number> {
+  const { url, serviceKey } = supabaseLocal()
+  const caminho = `aulas/${aulaId}/slides-e2e.html`
+  const resposta = await fetch(`${url}/storage/v1/object/materiais/${caminho}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'text/html', 'x-upsert': 'true' },
+    body: html,
+  })
+  if (!resposta.ok) throw new Error(`Storage: ${resposta.status} ${await resposta.text()}`)
+  await rest(`materiais?aula_id=eq.${aulaId}&tipo=eq.slide`, { method: 'DELETE' })
+  const [material] = await rest<Array<{ id: number }>>('materiais', {
+    method: 'POST',
+    body: JSON.stringify({ aula_id: aulaId, tipo: 'slide', titulo: 'Slides da aula', caminho_storage: caminho, ordem: 0 }),
+  })
+  return material?.id ?? 0
+}
+
 export function registrarErros(page: Page): string[] {
   const erros: string[] = []
   page.on('pageerror', (e) => erros.push(e.message))

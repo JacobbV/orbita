@@ -12,6 +12,7 @@ import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
 import { RecuperarSenha } from './pages/RecuperarSenha'
+import { Slides } from './pages/Slides'
 
 export function App() {
   return (
@@ -46,6 +47,14 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <Professor />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="slides/:id"
+            element={
+              <RotaProtegida>
+                <Slides />
               </RotaProtegida>
             }
           />
