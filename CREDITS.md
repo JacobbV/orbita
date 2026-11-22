@@ -35,7 +35,7 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 
 | Recurso | Autor | Licença | Uso |
 | --- | --- | --- | --- |
-| Céu de estrelas, planeta da página inicial e favicon | QYUDEV. | Arte original do projeto | Fundo, ilustração e ícone |
+| Céu de estrelas, planeta da página inicial, cadeado, favicon e topo dos e-mails | QYUDEV. | Arte original do projeto | Fundo, ilustração, ícones e e-mails de cadastro e senha |
 
 ---
 

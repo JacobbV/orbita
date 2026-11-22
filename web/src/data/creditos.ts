@@ -126,6 +126,6 @@ export const ARTE: Credito[] = [
     autor: 'QYUDEV.',
     link: 'https://jacobbv.github.io',
     licenca: 'Arte original do projeto',
-    uso: 'Fundo, ilustração da página inicial e favicon',
+    uso: 'Fundo, ilustração da página inicial, favicon e topo dos e-mails',
   },
 ]

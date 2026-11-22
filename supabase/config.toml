@@ -253,6 +253,20 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Modelos de e-mail do Órbita, em português. Os mesmos textos vão no painel do
+# Supabase da nuvem (Authentication > Emails), colados à mão.
+[auth.email.template.confirmation]
+subject = "Confirme o seu e-mail no Órbita"
+content_path = "./supabase/templates/confirmacao.html"
+
+[auth.email.template.recovery]
+subject = "Criar uma senha nova no Órbita"
+content_path = "./supabase/templates/recuperacao.html"
+
+[auth.email.template.email_change]
+subject = "Confirme a troca de e-mail no Órbita"
+content_path = "./supabase/templates/troca-de-email.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
