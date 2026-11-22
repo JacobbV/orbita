@@ -70,6 +70,7 @@ function dadosComUmaAulaLiberada(): DadosDaPonte {
       { id: 2, tipo: 'slide' as const, titulo: 'Slides da aula', url: null },
       { id: 1, tipo: 'link', titulo: 'Apostila', url: 'https://exemplo.org/apostila' },
     ],
+    exercicios: [{ id: 5, titulo: 'Soma de dois números', dificuldade: 2 }],
   }
   const bloqueada = {
     id: 12,
@@ -78,6 +79,7 @@ function dadosComUmaAulaLiberada(): DadosDaPonte {
     liberada: false,
     liberadaEm: null,
     materiais: [],
+    exercicios: [],
   }
   const unidade = { id: 1, numero: 1, titulo: 'Primeiros passos', aulas: [liberada, bloqueada], liberadas: 1 }
   return {
@@ -144,6 +146,15 @@ describe('Ponte de comando', () => {
     expect(link).toHaveAttribute('href', 'https://exemplo.org/apostila')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('aula liberada mostra os exercícios do laboratório com o XP', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const item = (await screen.findAllByText('O que é um algoritmo?')).at(-1)?.closest('li') as HTMLElement
+    const exercicio = within(item).getByRole('link', { name: /Exercício: Soma de dois números/ })
+    expect(exercicio).toHaveAttribute('href', '/exercicio/5')
+    expect(exercicio).toHaveTextContent('+35 XP')
   })
 
   it('aula bloqueada mostra o cadeado e nenhum conteúdo', async () => {

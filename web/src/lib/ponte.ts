@@ -18,6 +18,18 @@ export interface AulaDaPonte {
   liberada: boolean
   liberadaEm: string | null
   materiais: Material[]
+  exercicios: ExercicioDaPonte[]
+}
+
+export interface ExercicioDaPonte {
+  id: number
+  titulo: string
+  dificuldade: number
+}
+
+export interface ExercicioDoBanco extends ExercicioDaPonte {
+  aula_id: number
+  ordem: number
 }
 
 export interface UnidadeDaPonte {
@@ -97,7 +109,15 @@ export function montarPonte(
   unidades: UnidadeDoBanco[],
   liberacoes: LiberacaoDoBanco[],
   materiais: MaterialDoBanco[],
+  exercicios: ExercicioDoBanco[] = [],
 ): DisciplinaDaPonte[] {
+  const exerciciosPorAula = new Map<number, ExercicioDaPonte[]>()
+  for (const e of [...exercicios].sort((a, b) => a.ordem - b.ordem || a.id - b.id)) {
+    const lista = exerciciosPorAula.get(e.aula_id) ?? []
+    lista.push({ id: e.id, titulo: e.titulo, dificuldade: e.dificuldade })
+    exerciciosPorAula.set(e.aula_id, lista)
+  }
+
   const materiaisPorAula = new Map<number, Material[]>()
   for (const m of [...materiais].sort((a, b) => a.ordem - b.ordem || a.id - b.id)) {
     let material: Material
@@ -134,6 +154,7 @@ export function montarPonte(
               liberadaEm,
               // Aula bloqueada nunca mostra conteúdo, mesmo que algo tenha chegado.
               materiais: liberada ? (materiaisPorAula.get(a.id) ?? []) : [],
+              exercicios: liberada ? (exerciciosPorAula.get(a.id) ?? []) : [],
             }
           })
         const unidade: UnidadeDaPonte = {
@@ -192,15 +213,21 @@ export async function carregarPonte(): Promise<DadosDaPonte> {
   const liberacoes = liberacoesRes.data as LiberacaoDoBanco[]
 
   let materiais: MaterialDoBanco[] = []
+  let exercicios: ExercicioDoBanco[] = []
   const aulasLiberadas = [...new Set(liberacoes.map((l) => l.aula_id))]
   if (aulasLiberadas.length > 0) {
-    const { data, error } = await supabase()
-      .from('materiais')
-      .select('id, aula_id, tipo, titulo, url, caminho_storage, ordem')
-      .in('aula_id', aulasLiberadas)
-    if (error) throw error
-    materiais = data as MaterialDoBanco[]
+    const [materiaisRes, exerciciosRes] = await Promise.all([
+      supabase()
+        .from('materiais')
+        .select('id, aula_id, tipo, titulo, url, caminho_storage, ordem')
+        .in('aula_id', aulasLiberadas),
+      supabase().from('exercicios').select('id, aula_id, titulo, dificuldade, ordem').in('aula_id', aulasLiberadas),
+    ])
+    if (materiaisRes.error) throw materiaisRes.error
+    materiais = materiaisRes.data as MaterialDoBanco[]
+    // Exercícios são um extra: se a consulta falhar, a ponte abre sem eles.
+    if (!exerciciosRes.error) exercicios = exerciciosRes.data
   }
 
-  return { disciplinas: montarPonte(aprovados, unidades, liberacoes, materiais), temOutrosPedidos }
+  return { disciplinas: montarPonte(aprovados, unidades, liberacoes, materiais, exercicios), temOutrosPedidos }
 }

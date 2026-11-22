@@ -118,6 +118,20 @@ export const BIBLIOTECAS: Credito[] = [
     licenca: 'PostgreSQL License',
     uso: 'Testes das regras do banco',
   },
+  {
+    nome: 'CodeMirror 6',
+    autor: 'Marijn Haverbeke e colaboradores',
+    link: 'https://codemirror.net',
+    licenca: 'MIT',
+    uso: 'Editor de código do laboratório',
+  },
+  {
+    nome: 'Pyodide',
+    autor: 'Colaboradores do Pyodide',
+    link: 'https://pyodide.org',
+    licenca: 'Mozilla Public License 2.0',
+    uso: 'Python rodando no navegador, no laboratório',
+  },
 ]
 
 export const ARTE: Credito[] = [

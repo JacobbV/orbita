@@ -11,3 +11,6 @@ test-results/
 playwright-report/
 supabase/.temp/
 supabase/.branches/
+
+# Python do navegador, copiado de node_modules no dev e no build
+web/public/pyodide/

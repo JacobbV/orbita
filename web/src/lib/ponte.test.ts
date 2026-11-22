@@ -56,6 +56,11 @@ describe('montarPonte', () => {
       { id: 3, aula_id: 21, tipo: 'link', titulo: 'Inseguro', url: 'http://exemplo.org/x', ordem: 1 },
       { id: 4, aula_id: 22, tipo: 'link', titulo: 'Não deveria aparecer', url: 'https://exemplo.org/y', ordem: 1 },
     ],
+    [
+      { id: 8, aula_id: 11, titulo: 'Média', dificuldade: 2, ordem: 2 },
+      { id: 7, aula_id: 11, titulo: 'Soma', dificuldade: 1, ordem: 1 },
+      { id: 9, aula_id: 22, titulo: 'Escondido', dificuldade: 1, ordem: 1 },
+    ],
   )
 
   it('ordena unidades e aulas pelo número', () => {
@@ -72,6 +77,11 @@ describe('montarPonte', () => {
 
   it('aula bloqueada não leva material nenhum', () => {
     expect(alg?.unidades[1]?.aulas[1]?.materiais).toEqual([])
+  })
+
+  it('exercícios entram na ordem e só nas aulas liberadas', () => {
+    expect(alg?.unidades[0]?.aulas[0]?.exercicios.map((e) => e.titulo)).toEqual(['Soma', 'Média'])
+    expect(alg?.unidades[1]?.aulas[1]?.exercicios).toEqual([])
   })
 
   it('mantém a ordem dos materiais e descarta links sem https', () => {

@@ -329,3 +329,39 @@
   max-width: 100%;
   overflow-wrap: anywhere;
 }
+
+/* Exercícios do laboratório dentro da aula */
+.ponte-exercicios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.ponte-exercicio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo-toque);
+  padding: 6px 12px;
+  border: 1px dashed var(--nebulosa);
+  border-radius: var(--raio-pequeno);
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.ponte-exercicio:hover {
+  background: rgba(167, 139, 250, 0.12);
+}
+
+.ponte-exercicio-icone {
+  font-family: var(--fonte-codigo);
+  color: var(--nebulosa);
+  font-weight: 700;
+}
+
+.ponte-exercicio-xp {
+  color: var(--estrela);
+}

@@ -5,6 +5,7 @@ import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
+import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
 import { saudacao } from '../lib/saudacao'
 import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
@@ -14,6 +15,7 @@ import {
   type AulaDaPonte,
   type DadosDaPonte,
   type DisciplinaDaPonte,
+  type ExercicioDaPonte,
   type Material,
   type UnidadeDaPonte,
 } from '../lib/ponte'
@@ -188,7 +190,10 @@ function ItemAula({ aula, romano }: { aula: AulaDaPonte; romano: string }) {
           {aula.titulo}
         </p>
         {aula.liberada ? (
-          <Materiais aulaId={aula.id} materiais={aula.materiais} />
+          <>
+            <Materiais aulaId={aula.id} materiais={aula.materiais} />
+            {aula.exercicios.length > 0 && <Exercicios exercicios={aula.exercicios} />}
+          </>
         ) : (
           <p className="ponte-cadeado">
             <Cadeado />
@@ -223,6 +228,26 @@ function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; ma
               <span className="sr-only"> (abre em outra aba)</span>
             </a>
           )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function Exercicios({ exercicios }: { exercicios: ExercicioDaPonte[] }) {
+  return (
+    <ul className="ponte-exercicios" role="list" aria-label="Exercícios da aula">
+      {exercicios.map((e) => (
+        <li key={e.id}>
+          <Link to={`/exercicio/${e.id}`} className="ponte-exercicio">
+            <span aria-hidden="true" className="ponte-exercicio-icone">
+              {'</>'}
+            </span>
+            <span>
+              Exercício: {e.titulo}
+              <span className="ponte-exercicio-xp"> · +{XP_POR_DIFICULDADE[e.dificuldade as 1 | 2 | 3] ?? 20} XP</span>
+            </span>
+          </Link>
         </li>
       ))}
     </ul>

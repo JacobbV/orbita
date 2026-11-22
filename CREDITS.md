@@ -30,6 +30,8 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 | Playwright | Microsoft | https://playwright.dev | Apache 2.0 | Testes de ponta a ponta no navegador |
 | Supabase CLI | Supabase | https://github.com/supabase/cli | MIT | Banco local, migrations e testes |
 | pgTAP | David E. Wheeler e colaboradores | https://pgtap.org | PostgreSQL License | Testes das regras do banco |
+| CodeMirror 6 | Marijn Haverbeke e colaboradores | https://codemirror.net | MIT | Editor de código do laboratório |
+| Pyodide | Colaboradores do Pyodide | https://pyodide.org | Mozilla Public License 2.0 | Python rodando no navegador, no laboratório (arquivos servidos pelo próprio site, sem modificação) |
 
 ## Arte
 

@@ -1,6 +1,8 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 import { RotaProtegida } from './auth/RotaProtegida'
 import { PublicLayout } from './components/Layout'
+import { Carregando } from './components/Carregando'
 import { Starfield } from './components/Starfield'
 import { Aguardando } from './pages/Aguardando'
 import { Cadastro } from './pages/Cadastro'
@@ -13,6 +15,9 @@ import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 import { Slides } from './pages/Slides'
+
+// O laboratório (editor e Python) só baixa quando alguém abre um exercício.
+const Exercicio = lazy(() => import('./pages/Exercicio').then((m) => ({ default: m.Exercicio })))
 
 export function App() {
   return (
@@ -47,6 +52,16 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <Professor />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="exercicio/:id"
+            element={
+              <RotaProtegida>
+                <Suspense fallback={<Carregando />}>
+                  <Exercicio />
+                </Suspense>
               </RotaProtegida>
             }
           />
