@@ -36,4 +36,20 @@ Os e-mails de confirmação e de nova senha do ambiente local aparecem no Mailpi
 - `supabase/tests/database/`: testes pgTAP das regras de acesso.
 - `supabase/scripts/tornar-professor.sql`: dá o papel de professor a uma conta (rodar no painel).
 
+## Testes de ponta a ponta (Playwright)
+
+Rodam no navegador Chromium contra o Supabase local ligado (`npx supabase start`). O site sobe sozinho na porta 5173, e a chave pública e a chave de serviço do Supabase local são lidas na hora com `npx supabase status`, sem ir para nenhum arquivo.
+
+```bash
+cd web
+npx playwright install chromium   # só na primeira vez
+npm run e2e                       # todos os testes de ponta a ponta
+npx playwright test e2e/fluxo-completo.spec.ts   # só o fluxo principal
+```
+
+- `web/e2e/fluxo-completo.spec.ts`: cadastro → confirmação do e-mail (pelo Mailpit) → recusa com motivo → novo pedido → aprovação → aula liberada com link → aluno abre → professor bloqueia.
+- `web/e2e/larguras.spec.ts`: todas as telas em 320, 360, 393, 768, 1280, 1920 e 2560 px, sem rolagem horizontal, com o céu cobrindo a tela, alvos de toque de 44px ou mais e nenhum erro de JavaScript.
+
+Os testes criam contas com nomes inventados e e-mails com um número da execução, então podem rodar várias vezes no mesmo banco local. `npx supabase db reset` limpa tudo.
+
 Desenvolvido por QYUDEV. — https://jacobbv.github.io

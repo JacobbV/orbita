@@ -98,6 +98,13 @@ export const BIBLIOTECAS: Credito[] = [
     uso: 'Revisão automática do código (lint)',
   },
   {
+    nome: 'Playwright',
+    autor: 'Microsoft',
+    link: 'https://playwright.dev',
+    licenca: 'Apache 2.0',
+    uso: 'Testes de ponta a ponta no navegador',
+  },
+  {
     nome: 'Supabase CLI',
     autor: 'Supabase',
     link: 'https://github.com/supabase/cli',

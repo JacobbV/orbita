@@ -10,5 +10,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Os testes de ponta a ponta (e2e/) rodam com o Playwright, não com o Vitest.
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 })
