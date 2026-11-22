@@ -48,6 +48,7 @@ describe('validarExercicio', () => {
         titulo: 'Soma',
         enunciado: 'Some.',
         dificuldade: 1,
+        linguagem: 'python',
         codigoInicial: '',
         testes: [{ tipo: 'visivel', entrada: '1 2', saidaEsperada: '3' }],
       }),

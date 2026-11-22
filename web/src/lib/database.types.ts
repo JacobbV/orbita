@@ -555,7 +555,7 @@ isOneToOne: false
 { Args: { "p_escolhas": Json }; Returns: undefined
                            },
 "salvar_exercicio":
-{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_testes": Json,"p_titulo": string }; Returns: number
+{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_linguagem"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
                            },
 "testes_do_exercicio":
 { Args: { "p_exercicio_id": number }; Returns: {

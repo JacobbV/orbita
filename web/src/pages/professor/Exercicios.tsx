@@ -4,7 +4,8 @@ import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
 import { normalizarSaida } from '../../lab/correcao'
 import { EditorCodigo } from '../../lab/EditorCodigo'
-import { ExecutorPython } from '../../lab/executor'
+import type { Executor } from '../../lab/executor'
+import { criarExecutor, LINGUAGENS, ORDEM_DAS_LINGUAGENS, type Linguagem } from '../../lab/linguagens'
 import { mensagemDeErro } from '../../lib/erros'
 import {
   carregarAulaComExercicios,
@@ -35,6 +36,7 @@ const NOVO: DadosDoExercicio = {
   titulo: '',
   enunciado: '',
   dificuldade: 1,
+  linguagem: 'python',
   codigoInicial: '',
   testes: [
     { tipo: 'visivel', entrada: '', saidaEsperada: '' },
@@ -188,7 +190,8 @@ export function Exercicios() {
               <div className="exercicios-item-texto">
                 <h2>{e.titulo}</h2>
                 <p className="exercicios-item-meta">
-                  {NOME_DIFICULDADE[e.dificuldade]} · +{XP_POR_DIFICULDADE[e.dificuldade]} XP · {resumoDosTestes(e.testes)}
+                  {LINGUAGENS[e.linguagem].nome} · {NOME_DIFICULDADE[e.dificuldade]} · +{XP_POR_DIFICULDADE[e.dificuldade]} XP ·{' '}
+                  {resumoDosTestes(e.testes)}
                   {' · '}
                   {e.entregas === 0 ? 'nenhuma entrega' : `${e.entregas} ${e.entregas === 1 ? 'entrega' : 'entregas'}`}
                   {e.aConfirmar > 0 && <span className="exercicios-a-confirmar"> · {e.aConfirmar} a confirmar</span>}
@@ -290,6 +293,7 @@ function FormExercicio({
     titulo: inicial.titulo,
     enunciado: inicial.enunciado,
     dificuldade: inicial.dificuldade,
+    linguagem: inicial.linguagem,
     codigoInicial: inicial.codigoInicial,
     testes: inicial.testes.map((t) => ({ ...t })),
   }))
@@ -359,6 +363,17 @@ function FormExercicio({
         )}
       </div>
 
+      <div className="campo">
+        <label htmlFor={`${id}-linguagem`}>Linguagem</label>
+        <select id={`${id}-linguagem`} value={d.linguagem} onChange={(e) => mudar('linguagem', e.target.value as Linguagem)}>
+          {ORDEM_DAS_LINGUAGENS.map((l) => (
+            <option key={l} value={l}>
+              {LINGUAGENS[l].nome}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <fieldset className="exercicios-dificuldade">
         <legend>Dificuldade</legend>
         <div className="exercicios-opcoes">
@@ -380,15 +395,20 @@ function FormExercicio({
         <span className="exercicios-rotulo" id={`${id}-codigo-rotulo`}>
           Código inicial (opcional)
         </span>
-        <EditorCodigo valor={d.codigoInicial} aoMudar={(v) => mudar('codigoInicial', v)} rotulo="Código inicial" baixo />
+        <EditorCodigo
+          key={d.linguagem}
+          valor={d.codigoInicial}
+          aoMudar={(v) => mudar('codigoInicial', v)}
+          rotulo="Código inicial"
+          linguagem={d.linguagem}
+          baixo
+        />
         <p className="campo-dica">O aluno começa com este código no editor.</p>
       </div>
 
       <fieldset className="exercicios-testes" aria-describedby={erros.testes ? `${id}-testes-erro` : undefined}>
         <legend>Testes</legend>
-        <p className="campo-dica">
-          Cada teste dá uma entrada ao programa (uma linha para cada <code>input()</code>) e confere a saída.
-        </p>
+        <DicaDosTestes linguagem={d.linguagem} />
         {erros.testes && (
           <p id={`${id}-testes-erro`} className="campo-erro">
             {erros.testes}
@@ -418,6 +438,8 @@ function FormExercicio({
       </fieldset>
 
       <PreencherComSolucao
+        key={d.linguagem}
+        linguagem={d.linguagem}
         testes={d.testes}
         aoPreencher={(saidas) => setD((v) => ({ ...v, testes: v.testes.map((t, i) => ({ ...t, saidaEsperada: saidas[i] ?? t.saidaEsperada })) }))}
       />
@@ -432,6 +454,37 @@ function FormExercicio({
         </button>
       </div>
     </form>
+  )
+}
+
+function DicaDosTestes({ linguagem }: { linguagem: Linguagem }) {
+  if (linguagem === 'html') {
+    return (
+      <div className="campo-dica exercicios-dica-html">
+        <p>Cada teste confere uma parte da página do aluno. Na entrada, escreva uma consulta:</p>
+        <ul>
+          <li>
+            <code>h1</code>: o texto do primeiro <code>h1</code>.
+          </li>
+          <li>
+            <code>h1 | color</code>: o valor final de uma propriedade CSS, como <code>rgb(255, 0, 0)</code>.
+          </li>
+          <li>
+            <code>img @ alt</code>: o valor de um atributo.
+          </li>
+          <li>
+            <code>contar li</code>: quantos elementos combinam com o seletor.
+          </li>
+        </ul>
+        <p>Os scripts da página não rodam. Use a sua solução para preencher as respostas.</p>
+      </div>
+    )
+  }
+  return (
+    <p className="campo-dica">
+      Cada teste dá uma entrada ao programa (uma linha para cada <code>{linguagem === 'python' ? 'input()' : 'input() ou prompt()'}</code>) e confere a
+      saída{linguagem === 'javascript' ? <> do <code>console.log</code></> : ''}.
+    </p>
   )
 }
 
@@ -498,11 +551,20 @@ function CartaoTeste({
 }
 
 /** Roda a solução do professor em cada entrada e preenche as saídas esperadas. A solução não é salva. */
-function PreencherComSolucao({ testes, aoPreencher }: { testes: TesteDoProfessor[]; aoPreencher: (saidas: string[]) => void }) {
+function PreencherComSolucao({
+  linguagem,
+  testes,
+  aoPreencher,
+}: {
+  linguagem: Linguagem
+  testes: TesteDoProfessor[]
+  aoPreencher: (saidas: string[]) => void
+}) {
   const [solucao, setSolucao] = useState('')
   const [estado, setEstado] = useState<null | 'carregando' | 'rodando'>(null)
   const [mensagem, setMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
-  const executor = useRef<ExecutorPython | null>(null)
+  const executor = useRef<Executor | null>(null)
+  const nome = LINGUAGENS[linguagem].nome
 
   useEffect(() => () => executor.current?.encerrar(), [])
 
@@ -512,7 +574,7 @@ function PreencherComSolucao({ testes, aoPreencher }: { testes: TesteDoProfessor
       return
     }
     setMensagem(null)
-    executor.current ??= new ExecutorPython()
+    executor.current ??= criarExecutor(linguagem)
     try {
       setEstado('carregando')
       await executor.current.carregar()
@@ -540,12 +602,12 @@ function PreencherComSolucao({ testes, aoPreencher }: { testes: TesteDoProfessor
     <details className="exercicios-solucao">
       <summary>Preencher as saídas com a sua solução</summary>
       <p className="campo-dica">
-        Escreva uma solução em Python. Ela roda aqui no navegador em cada entrada, e a saída vira a resposta do teste. A
-        solução não é salva e o aluno não vê.
+        Escreva uma solução em {nome}. Ela roda aqui no navegador em cada {linguagem === 'html' ? 'consulta' : 'entrada'}, e o
+        resultado vira a resposta do teste. A solução não é salva e o aluno não vê.
       </p>
-      <EditorCodigo valor={solucao} aoMudar={setSolucao} rotulo="Sua solução (não é salva)" baixo />
+      <EditorCodigo valor={solucao} aoMudar={setSolucao} rotulo="Sua solução (não é salva)" linguagem={linguagem} baixo />
       <button type="button" className="botao" onClick={preencher} disabled={estado !== null}>
-        {estado === 'carregando' ? 'Carregando o Python…' : estado === 'rodando' ? 'Rodando…' : '▶ Rodar a solução nos testes'}
+        {estado === 'carregando' ? `Carregando o ${nome}…` : estado === 'rodando' ? 'Rodando…' : '▶ Rodar a solução nos testes'}
       </button>
       {mensagem && (
         <Aviso tipo={mensagem.tipo}>
@@ -575,13 +637,13 @@ function Reconferencia({
   const [linhas, setLinhas] = useState<LinhaDaReconferencia[]>([])
   const [total, setTotal] = useState(0)
   const [erro, setErro] = useState<string | null>(null)
-  const executor = useRef<ExecutorPython | null>(null)
+  const executor = useRef<Executor | null>(null)
   const iniciou = useRef(false)
 
   useEffect(() => {
     if (iniciou.current) return
     iniciou.current = true
-    const py = new ExecutorPython()
+    const py = criarExecutor(exercicio.linguagem)
     executor.current = py
     ;(async () => {
       try {
@@ -603,7 +665,7 @@ function Reconferencia({
         setEstado('pronto')
         await aoTerminar()
       } catch (e) {
-        setErro(e instanceof Error && e.message.startsWith('Não foi possível carregar o Python') ? e.message : mensagemDeErro(e))
+        setErro(e instanceof Error && e.message.startsWith('Não foi possível carregar') ? e.message : mensagemDeErro(e))
         setEstado('pronto')
       }
     })()
@@ -616,7 +678,7 @@ function Reconferencia({
   return (
     <div className="exercicios-reconferencia" role="region" aria-label={`Reconferência de ${exercicio.titulo}`}>
       <p className="exercicios-reconferencia-titulo">
-        {estado === 'carregando' && 'Carregando o Python…'}
+        {estado === 'carregando' && `Preparando o ${LINGUAGENS[exercicio.linguagem].nome}…`}
         {estado === 'rodando' && `Reconferindo… ${linhas.length} de ${total}`}
         {estado === 'pronto' &&
           !erro &&

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { saidaConfere, type TesteDoAluno } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
-import { ExecutorPython, TEMPO_LIMITE_MS, type ResultadoDaExecucao } from '../lab/executor'
+import { TEMPO_LIMITE_MS, type Executor, type ResultadoDaExecucao } from '../lab/executor'
+import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
 import { mensagemDeErro } from '../lib/erros'
 import { anunciarConquista, lerConquista } from '../lib/progresso'
 import {
@@ -27,7 +28,7 @@ import './Exercicio.css'
 type Console = { titulo: string; resultado: ResultadoDaExecucao }
 type ResultadoTeste = { teste: TesteDoAluno; numero: number; certo: boolean; resultado: ResultadoDaExecucao }
 
-/** Um exercício do laboratório: enunciado, editor, Rodar e Testar (Python no navegador). */
+/** Um exercício do laboratório: enunciado, editor, Rodar (ou prévia) e Testar, tudo no navegador. */
 export function Exercicio() {
   const { id } = useParams()
   const { perfil } = useAuth()
@@ -36,7 +37,7 @@ export function Exercicio() {
   const [codigo, setCodigo] = useState('')
   const [entrada, setEntrada] = useState('')
   const [ocupado, setOcupado] = useState<null | 'carregando' | 'rodando' | 'testando'>(null)
-  const [falhaPython, setFalhaPython] = useState<string | null>(null)
+  const [falhaAoCarregar, setFalhaAoCarregar] = useState<string | null>(null)
   const [consoleSaida, setConsoleSaida] = useState<Console | null>(null)
   const [resultados, setResultados] = useState<ResultadoTeste[] | null>(null)
   // Código que gerou os resultados: só ele pode ser entregue.
@@ -44,7 +45,7 @@ export function Exercicio() {
   const [entregas, setEntregas] = useState<EntregaDoAluno[]>([])
   const [entregando, setEntregando] = useState(false)
   const [avisoEntrega, setAvisoEntrega] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
-  const executor = useRef<ExecutorPython | null>(null)
+  const executor = useRef<Executor | null>(null)
   const ehAluno = perfil?.papel === 'aluno'
 
   useEffect(() => {
@@ -98,28 +99,30 @@ export function Exercicio() {
 
   const { exercicio, testes } = dados
   const visiveis = testes.filter((t) => t.tipo === 'visivel')
+  const linguagem = LINGUAGENS[exercicio.linguagem]
+  const ehHtml = exercicio.linguagem === 'html'
 
   function mudarCodigo(novo: string) {
     setCodigo(novo)
     guardarRascunho(exercicio.id, novo)
   }
 
-  async function prepararPython(): Promise<ExecutorPython | null> {
-    executor.current ??= new ExecutorPython()
-    setFalhaPython(null)
+  async function prepararExecutor(): Promise<Executor | null> {
+    executor.current ??= criarExecutor(exercicio.linguagem)
+    setFalhaAoCarregar(null)
     setOcupado('carregando')
     try {
       await executor.current.carregar()
       return executor.current
     } catch (e) {
-      setFalhaPython(mensagemDeErro(e))
+      setFalhaAoCarregar(mensagemDeErro(e))
       setOcupado(null)
       return null
     }
   }
 
   async function rodar() {
-    const py = await prepararPython()
+    const py = await prepararExecutor()
     if (!py) return
     setOcupado('rodando')
     const resultado = await py.rodar(codigo, entrada, true)
@@ -128,7 +131,7 @@ export function Exercicio() {
   }
 
   async function testar() {
-    const py = await prepararPython()
+    const py = await prepararExecutor()
     if (!py) return
     setOcupado('testando')
     const lista: ResultadoTeste[] = []
@@ -184,7 +187,7 @@ export function Exercicio() {
             {NOME_DIFICULDADE[exercicio.dificuldade]}
           </span>
           <span className="exercicio-etiqueta">+{xp} XP ao acertar tudo</span>
-          <span className="exercicio-etiqueta">Python</span>
+          <span className="exercicio-etiqueta">{linguagem.nome}</span>
         </p>
         <div className="exercicio-enunciado">{exercicio.enunciado}</div>
         {visiveis.length > 0 && (
@@ -194,11 +197,11 @@ export function Exercicio() {
                 <p className="exercicio-exemplo-titulo">Exemplo {i + 1}</p>
                 <div className="exercicio-exemplo-colunas">
                   <div>
-                    <p className="exercicio-rotulo">Entrada</p>
+                    <p className="exercicio-rotulo">{linguagem.entrada}</p>
                     <pre>{t.entrada || '(nenhuma)'}</pre>
                   </div>
                   <div>
-                    <p className="exercicio-rotulo">Saída esperada</p>
+                    <p className="exercicio-rotulo">{linguagem.saida}</p>
                     <pre>{t.saida_esperada}</pre>
                   </div>
                 </div>
@@ -211,7 +214,7 @@ export function Exercicio() {
       <section className="exercicio-bancada" aria-label="Seu código">
         <div className="exercicio-editor">
           <div className="exercicio-editor-barra">
-            <span className="pixel">main.py</span>
+            <span className="pixel">{linguagem.arquivo}</span>
             <button
               type="button"
               className="exercicio-restaurar"
@@ -221,37 +224,54 @@ export function Exercicio() {
               Restaurar código inicial
             </button>
           </div>
-          <EditorCodigo valor={codigo} aoMudar={mudarCodigo} rotulo="Editor de código Python" />
+          <EditorCodigo
+            valor={codigo}
+            aoMudar={mudarCodigo}
+            rotulo={`Editor de código ${linguagem.nome}`}
+            linguagem={exercicio.linguagem}
+          />
         </div>
 
         <div className="exercicio-lateral">
-          <label className="exercicio-rotulo" htmlFor="exercicio-entrada">
-            Entrada para o Rodar (uma resposta do input() por linha)
-          </label>
-          <textarea
-            id="exercicio-entrada"
-            className="exercicio-entrada"
-            rows={3}
-            value={entrada}
-            onChange={(e) => setEntrada(e.target.value)}
-            spellCheck={false}
-          />
+          {ehHtml ? (
+            <PreviaDaPagina codigo={codigo} />
+          ) : (
+            <>
+              <label className="exercicio-rotulo" htmlFor="exercicio-entrada">
+                Entrada para o Rodar (uma resposta do {exercicio.linguagem === 'python' ? 'input()' : 'input() ou prompt()'} por
+                linha)
+              </label>
+              <textarea
+                id="exercicio-entrada"
+                className="exercicio-entrada"
+                rows={3}
+                value={entrada}
+                onChange={(e) => setEntrada(e.target.value)}
+                spellCheck={false}
+              />
+            </>
+          )}
           <div className="exercicio-botoes">
-            <button type="button" className="botao" onClick={rodar} disabled={ocupado !== null}>
-              ▶ Rodar
-            </button>
+            {!ehHtml && (
+              <button type="button" className="botao" onClick={rodar} disabled={ocupado !== null}>
+                ▶ Rodar
+              </button>
+            )}
             <button type="button" className="botao botao-primario" onClick={testar} disabled={ocupado !== null || testes.length === 0}>
               ✓ Testar
             </button>
           </div>
           <p className="exercicio-status" role="status">
-            {ocupado === 'carregando' && 'Carregando o Python… Na primeira vez pode levar alguns segundos.'}
+            {ocupado === 'carregando' &&
+              (exercicio.linguagem === 'python'
+                ? 'Carregando o Python… Na primeira vez pode levar alguns segundos.'
+                : `Preparando o ${linguagem.nome}…`)}
             {ocupado === 'rodando' && 'Rodando o seu código…'}
             {ocupado === 'testando' && 'Conferindo os testes…'}
           </p>
-          {falhaPython && (
-            <Aviso tipo="erro" titulo="Python indisponível">
-              {falhaPython}
+          {falhaAoCarregar && (
+            <Aviso tipo="erro" titulo={`${linguagem.nome} indisponível`}>
+              {falhaAoCarregar}
             </Aviso>
           )}
 
@@ -279,7 +299,7 @@ export function Exercicio() {
                   {r.teste.tipo === 'oculto' ? '(oculto)' : '(visível)'}
                   <span className="sr-only">{r.certo ? ': certo' : ': errado'}</span>
                 </p>
-                {!r.certo && <DetalheDoErro r={r} />}
+                {!r.certo && <DetalheDoErro r={r} rotulos={detalhes(exercicio.linguagem)} />}
               </li>
             ))}
           </ol>
@@ -338,7 +358,8 @@ function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao }) {
   if (resultado.tempoEsgotado) {
     return (
       <pre className="exercicio-erro">
-        O programa passou de {TEMPO_LIMITE_MS / 1000} segundos e foi parado. Confira se algum laço (while) nunca termina.
+        O programa passou de {TEMPO_LIMITE_MS / 1000} segundos e foi parado. Confira se algum laço (while ou for) nunca
+        termina.
       </pre>
     )
   }
@@ -351,30 +372,56 @@ function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao }) {
   )
 }
 
-function DetalheDoErro({ r }: { r: ResultadoTeste }) {
+function detalhes(l: ExercicioDados['linguagem']): Rotulos {
+  return l === 'html'
+    ? { entrada: 'O que foi conferido', esperado: 'Esperado', obtido: 'Na sua página' }
+    : { entrada: 'Entrada', esperado: 'Esperado', obtido: 'Seu programa' }
+}
+
+type Rotulos = { entrada: string; esperado: string; obtido: string }
+
+/** Prévia ao vivo da página do aluno, numa moldura isolada que não roda scripts. */
+function PreviaDaPagina({ codigo }: { codigo: string }) {
+  const [mostrado, setMostrado] = useState(codigo)
+  useEffect(() => {
+    const espera = setTimeout(() => setMostrado(codigo), 300)
+    return () => clearTimeout(espera)
+  }, [codigo])
+  return (
+    <div className="exercicio-previa">
+      <p className="exercicio-rotulo">Prévia da sua página (atualiza enquanto você digita)</p>
+      <iframe title="Prévia da sua página" sandbox="" srcDoc={mostrado} className="exercicio-previa-moldura" />
+    </div>
+  )
+}
+
+function Coluna({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className="exercicio-rotulo">{titulo}</p>
+      {children}
+    </div>
+  )
+}
+
+function DetalheDoErro({ r, rotulos }: { r: ResultadoTeste; rotulos: Rotulos }) {
   const { resultado, teste } = r
   if (resultado.tempoEsgotado || resultado.erro) return <SaidaDoPrograma resultado={resultado} />
   return (
     <div className="exercicio-exemplo-colunas">
-      <div>
-        <p className="exercicio-rotulo">Entrada</p>
+      <Coluna titulo={rotulos.entrada}>
         <pre>{teste.entrada || '(nenhuma)'}</pre>
-      </div>
-      {teste.saida_esperada !== null ? (
-        <div>
-          <p className="exercicio-rotulo">Esperado</p>
+      </Coluna>
+      <Coluna titulo={rotulos.esperado}>
+        {teste.saida_esperada !== null ? (
           <pre>{teste.saida_esperada}</pre>
-        </div>
-      ) : (
-        <div>
-          <p className="exercicio-rotulo">Esperado</p>
+        ) : (
           <pre className="exercicio-oculto">Resposta escondida</pre>
-        </div>
-      )}
-      <div>
-        <p className="exercicio-rotulo">Seu programa</p>
+        )}
+      </Coluna>
+      <Coluna titulo={rotulos.obtido}>
         <pre>{resultado.saida || '(sem saída)'}</pre>
-      </div>
+      </Coluna>
     </div>
   )
 }

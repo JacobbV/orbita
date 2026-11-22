@@ -66,7 +66,7 @@ test.describe.serial('Exercícios criados no painel', () => {
     await expect(form.getByLabel('Saída esperada do teste 2')).toHaveValue('-14')
     await form.getByRole('button', { name: 'Salvar exercício' }).click()
     await expect(page.getByText(`Exercício "${TITULO}" criado.`)).toBeVisible()
-    await expect(page.locator('li', { hasText: TITULO })).toContainText('Médio · +35 XP · 1 visível, 1 oculto, 1 secreto')
+    await expect(page.locator('li', { hasText: TITULO })).toContainText('Python · Médio · +35 XP · 1 visível, 1 oculto, 1 secreto')
     expect(erros).toEqual([])
   })
 
