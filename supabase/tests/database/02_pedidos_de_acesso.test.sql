@@ -1,8 +1,8 @@
--- Testes dos pedidos de acesso: aprovação, recusa com motivo, limite de 3 pedidos
+-- Testes dos pedidos de acesso: aprovação, recusa com motivo, limite de 3 pedidos por turma
 -- e isolamento entre alunos. Nomes e e-mails inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -121,7 +121,7 @@ select is(
 );
 reset role;
 
--- Professor recusa a 2ª; aluno faz a 3ª; professor recusa; a 4ª é barrada.
+-- Professor recusa a 2ª; aluno faz a 3ª na mesma turma; professor recusa; a 4ª é barrada.
 select set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-00000000000f", "role": "authenticated"}', true);
 set local role authenticated;
 select public.decidir_pedido(pg_temp.pedido('b0000000-0000-0000-0000-0000000000a1', 'ALG'), false);
@@ -129,8 +129,8 @@ reset role;
 select set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-0000000000a1", "role": "authenticated"}', true);
 set local role authenticated;
 select is(
-  (select tentativa from public.pedir_acesso(pg_temp.oferta('1º INFO V', 'ALG'), 'Cometa Azul, mudei para 1º INFO V, tarde')),
-  3::smallint, 'terceira tentativa (pode ser em outra turma da mesma disciplina)'
+  (select tentativa from public.pedir_acesso(pg_temp.oferta('1º INFO M', 'ALG'), 'Cometa Azul, 1º INFO M, manhã, terceira tentativa')),
+  3::smallint, 'terceira tentativa na mesma turma'
 );
 reset role;
 select set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-00000000000f", "role": "authenticated"}', true);
@@ -141,7 +141,12 @@ select set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000
 set local role authenticated;
 select throws_ok(
   $$ select public.pedir_acesso(pg_temp.oferta('1º INFO M', 'ALG'), 'Cometa Azul, 1º INFO M, quarta tentativa') $$,
-  'P0001', null, 'quarta tentativa é barrada (máximo de 3 pedidos por disciplina)'
+  'P0001', 'Você já fez 3 pedidos para esta turma. Fale com o professor.',
+  'quarta tentativa na mesma turma é barrada (máximo de 3 por turma)'
+);
+select is(
+  (select tentativa from public.pedir_acesso(pg_temp.oferta('1º INFO V', 'ALG'), 'Cometa Azul, errei a turma, sou do 1º INFO V, tarde')),
+  1::smallint, 'em outra turma a contagem recomeça (tentativa 1 no 1º INFO V)'
 );
 reset role;
 
