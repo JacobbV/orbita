@@ -43,6 +43,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"avatares": {
+                  Row: {
+                    "atualizado_em": string,"escolhas": NonNullable<Json>,"perfil_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "atualizado_em"?: string,"escolhas": NonNullable<Json>,"perfil_id": string
+                  }
+                  Update: {
+                    "atualizado_em"?: string,"escolhas"?: NonNullable<Json>,"perfil_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "avatares_perfil_id_fkey"
+      columns: ["perfil_id"]
+isOneToOne: true
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"dias_de_estudo": {
+                  Row: {
+                    "aluno_id": string,"dia": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"dia": string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"dia"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dias_de_estudo_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"disciplinas": {
                   Row: {
                     "criado_em": string,"descricao": string,"id": number,"nome": string,"ordem": number,"publica": boolean,"sigla": string
@@ -56,6 +96,52 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"entregas": {
+                  Row: {
+                    "aluno_id": string,"codigo": string,"conferida_em": string | null,"criado_em": string,"exercicio_id": number,"id": number,"nota": number,"situacao": string,"tentativa": number,"testes_certos": number,"testes_total": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"codigo": string,"conferida_em"?: string | null,"criado_em"?: string,"exercicio_id": number,"id"?: never,"nota": number,"situacao"?: string,"tentativa": number,"testes_certos": number,"testes_total": number
+                  }
+                  Update: {
+                    "aluno_id"?: string,"codigo"?: string,"conferida_em"?: string | null,"criado_em"?: string,"exercicio_id"?: number,"id"?: never,"nota"?: number,"situacao"?: string,"tentativa"?: number,"testes_certos"?: number,"testes_total"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "entregas_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "entregas_exercicio_id_fkey"
+      columns: ["exercicio_id"]
+isOneToOne: false
+      referencedRelation: "exercicios"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"exercicios": {
+                  Row: {
+                    "aula_id": number,"codigo_inicial": string,"criado_em": string,"dificuldade": number,"enunciado": string,"id": number,"linguagem": string,"ordem": number,"titulo": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aula_id": number,"codigo_inicial"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado": string,"id"?: never,"linguagem"?: string,"ordem"?: number,"titulo": string
+                  }
+                  Update: {
+                    "aula_id"?: number,"codigo_inicial"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado"?: string,"id"?: never,"linguagem"?: string,"ordem"?: number,"titulo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "exercicios_aula_id_fkey"
+      columns: ["aula_id"]
+isOneToOne: false
+      referencedRelation: "aulas"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"liberacoes": {
                   Row: {
@@ -147,6 +233,74 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"medalhas": {
+                  Row: {
+                    "codigo": string,"descricao": string,"nome": string,"ordem": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "codigo": string,"descricao": string,"nome": string,"ordem"?: number
+                  }
+                  Update: {
+                    "codigo"?: string,"descricao"?: string,"nome"?: string,"ordem"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"medalhas_ganhas": {
+                  Row: {
+                    "aluno_id": string,"ganha_em": string,"medalha": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"ganha_em"?: string,"medalha": string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"ganha_em"?: string,"medalha"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "medalhas_ganhas_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "medalhas_ganhas_medalha_fkey"
+      columns: ["medalha"]
+isOneToOne: false
+      referencedRelation: "medalhas"
+      referencedColumns: ["codigo"]
+    }
+                  ]
+                },"patentes": {
+                  Row: {
+                    "nivel": number,"nome": string,"xp_minimo": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "nivel": number,"nome": string,"xp_minimo": number
+                  }
+                  Update: {
+                    "nivel"?: number,"nome"?: string,"xp_minimo"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"pecas": {
+                  Row: {
+                    "camada": string,"id": string,"nome": string,"ordem": number,"para": string,"xp_minimo": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "camada": string,"id": string,"nome": string,"ordem"?: number,"para"?: string,"xp_minimo"?: number
+                  }
+                  Update: {
+                    "camada"?: string,"id"?: string,"nome"?: string,"ordem"?: number,"para"?: string,"xp_minimo"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"perfis": {
                   Row: {
                     "criado_em": string,"email": string,"id": string,"nome": string,"papel": string
@@ -160,6 +314,26 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"testes": {
+                  Row: {
+                    "entrada": string,"exercicio_id": number,"id": number,"ordem": number,"saida_esperada": string,"saida_hash": string | null,"tipo": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "entrada"?: string,"exercicio_id": number,"id"?: never,"ordem"?: number,"saida_esperada": string,"saida_hash"?: never,"tipo": string
+                  }
+                  Update: {
+                    "entrada"?: string,"exercicio_id"?: number,"id"?: never,"ordem"?: number,"saida_esperada"?: string,"saida_hash"?: never,"tipo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "testes_exercicio_id_fkey"
+      columns: ["exercicio_id"]
+isOneToOne: false
+      referencedRelation: "exercicios"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"turma_disciplinas": {
                   Row: {
@@ -221,6 +395,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"xp_eventos": {
+                  Row: {
+                    "aluno_id": string,"aula_id": number | null,"criado_em": string,"dado_por": string | null,"descricao": string,"exercicio_id": number | null,"id": number,"motivo": string,"quantidade": number,"referencia_dia": string | null,"situacao": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"aula_id"?: number | null,"criado_em"?: string,"dado_por"?: string | null,"descricao": string,"exercicio_id"?: number | null,"id"?: never,"motivo": string,"quantidade": number,"referencia_dia"?: string | null,"situacao"?: string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"aula_id"?: number | null,"criado_em"?: string,"dado_por"?: string | null,"descricao"?: string,"exercicio_id"?: number | null,"id"?: never,"motivo"?: string,"quantidade"?: number,"referencia_dia"?: string | null,"situacao"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "xp_eventos_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "xp_eventos_aula_id_fkey"
+      columns: ["aula_id"]
+isOneToOne: false
+      referencedRelation: "aulas"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "xp_eventos_dado_por_fkey"
+      columns: ["dado_por"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "xp_eventos_exercicio_fk"
+      columns: ["exercicio_id"]
+isOneToOne: false
+      referencedRelation: "exercicios"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -258,6 +470,12 @@ isOneToOne: false
 "aprovar_todos":
 { Args: { "p_turma_disciplina_id": number }; Returns: number
                            },
+"conferir_entrega":
+{ Args: { "p_confere": boolean,"p_entrega_id": number }; Returns: undefined
+                           },
+"dar_xp":
+{ Args: { "p_aluno_id": string,"p_descricao": string,"p_quantidade": number }; Returns: undefined
+                           },
 "decidir_pedido":
 { Args: { "p_aprovar": boolean,"p_matricula_id": number,"p_motivo"?: string }; Returns: {
               "aluno_id": string,
@@ -284,8 +502,14 @@ isOneToOne: false
 "definir_slides_da_aula":
 { Args: { "p_aula_id": number,"p_caminho": string,"p_titulo"?: string }; Returns: string
                            },
+"entregar":
+{ Args: { "p_codigo": string,"p_exercicio_id": number,"p_testes_certos": number }; Returns: Json
+                           },
 "liberar_unidade":
 { Args: { "p_liberar": boolean,"p_turma_disciplina_id": number,"p_unidade_id": number }; Returns: number
+                           },
+"meu_progresso":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "pedir_acesso":
 { Args: { "p_quem_e_voce": string,"p_turma_disciplina_id": number }; Returns: {
@@ -307,6 +531,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"registrar_abertura_da_aula":
+{ Args: { "p_aula_id": number }; Returns: Json
+                           },
 "remover_aula":
 { Args: { "p_aula_id": number }; Returns: undefined
                            },
@@ -315,6 +542,19 @@ isOneToOne: false
                            },
 "remover_unidade":
 { Args: { "p_unidade_id": number }; Returns: undefined
+                           },
+"salvar_avatar":
+{ Args: { "p_escolhas": Json }; Returns: undefined
+                           },
+"testes_do_exercicio":
+{ Args: { "p_exercicio_id": number }; Returns: {
+              "entrada": string,"id": number,"saida_esperada": string,"saida_hash": string,"tipo": string
+            }[]
+                           },
+"xp_da_turma":
+{ Args: { "p_turma_disciplina_id": number }; Returns: {
+              "aluno_id": string,"nome": string,"patente": string,"xp": number
+            }[]
                            }
           }
           Enums: {
