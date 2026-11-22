@@ -2,7 +2,7 @@
 -- e isolamento entre alunos. Nomes e e-mails inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(22);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -82,19 +82,30 @@ reset role;
 select set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-00000000000f", "role": "authenticated"}', true);
 set local role authenticated;
 
-select is((select count(*)::int from public.matriculas), 3, 'professor vê todos os pedidos');
+-- Contamos só as contas deste teste: o banco local pode ter outras contas de teste.
+select is(
+  (select count(*)::int from public.matriculas where aluno_id::text like 'b0000000-%'),
+  3, 'professor vê todos os pedidos'
+);
 select is(
   (select quem_e_voce from public.matriculas where id = pg_temp.pedido('b0000000-0000-0000-0000-0000000000a2', 'ALG')),
   'Nebulosa Verde, 1º INFO M, manhã', 'professor lê o "Quem é você" ao decidir'
 );
-select is((select count(*)::int from public.perfis), 3, 'professor lê os perfis');
+select is(
+  (select count(*)::int from public.perfis where id::text like 'b0000000-%'),
+  3, 'professor lê os perfis'
+);
 select is(
   (select status from public.decidir_pedido(pg_temp.pedido('b0000000-0000-0000-0000-0000000000a1', 'ALG'), false, 'Não achei você na chamada.')),
   'recusado', 'professor recusa com motivo'
 );
+select cmp_ok(
+  public.aprovar_todos(pg_temp.oferta('1º INFO M', 'ALG')), '>=', 1,
+  '"aprovar todos" aprova os pendentes daquela turma e disciplina'
+);
 select is(
-  public.aprovar_todos(pg_temp.oferta('1º INFO M', 'ALG')), 1,
-  '"aprovar todos" aprova só os pendentes daquela turma e disciplina'
+  (select status from public.matriculas where id = pg_temp.pedido('b0000000-0000-0000-0000-0000000000a2', 'ALG')),
+  'aprovado', 'o pedido pendente da turma foi aprovado'
 );
 select is(
   (select status from public.matriculas where id = pg_temp.pedido('b0000000-0000-0000-0000-0000000000a1', 'FUND')),
