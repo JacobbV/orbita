@@ -162,7 +162,7 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     await expect(estudante.page.getByText(/ainda não foram liberados para a sua turma/)).toBeVisible()
 
     // Professor abre os slides da aula bloqueada (modo apresentação).
-    await prof.page.getByRole('link', { name: 'abrir slides da aula I.2' }).click()
+    await prof.page.getByRole('link', { name: 'Apresentar slides da aula I.2' }).click()
     await expect(prof.page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide e2e da aula bloqueada' })).toBeVisible()
     expect([...prof.erros, ...estudante.erros]).toEqual([])
   })

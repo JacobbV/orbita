@@ -326,16 +326,16 @@ function ItemAula({
               <span className="painel-sem-link">sem link</span>
             )}
             {' · '}
-            {aula.slides ? (
-              <Link to={`/slides/${aula.slides.id}`} className="painel-link-aula">
-                abrir slides<span className="sr-only"> da aula {rotulo}</span>
-              </Link>
-            ) : (
-              <span className="painel-sem-link">sem slides</span>
-            )}
+            {aula.slides ? <span>com slides</span> : <span className="painel-sem-link">sem slides</span>}
           </p>
         </div>
         <div className="painel-botoes painel-aula-botoes">
+          {aula.slides ? (
+            // Apresentar em sala vale mesmo com a aula bloqueada: o aluno só vê depois de Liberar.
+            <Link to={`/slides/${aula.slides.id}`} className="botao" aria-label={`Apresentar slides da aula ${rotulo}`}>
+              <span aria-hidden="true">▶</span> Apresentar
+            </Link>
+          ) : null}
           <button
             type="button"
             className={`botao${aula.liberada ? '' : ' botao-primario'}`}

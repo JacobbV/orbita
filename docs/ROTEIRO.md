@@ -30,6 +30,7 @@ Site: https://jacobbv.github.io/orbita/
 ### Em andamento (PR #7)
 
 - [x] Botões dos slides (Iniciar, Anterior, Próximo e setas) funcionando dentro do site.
+- [x] Botão "▶ Apresentar" em cada aula com slides no painel, à vista mesmo com a aula bloqueada (dar aula antes de liberar).
 - [x] Barreiras contra salvar os slides: sem botão direito, Ctrl+S, Ctrl+P, Ctrl+U, arrastar ou selecionar; impressão em branco.
 - [x] Marca-d'água com nome completo e e-mail do aluno por cima do slide (o professor apresenta sem ela).
 - [x] Envio em lote escolhendo a pasta inteira (com as subpastas das unidades).

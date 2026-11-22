@@ -150,6 +150,9 @@ describe('Painel do professor: aulas', () => {
     const usuario = userEvent.setup()
     abrir('/professor?aba=aulas', PROFESSOR)
     await usuario.click(await screen.findByRole('button', { name: 'Editar aula I.2' }))
+    // A aula com slides tem o botão de apresentar à vista, mesmo bloqueada; a sem slides não tem.
+    expect(screen.getByRole('link', { name: 'Apresentar slides da aula I.1' })).toHaveAttribute('href', '/slides/90')
+    expect(screen.queryByRole('link', { name: 'Apresentar slides da aula I.2' })).not.toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Enviar slides' }))
     expect(screen.getByText('Escolha o arquivo .html dos slides.')).toBeInTheDocument()
     const entrada = screen.getByLabelText('Arquivo de slides da aula I.2')
