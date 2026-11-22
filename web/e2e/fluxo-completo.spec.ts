@@ -121,7 +121,8 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     const slide = (texto: string) =>
       Buffer.from(
         `<!doctype html><html lang="pt-BR"><body><h1>${texto}</h1><p id="js">sem script</p>` +
-          `<script>document.getElementById('js').textContent = (() => {` +
+          // Slides que guardam o número no endereço (#2) usam history.replaceState, que a moldura recusaria.
+          `<script>history.replaceState(null, '', '#1');document.getElementById('js').textContent = (() => {` +
           `try { void parent.document.title; return 'saiu da moldura' } catch { return 'script isolado' } })()</script>` +
           `</body></html>`,
       )

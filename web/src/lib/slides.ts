@@ -56,7 +56,7 @@ export async function carregarSlides(id: number): Promise<SlidesDaAula> {
   }
 }
 
-// Barreiras contra salvar o slide pelo navegador: sem menu do botão direito,
+// Ajuste para a moldura isolada e barreiras contra salvar o slide pelo navegador: sem menu do botão direito,
 // sem arrastar, sem selecionar, sem Ctrl+S / Ctrl+P / Ctrl+U e com a
 // impressão em branco. Não impede print de tela nem foto do celular.
 const PROTECAO =
@@ -67,6 +67,11 @@ const PROTECAO =
   '@media print{html,body{display:none!important}}' +
   '</style>' +
   '<script data-orbita-protecao>(function(){' +
+  // Na moldura isolada, o endereço do slide é "about:srcdoc" e o navegador recusa
+  // history.replaceState/pushState com #número do slide. Sem isto, o script do
+  // slide para no erro e os botões (Iniciar, Próximo) não respondem.
+  "['pushState','replaceState'].forEach(function(n){var o=history[n];" +
+  'history[n]=function(){try{return o.apply(history,arguments)}catch(e){}}});' +
   'function parar(e){e.preventDefault();e.stopPropagation()}' +
   "['contextmenu','dragstart','copy','cut'].forEach(function(t){window.addEventListener(t,parar,true)});" +
   "window.addEventListener('keydown',function(e){var k=(e.key||'').toLowerCase();" +
