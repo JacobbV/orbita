@@ -10,6 +10,7 @@ export const ALTURA_MEDALHA = 22
 const CONTORNO = '#0b0e1c'
 
 interface Estilo {
+  formato?: Formato
   /** Cores das duas pontas da fita. */
   fita: [string, string]
   /** Metal: borda, miolo e brilho. */
@@ -24,19 +25,52 @@ const ICONES = {
   chama: ['..#...', '..##..', '.###.#', '.#####', '######', '.####.'],
   confere: ['......', '.....#', '....##', '#..##.', '####..', '.##...'],
   estrela: ['..##..', '..##..', '######', '.####.', '.####.', '##..##'],
-  codigo: ['.#..#.', '#....#', '#.##.#', '#.##.#', '#....#', '.#..#.'],
+  codigo: ['######', '#....#', '#....#', '######', '..##..', '.####.'],
   inseto: ['#.##.#', '.####.', '######', '.####.', '######', '#....#'],
-  lacos: ['.####.', '#....#', '#.##.#', '#.#..#', '#.###.', '.#....'],
+  alfinete: ['.####.', '##..##', '##..##', '.####.', '..##..', '..##..'],
+  raio: ['...##.', '..##..', '.####.', '..##..', '.##...', '.#....'],
+  trofeu: ['######', '#.##.#', '.####.', '..##..', '..##..', '.####.'],
+  terminal: ['#.....', '.#....', '..#...', '.#....', '#.####', '......'],
+  dez: ['#..##.', '#.#..#', '#.#..#', '#.#..#', '#.#..#', '#..##.'],
+  foguete: ['..##..', '.####.', '######', '..##..', '..##..', '..##..'],
+  camiseta: ['##..##', '######', '.####.', '.####.', '.####.', '.####.'],
+  coroa: ['..##..', '..##..', '......', '##..##', '##..##', '......'],
+  joia: ['.####.', '#.##.#', '######', '.####.', '..##..', '......'],
 } as const
 
+/** Formato do medalhão: redondo (estudo), losango (código) ou escudo (especiais). */
+type Formato = 'circulo' | 'losango' | 'escudo'
+
 const ESTILOS: Record<string, Estilo> = {
+  // Estudo: medalhão redondo
   'primeira-aula': { fita: ['#22d3ee', '#0e7490'], metal: ['#155e75', '#67e8f9', '#ecfeff'], icone: '#083344', desenho: ICONES.numeroUm },
   maratonista: { fita: ['#fb923c', '#c2410c'], metal: ['#9a3412', '#fdba74', '#fff7ed'], icone: '#7c2d12', desenho: ICONES.chama },
   'unidade-completa': { fita: ['#a78bfa', '#6d28d9'], metal: ['#5b21b6', '#c4b5fd', '#f5f3ff'], icone: '#2e1065', desenho: ICONES.confere },
   destaque: { fita: ['#f87171', '#b91c1c'], metal: ['#a16207', '#facc15', '#fefce8'], icone: '#713f12', desenho: ICONES.estrela },
-  'primeiro-codigo': { fita: ['#4ade80', '#15803d'], metal: ['#166534', '#86efac', '#f0fdf4'], icone: '#052e16', desenho: ICONES.codigo },
-  'cacador-de-bugs': { fita: ['#f472b6', '#be185d'], metal: ['#9d174d', '#f9a8d4', '#fdf2f8'], icone: '#500724', desenho: ICONES.inseto },
-  'mestre-dos-lacos': { fita: ['#60a5fa', '#1d4ed8'], metal: ['#1e40af', '#93c5fd', '#eff6ff'], icone: '#172554', desenho: ICONES.lacos },
+  explorador: { fita: ['#2dd4bf', '#0f766e'], metal: ['#115e59', '#5eead4', '#f0fdfa'], icone: '#042f2e', desenho: ICONES.alfinete },
+  incansavel: { fita: ['#fbbf24', '#b45309'], metal: ['#92400e', '#fcd34d', '#fffbeb'], icone: '#451a03', desenho: ICONES.raio },
+  // Laboratório: losango
+  'primeiro-codigo': { formato: 'losango', fita: ['#4ade80', '#15803d'], metal: ['#166534', '#86efac', '#f0fdf4'], icone: '#052e16', desenho: ICONES.terminal },
+  'nota-dez': { formato: 'losango', fita: ['#a3e635', '#4d7c0f'], metal: ['#3f6212', '#bef264', '#f7fee7'], icone: '#1a2e05', desenho: ICONES.dez },
+  'cacador-de-bugs': { formato: 'losango', fita: ['#f472b6', '#be185d'], metal: ['#9d174d', '#f9a8d4', '#fdf2f8'], icone: '#500724', desenho: ICONES.inseto },
+  'programador-de-bordo': { formato: 'losango', fita: ['#60a5fa', '#1d4ed8'], metal: ['#1e40af', '#93c5fd', '#eff6ff'], icone: '#172554', desenho: ICONES.codigo },
+  // Especiais: escudo
+  'disciplina-completa': { formato: 'escudo', fita: ['#e879f9', '#a21caf'], metal: ['#a16207', '#facc15', '#fefce8'], icone: '#713f12', desenho: ICONES.trofeu },
+  estilista: { formato: 'escudo', fita: ['#fb7185', '#be123c'], metal: ['#9f1239', '#fda4af', '#fff1f2'], icone: '#4c0519', desenho: ICONES.camiseta },
+  'destaque-triplo': { formato: 'escudo', fita: ['#f87171', '#b91c1c'], metal: ['#854d0e', '#fde047', '#fefce8'], icone: '#713f12', desenho: ICONES.coroa },
+  'estrela-em-ascensao': { formato: 'escudo', fita: ['#818cf8', '#4338ca'], metal: ['#3730a3', '#a5b4fc', '#eef2ff'], icone: '#1e1b4b', desenho: ICONES.foguete },
+  colecionador: { formato: 'escudo', fita: ['#34d399', '#047857'], metal: ['#065f46', '#6ee7b7', '#ecfdf5'], icone: '#022c22', desenho: ICONES.joia },
+}
+
+const CX = 8.5
+const CY = 13.5
+
+/** O ponto (x, y) fica dentro do medalhão encolhido em "margem" pixels? */
+const DENTRO: Record<Formato, (x: number, y: number, margem: number) => boolean> = {
+  circulo: (x, y, m) => (x - CX) ** 2 + (y - CY) ** 2 <= (6.5 - m) ** 2,
+  losango: (x, y, m) => Math.abs(x - CX) + Math.abs(y - CY) <= 7.5 - m * 1.25,
+  escudo: (x, y, m) =>
+    y >= 7 + m && y <= 20 - m && Math.abs(x - CX) <= 6.5 - m - Math.max(0, y - 14) * 0.9,
 }
 
 const PADRAO: Estilo = { fita: ['#94a3b8', '#475569'], metal: ['#a16207', '#facc15', '#fefce8'], icone: '#713f12', desenho: ICONES.estrela }
@@ -70,12 +104,10 @@ export function pixelsDaMedalha(codigo: string, apagada = false): (string | null
   }
 
   // Medalhão: anel na cor escura do metal e miolo claro.
-  const cx = 8.5
-  const cy = 13.5
-  for (let y = 7; y < ALTURA_MEDALHA - 1; y++) {
+  const dentro = DENTRO[estilo.formato ?? 'circulo']
+  for (let y = 5; y < ALTURA_MEDALHA - 1; y++) {
     for (let x = 1; x < LARGURA_MEDALHA - 1; x++) {
-      const d = (x - cx) ** 2 + (y - cy) ** 2
-      if (d <= 42.25) pintar(x, y, d > 23 ? metal[0] : metal[1])
+      if (dentro(x, y, 0)) pintar(x, y, dentro(x, y, 2) ? metal[1] : metal[0])
     }
   }
   // Brilho no alto, à esquerda.

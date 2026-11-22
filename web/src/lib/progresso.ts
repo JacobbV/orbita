@@ -107,6 +107,17 @@ const NOMES_DAS_MEDALHAS: Record<string, string> = {
   maratonista: 'Maratonista',
   'unidade-completa': 'Unidade Completa',
   destaque: 'Destaque da Aula',
+  explorador: 'Explorador',
+  incansavel: 'Incansável',
+  'disciplina-completa': 'Missão Cumprida',
+  estilista: 'Estilista Espacial',
+  'primeiro-codigo': 'Primeiro Código',
+  'nota-dez': 'Nota Dez',
+  'cacador-de-bugs': 'Caçador de Bugs',
+  'programador-de-bordo': 'Programador de Bordo',
+  'destaque-triplo': 'Coroa de Estrelas',
+  'estrela-em-ascensao': 'Estrela em Ascensão',
+  colecionador: 'Colecionador',
 }
 
 /** Frases curtas do aviso, na ordem: XP, patente nova e medalhas. */

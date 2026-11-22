@@ -34,6 +34,10 @@ test.describe.serial('Hangar e Ver como aluno', () => {
     await page.reload()
     await page.getByRole('tab', { name: 'Roupa' }).click()
     await expect(page.getByRole('button', { name: /Moletom roxo/ })).toHaveAttribute('aria-pressed', 'true')
+
+    // Montar o boneco dá a medalha Estilista Espacial.
+    await page.goto('medalhas')
+    await expect(page.locator('li', { hasText: 'Estilista Espacial' })).toContainText('Ganha em')
     expect(erros).toEqual([])
   })
 
