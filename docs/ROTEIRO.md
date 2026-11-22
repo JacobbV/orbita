@@ -27,7 +27,7 @@ Site: https://jacobbv.github.io/orbita/
   - aluno abre só os slides das aulas liberadas para a turma dele, em tela própria com tela cheia;
   - professor abre qualquer slide a qualquer hora (modo apresentação).
 
-### Em andamento (PR #7)
+### Proteção e apresentação dos slides (PR #7, no ar em 22/11)
 
 - [x] Botões dos slides (Iniciar, Anterior, Próximo e setas) funcionando dentro do site.
 - [x] Botão "▶ Apresentar" em cada aula com slides no painel, à vista mesmo com a aula bloqueada (dar aula antes de liberar).
@@ -35,7 +35,6 @@ Site: https://jacobbv.github.io/orbita/
 - [x] Marca-d'água com nome completo e e-mail do aluno por cima do slide (o professor apresenta sem ela).
 - [x] Envio em lote escolhendo a pasta inteira (com as subpastas das unidades).
 - [x] Aviso que barra arquivo de outra disciplina no envio em lote (ex.: `DAW_...` com Algoritmos escolhido).
-- [ ] Merge do PR #7.
 
 ### Falta
 
@@ -55,5 +54,5 @@ Site: https://jacobbv.github.io/orbita/
 ## Próximas fases (detalhes em PROJETO.md)
 
 - [ ] Gamificação: XP, patentes, medalhas e avatar em pixel art no Hangar (plano junto com o laboratório em revisão, 22/11).
-- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada), junto com a gamificação; modo prova na Fase 4.
+- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada), junto com a gamificação; modo prova na Fase 4. Correção no servidor gratuito não cabe (Python gasta ~2,4 s de CPU para carregar, limite de 2 s): plano é corrigir no navegador com reconferência pelo professor.
 - [ ] Java, C e C++ com servidor de execução, na Fase 5.
