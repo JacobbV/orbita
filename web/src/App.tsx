@@ -10,6 +10,7 @@ import { Entrar } from './pages/Entrar'
 import { Inicio } from './pages/Inicio'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
+import { Ponte } from './pages/Ponte'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 
 export function App() {
@@ -32,15 +33,15 @@ export function App() {
               </RotaProtegida>
             }
           />
-          {/* Próximas etapas: ponte do aluno (4) e painel do professor (5) */}
           <Route
             path="ponte"
             element={
               <RotaProtegida papel="aluno">
-                <EmBreve titulo="Ponte de comando" />
+                <Ponte />
               </RotaProtegida>
             }
           />
+          {/* Próxima etapa: painel do professor (5) */}
           <Route
             path="professor"
             element={
