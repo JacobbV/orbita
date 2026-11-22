@@ -1,0 +1,303 @@
+/* Laboratório: um exercício */
+
+.exercicio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 16px 40px;
+}
+
+.exercicio-voltar {
+  align-self: flex-start;
+  color: var(--ciano-claro);
+  min-height: var(--alvo-toque);
+  display: inline-flex;
+  align-items: center;
+}
+
+.exercicio-topo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercicio-topo,
+.exercicio-resultados {
+  padding: 20px;
+}
+
+@media (min-width: 600px) {
+  .exercicio-topo,
+  .exercicio-resultados {
+    padding: 24px 28px;
+  }
+}
+
+.exercicio-selo {
+  color: var(--ciano);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.exercicio-topo h1 {
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.exercicio-etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercicio-etiqueta {
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+.exercicio-dificuldade-1 { color: var(--sucesso); border-color: currentColor; }
+.exercicio-dificuldade-2 { color: var(--estrela); border-color: currentColor; }
+.exercicio-dificuldade-3 { color: var(--plasma); border-color: currentColor; }
+
+.exercicio-enunciado {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.exercicio-exemplos {
+  display: grid;
+  gap: 12px;
+}
+
+.exercicio-exemplo {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  padding: 12px;
+}
+
+.exercicio-exemplo-titulo {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.exercicio-exemplo-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 12px;
+}
+
+.exercicio pre {
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  background: var(--espaco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  font-family: var(--fonte-codigo);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.exercicio-rotulo {
+  font-size: 0.8125rem;
+  color: var(--texto-suave);
+}
+
+.exercicio-bancada {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 960px) {
+  .exercicio-bancada {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+.exercicio-editor {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  background: #282c34;
+  min-width: 0;
+}
+
+.exercicio-editor-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--casco);
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.65rem;
+  color: var(--ciano);
+}
+
+.exercicio-restaurar {
+  background: none;
+  border: none;
+  color: var(--texto-suave);
+  font: inherit;
+  font-family: var(--fonte-texto);
+  font-size: 0.8125rem;
+  min-height: var(--alvo-toque);
+  cursor: pointer;
+}
+
+.exercicio-restaurar:hover:not(:disabled) {
+  color: var(--texto);
+  text-decoration: underline;
+}
+
+.exercicio-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.exercicio-entrada {
+  width: 100%;
+  font-family: var(--fonte-codigo);
+  font-size: 0.9rem;
+  background: var(--espaco);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  padding: 8px 12px;
+  resize: vertical;
+}
+
+.exercicio-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercicio-botoes .botao {
+  flex: 1 1 8rem;
+}
+
+.exercicio-status {
+  min-height: 1.5em;
+  color: var(--ciano-claro);
+  font-size: 0.9rem;
+}
+
+.exercicio-erro {
+  color: #fca5a5;
+  border-color: #7f1d1d !important;
+}
+
+.exercicio-aviso-pequeno {
+  font-size: 0.8125rem;
+  color: var(--estrela);
+}
+
+.exercicio-resultados h2 {
+  font-size: 1.125rem;
+  margin-bottom: 12px;
+}
+
+.exercicio-testes {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.exercicio-testes li {
+  border: 1px solid var(--borda);
+  border-left-width: 4px;
+  border-radius: var(--raio-pequeno);
+  padding: 8px 12px;
+}
+
+.exercicio-teste-certo { border-left-color: var(--sucesso) !important; }
+.exercicio-teste-errado { border-left-color: var(--plasma) !important; }
+
+.exercicio-teste-titulo {
+  font-weight: 700;
+}
+
+.exercicio-teste-certo .exercicio-teste-titulo span[aria-hidden] { color: var(--sucesso); }
+.exercicio-teste-errado .exercicio-teste-titulo span[aria-hidden] { color: var(--plasma); }
+
+.exercicio-oculto {
+  color: var(--texto-suave);
+  font-style: italic;
+}
+
+/* Entregar e entregas anteriores */
+
+.exercicio-entregar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borda);
+}
+
+.exercicio-entregar p {
+  color: var(--texto-suave);
+}
+
+.exercicio-entregar .aviso {
+  align-self: stretch;
+}
+
+.exercicio-entregas {
+  padding: 20px;
+}
+
+.exercicio-entregas h2 {
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.exercicio-entregas-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercicio-entrega {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding-block: 10px;
+  border-top: 1px solid var(--borda);
+  font-size: 0.9375rem;
+}
+
+.exercicio-entrega-numero {
+  font-weight: 800;
+}
+
+.exercicio-entrega-situacao {
+  color: var(--estrela);
+}
+
+.exercicio-entrega-confirmada .exercicio-entrega-situacao {
+  color: var(--sucesso);
+}
+
+.exercicio-entrega-nao_confere .exercicio-entrega-situacao {
+  color: var(--plasma);
+}
+
+.exercicio-entrega-data {
+  color: var(--texto-suave);
+  margin-left: auto;
+}

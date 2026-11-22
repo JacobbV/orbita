@@ -1,0 +1,268 @@
+/* Exercícios de uma aula (painel do professor) */
+
+.exercicios-novo {
+  align-self: flex-start;
+}
+
+.exercicios-vazio {
+  padding: 20px;
+}
+
+.exercicios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercicios-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 16px 20px;
+}
+
+.exercicios-item-texto {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.exercicios-item h2 {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.exercicios-item-meta {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.exercicios-confirmacao {
+  flex-basis: 100%;
+}
+
+.exercicios-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.exercicios-form h2 {
+  font-size: 1.125rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.exercicios-form textarea,
+.exercicios-teste select {
+  font-family: inherit;
+}
+
+.exercicios-teste textarea {
+  font-family: var(--fonte-codigo);
+  font-size: 0.95rem;
+}
+
+.exercicios-rotulo,
+.exercicios-form legend {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.exercicios-dificuldade,
+.exercicios-testes {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.exercicios-dificuldade legend,
+.exercicios-testes legend {
+  margin-bottom: 8px;
+}
+
+.exercicios-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercicios-opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo-toque);
+  padding: 6px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  cursor: pointer;
+}
+
+.exercicios-opcao:has(input:checked) {
+  border-color: var(--ciano);
+}
+
+.exercicios-xp {
+  color: var(--ciano-claro);
+  font-size: 0.875rem;
+}
+
+.exercicios-testes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exercicios-testes > .botao {
+  align-self: flex-start;
+}
+
+.exercicios-testes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercicios-teste {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-left-width: 4px;
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+}
+
+.exercicios-teste-visivel {
+  border-left-color: var(--ciano);
+}
+
+.exercicios-teste-oculto {
+  border-left-color: var(--estrela);
+}
+
+.exercicios-teste-secreto {
+  border-left-color: var(--plasma);
+}
+
+.exercicios-teste-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.exercicios-teste-numero {
+  font-weight: 800;
+}
+
+.exercicios-teste-topo select {
+  min-height: var(--alvo-toque);
+  padding: 6px 10px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--casco, var(--espaco));
+  color: var(--texto);
+  font-size: 1rem;
+}
+
+.exercicios-teste-topo .botao {
+  margin-left: auto;
+}
+
+.exercicios-teste-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
+.exercicios-solucao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-pequeno);
+}
+
+.exercicios-solucao[open] {
+  gap: 10px;
+}
+
+.exercicios-solucao summary {
+  min-height: var(--alvo-toque);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ciano-claro);
+}
+
+.exercicios-solucao > * + * {
+  margin-top: 10px;
+}
+
+.exercicios-solucao > .botao {
+  align-self: flex-start;
+}
+
+.exercicios-mensagem {
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+/* Reconferência */
+
+.exercicios-a-confirmar {
+  color: var(--estrela);
+}
+
+.exercicios-reconferencia {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+}
+
+.exercicios-reconferencia .aviso {
+  align-self: stretch;
+}
+
+.exercicios-reconferencia-titulo {
+  font-weight: 800;
+}
+
+.exercicios-reconferencia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+}
+
+.exercicios-confere span[aria-hidden] {
+  color: var(--sucesso);
+}
+
+.exercicios-nao-confere span[aria-hidden] {
+  color: var(--plasma);
+}

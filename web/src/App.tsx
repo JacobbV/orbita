@@ -1,18 +1,28 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 import { RotaProtegida } from './auth/RotaProtegida'
 import { PublicLayout } from './components/Layout'
+import { Carregando } from './components/Carregando'
 import { Starfield } from './components/Starfield'
 import { Aguardando } from './pages/Aguardando'
 import { Cadastro } from './pages/Cadastro'
 import { Creditos } from './pages/Creditos'
 import { Entrar } from './pages/Entrar'
+import { Hangar } from './pages/Hangar'
 import { Inicio } from './pages/Inicio'
+import { Medalhas } from './pages/Medalhas'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
+import { VerComoAluno } from './pages/professor/VerComoAluno'
+import { XpDaTurma } from './pages/professor/XpDaTurma'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 import { Slides } from './pages/Slides'
+
+// O laboratório (editor e Python) só baixa quando alguém abre um exercício.
+const Exercicio = lazy(() => import('./pages/Exercicio').then((m) => ({ default: m.Exercicio })))
+const ExerciciosDaAula = lazy(() => import('./pages/professor/Exercicios').then((m) => ({ default: m.Exercicios })))
 
 export function App() {
   return (
@@ -47,6 +57,58 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <Professor />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/ver-como-aluno/:ofertaId"
+            element={
+              <RotaProtegida papel="professor">
+                <VerComoAluno />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/xp/:ofertaId"
+            element={
+              <RotaProtegida papel="professor">
+                <XpDaTurma />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="medalhas"
+            element={
+              <RotaProtegida>
+                <Medalhas />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/exercicios/:aulaId"
+            element={
+              <RotaProtegida papel="professor">
+                <Suspense fallback={<Carregando />}>
+                  <ExerciciosDaAula />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="hangar"
+            element={
+              <RotaProtegida>
+                <Hangar />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="exercicio/:id"
+            element={
+              <RotaProtegida>
+                <Suspense fallback={<Carregando />}>
+                  <Exercicio />
+                </Suspense>
               </RotaProtegida>
             }
           />

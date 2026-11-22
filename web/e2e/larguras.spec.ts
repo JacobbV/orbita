@@ -19,6 +19,10 @@ type Papel = 'visitante' | 'aluno' | 'professor'
 
 /** Material de slides da aula I.1 de Algoritmos, criado no beforeAll. */
 let slidesId = 0
+/** Oferta de Algoritmos do 1º INFO M, para o XP da turma. */
+let ofertaAlgM = 0
+/** Aula I.1 de Algoritmos, para a tela de exercícios do painel. */
+let aulaI1 = 0
 
 interface Tela {
   nome: string
@@ -58,6 +62,14 @@ const TELAS: Tela[] = [
     preparar: async (page) => {
       await expect(page.getByText('Última aula liberada')).toBeVisible()
       await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)))
+    },
+  },
+  {
+    nome: 'Medalhas',
+    caminho: 'medalhas',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Suas medalhas' })).toBeVisible()
     },
   },
   {
@@ -102,6 +114,28 @@ const TELAS: Tela[] = [
       await expect(page.getByRole('heading', { name: '1º INFO M' })).toBeVisible()
     },
   },
+  {
+    nome: 'Painel: XP da turma',
+    get caminho() {
+      return `professor/xp/${ofertaAlgM}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Dar XP por participação' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Painel: exercícios com formulário aberto',
+    get caminho() {
+      return `professor/exercicios/${aulaI1}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: '+ Novo exercício' }).click()
+      await page.getByRole('button', { name: 'Salvar exercício' }).click()
+      await page.getByText('Preencher as saídas com a sua solução').click()
+    },
+  },
 ]
 
 const sessoes: Partial<Record<Papel, Awaited<ReturnType<BrowserContext['storageState']>>>> = {}
@@ -116,6 +150,7 @@ async function guardarSessao(browser: Browser, papel: Papel, email: string) {
 test.beforeAll(async ({ browser }) => {
   // Aluno aprovado em Algoritmos (1º INFO M) com a aula I.1 liberada e recusado em Fundamentos.
   const algM = await oferta('1º INFO M', 'ALG')
+  ofertaAlgM = algM
   const fundM = await oferta('1º INFO M', 'FUND')
   const aluno = emailDeTeste('larguras')
   const id = await criarConta(aluno, 'Plutão Exemplo de Oliveira Fictício', {
@@ -145,6 +180,7 @@ test.beforeAll(async ({ browser }) => {
     headers: { Prefer: 'resolution=ignore-duplicates' },
     body: JSON.stringify({ turma_disciplina_id: algM, aula_id: aula }),
   })
+  aulaI1 = aula ?? 0
 
   slidesId = await enviarSlidesDeTeste(
     aula ?? 0,
@@ -175,7 +211,7 @@ for (const [largura, altura] of LARGURAS) {
         const medida = await page.evaluate(() => {
           const raiz = document.documentElement
           const ceu = document.querySelector('.ceu-estrelas')?.getBoundingClientRect()
-          const alvos = [...document.querySelectorAll('a, button, input:not([type=checkbox]), select, textarea, summary, label.painel-caixa')]
+          const alvos = [...document.querySelectorAll('a, button, input:not([type=checkbox]):not([type=radio]), select, textarea, summary, label.painel-caixa, label.exercicios-opcao')]
           const pequenos = alvos
             .filter((el) => {
               const r = el.getBoundingClientRect()

@@ -531,11 +531,19 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"professor_da_nave":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "escolhas": Json,"nome": string
+            }[]
+                           },
 "registrar_abertura_da_aula":
 { Args: { "p_aula_id": number }; Returns: Json
                            },
 "remover_aula":
 { Args: { "p_aula_id": number }; Returns: undefined
+                           },
+"remover_exercicio":
+{ Args: { "p_id": number }; Returns: undefined
                            },
 "remover_slides_da_aula":
 { Args: { "p_aula_id": number }; Returns: string
@@ -545,6 +553,9 @@ isOneToOne: false
                            },
 "salvar_avatar":
 { Args: { "p_escolhas": Json }; Returns: undefined
+                           },
+"salvar_exercicio":
+{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_testes": Json,"p_titulo": string }; Returns: number
                            },
 "testes_do_exercicio":
 { Args: { "p_exercicio_id": number }; Returns: {

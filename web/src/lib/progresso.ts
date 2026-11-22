@@ -107,6 +107,22 @@ const NOMES_DAS_MEDALHAS: Record<string, string> = {
   maratonista: 'Maratonista',
   'unidade-completa': 'Unidade Completa',
   destaque: 'Destaque da Aula',
+  explorador: 'Explorador',
+  incansavel: 'Incansável',
+  'disciplina-completa': 'Missão Cumprida',
+  estilista: 'Estilista Espacial',
+  'primeiro-codigo': 'Primeiro Código',
+  'nota-dez': 'Nota Dez',
+  'cacador-de-bugs': 'Caçador de Bugs',
+  'mestre-dos-lacos': 'Mestre dos Laços',
+  'programador-de-bordo': 'Programador de Bordo',
+  cobrinha: 'Cobrinha',
+  'ninho-de-cobras': 'Ninho de Cobras',
+  'cobra-criada': 'Cobra Criada',
+  'encantador-de-serpentes': 'Encantador de Serpentes',
+  'destaque-triplo': 'Coroa de Estrelas',
+  'estrela-em-ascensao': 'Estrela em Ascensão',
+  colecionador: 'Colecionador',
 }
 
 /** Frases curtas do aviso, na ordem: XP, patente nova e medalhas. */
@@ -116,4 +132,38 @@ export function frasesDaConquista(c: Conquista): string[] {
   if (c.novaPatente) frases.push(`Nova patente: ${c.novaPatente}!`)
   for (const m of c.medalhas) frases.push(`Nova medalha: ${NOMES_DAS_MEDALHAS[m] ?? m}!`)
   return frases
+}
+
+// ---------------------------------------------------------------------------
+// Painel do professor: XP da turma e XP manual (participação)
+// ---------------------------------------------------------------------------
+
+export interface XpDoAluno {
+  alunoId: string
+  nome: string
+  xp: number
+  patente: string
+}
+
+/** Alunos aprovados de uma turma com XP e patente. Só o professor consegue. */
+export async function carregarXpDaTurma(ofertaId: number): Promise<XpDoAluno[]> {
+  const { data, error } = await supabase().rpc('xp_da_turma', { p_turma_disciplina_id: ofertaId })
+  if (error) throw error
+  return ((data ?? []) as { aluno_id: string; nome: string; xp: number; patente: string }[]).map((l) => ({
+    alunoId: l.aluno_id,
+    nome: l.nome,
+    xp: l.xp,
+    patente: l.patente,
+  }))
+}
+
+export const XP_MANUAL_MAXIMO = 100
+
+export async function darXp(alunoId: string, quantidade: number, descricao: string): Promise<void> {
+  const { error } = await supabase().rpc('dar_xp', {
+    p_aluno_id: alunoId,
+    p_quantidade: quantidade,
+    p_descricao: descricao.trim(),
+  })
+  if (error) throw error
 }

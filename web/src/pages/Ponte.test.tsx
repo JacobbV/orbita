@@ -41,6 +41,25 @@ vi.mock('../lib/progresso', async (original) => {
   }
 })
 
+// Professor da nave falso: null = não carregou (o cartão não aparece).
+const professorFalso = vi.hoisted(() => ({ valor: null as unknown }))
+
+vi.mock('../lib/avatar', async (original) => ({
+  ...(await original<typeof import('../lib/avatar')>()),
+  carregarProfessorDaNave: async () => professorFalso.valor,
+}))
+
+// Medalhas falsas: null = o banco falhou (só o atalho aparece).
+const medalhasFalsas = vi.hoisted(() => ({ valor: null as unknown }))
+
+vi.mock('../lib/medalhas', async (original) => ({
+  ...(await original<typeof import('../lib/medalhas')>()),
+  carregarMedalhas: async () => {
+    if (!medalhasFalsas.valor) throw new Error('sem medalhas')
+    return medalhasFalsas.valor
+  },
+}))
+
 vi.mock('../lib/api', async (original) => ({
   ...(await original<typeof import('../lib/api')>()),
   meusPedidos: async () => [],
@@ -70,6 +89,7 @@ function dadosComUmaAulaLiberada(): DadosDaPonte {
       { id: 2, tipo: 'slide' as const, titulo: 'Slides da aula', url: null },
       { id: 1, tipo: 'link', titulo: 'Apostila', url: 'https://exemplo.org/apostila' },
     ],
+    exercicios: [{ id: 5, titulo: 'Soma de dois números', dificuldade: 2 }],
   }
   const bloqueada = {
     id: 12,
@@ -78,6 +98,7 @@ function dadosComUmaAulaLiberada(): DadosDaPonte {
     liberada: false,
     liberadaEm: null,
     materiais: [],
+    exercicios: [],
   }
   const unidade = { id: 1, numero: 1, titulo: 'Primeiros passos', aulas: [liberada, bloqueada], liberadas: 1 }
   return {
@@ -101,6 +122,39 @@ describe('Ponte de comando', () => {
   beforeEach(() => {
     progressoFalso.valor = null
     progressoFalso.aberturas = []
+    professorFalso.valor = null
+    medalhasFalsas.valor = null
+  })
+
+  it('mostra as últimas medalhas ganhas e o atalho para todas', async () => {
+    progressoFalso.valor = { xp: 175, nivel: 2, patente: 'Piloto', xpDaPatente: 100, proxima: 'Navegador', xpDaProxima: 250 }
+    medalhasFalsas.valor = [
+      { codigo: 'primeira-aula', nome: 'Primeira Aula', descricao: '', ganhaEm: '2026-11-20T13:00:00Z' },
+      { codigo: 'maratonista', nome: 'Maratonista', descricao: '', ganhaEm: null },
+      { codigo: 'destaque', nome: 'Destaque da Aula', descricao: '', ganhaEm: '2026-11-21T13:00:00Z' },
+    ]
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const lista = await screen.findByRole('list', { name: 'Últimas medalhas' })
+    expect(within(lista).getAllByRole('img').map((i) => i.getAttribute('aria-label'))).toEqual(['Destaque da Aula', 'Primeira Aula'])
+    expect(screen.getByRole('link', { name: 'Medalhas: 2 de 3' })).toHaveAttribute('href', '/medalhas')
+  })
+
+  it('mostra o boneco e o nome do professor da nave', async () => {
+    const { PADRAO_PROFESSOR } = await import('../arte/avatar')
+    professorFalso.valor = { nome: 'Prof. Fictício', escolhas: PADRAO_PROFESSOR }
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const cartao = await screen.findByRole('complementary', { name: 'Seu professor' })
+    expect(within(cartao).getByText('Prof. Fictício')).toBeInTheDocument()
+    expect(within(cartao).getByText('Comandante da nave')).toBeInTheDocument()
+  })
+
+  it('sem o professor carregado, a ponte abre sem o cartão', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    expect(await screen.findByText('Última aula liberada')).toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Seu professor' })).toBeNull()
   })
 
   it('mostra a patente, o XP e quanto falta para a próxima', async () => {
@@ -144,6 +198,15 @@ describe('Ponte de comando', () => {
     expect(link).toHaveAttribute('href', 'https://exemplo.org/apostila')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('aula liberada mostra os exercícios do laboratório com o XP', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const item = (await screen.findAllByText('O que é um algoritmo?')).at(-1)?.closest('li') as HTMLElement
+    const exercicio = within(item).getByRole('link', { name: /Exercício: Soma de dois números/ })
+    expect(exercicio).toHaveAttribute('href', '/exercicio/5')
+    expect(exercicio).toHaveTextContent('+35 XP')
   })
 
   it('aula bloqueada mostra o cadeado e nenhum conteúdo', async () => {

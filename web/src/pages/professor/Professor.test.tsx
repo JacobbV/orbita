@@ -79,8 +79,8 @@ beforeEach(() => {
       numero: 1,
       titulo: 'Primeiros passos',
       aulas: [
-        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' }, slides: { id: 90, caminho: 'aulas/11/slides-1.html' } },
-        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null, slides: null },
+        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' }, slides: { id: 90, caminho: 'aulas/11/slides-1.html' }, exercicios: 2 },
+        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null, slides: null, exercicios: 0 },
       ],
     },
   ]
@@ -144,6 +144,13 @@ describe('Painel do professor: aulas', () => {
     expect(acoes.liberarAula).toHaveBeenCalledWith(11, 11, false)
     await usuario.click(screen.getByRole('button', { name: 'Liberar unidade I' }))
     expect(acoes.liberarUnidade).toHaveBeenCalledWith(11, 1, true)
+  })
+
+  it('cada aula mostra quantos exercícios tem e o atalho para eles', async () => {
+    abrir('/professor?aba=aulas', PROFESSOR)
+    expect(await screen.findByRole('link', { name: 'Exercícios da aula I.1' })).toHaveAttribute('href', '/professor/exercicios/11')
+    expect(screen.getByText('2 exercícios')).toBeInTheDocument()
+    expect(screen.getByText('sem exercícios')).toBeInTheDocument()
   })
 
   it('envia, troca e remove os slides de uma aula', async () => {

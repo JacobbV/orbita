@@ -59,7 +59,13 @@ export function Slides() {
   }, [])
 
   const ehProfessor = perfil?.papel === 'professor'
-  const marca = ehProfessor ? null : [perfil?.nome, perfil?.email].filter(Boolean).join(' · ')
+  // "Ver como aluno": o professor vê a marca-d'água como o aluno veria (com um nome de exemplo).
+  const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
+  const marca = comoAluno
+    ? 'Nome do aluno · aluno@academico.ifpb.edu.br'
+    : ehProfessor
+      ? null
+      : [perfil?.nome, perfil?.email].filter(Boolean).join(' · ')
   const voltar: To = perfil?.papel === 'professor' ? '/professor?aba=aulas' : '/ponte'
   // Quem chegou por dentro do site volta para a mesma tela (mesma turma e
   // disciplina no painel), como o botão Voltar do navegador ou do mouse.

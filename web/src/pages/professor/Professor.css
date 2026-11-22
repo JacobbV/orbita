@@ -9,6 +9,10 @@
 
 .painel-topo {
   padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
 }
 
 .painel-topo h1 {
@@ -578,4 +582,114 @@
 
 .painel-lote-problema {
   color: var(--estrela);
+}
+
+.painel-ver-como-aluno {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-ver-como-aluno li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* XP da turma */
+
+.painel-topo-texto {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.xp-turma-form,
+.xp-turma-lista,
+.xp-turma-vazio {
+  padding: 20px;
+}
+
+.xp-turma-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.xp-turma-form h2,
+.xp-turma-lista h2 {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.xp-turma-form > .botao {
+  align-self: flex-start;
+}
+
+.xp-turma-quantidade {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.xp-turma-quantidade legend {
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.xp-turma-atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.xp-turma-atalhos input {
+  width: 6.5rem;
+  min-height: var(--alvo-toque);
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  color: var(--texto);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.xp-turma-quantidade .campo-dica {
+  margin-top: 6px;
+}
+
+.xp-turma-lista ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.xp-turma-aluno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  padding-block: 10px;
+  border-top: 1px solid var(--borda);
+}
+
+.xp-turma-nome {
+  flex: 1 1 200px;
+  font-weight: 700;
+}
+
+.xp-turma-patente {
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.xp-turma-patente .pixel {
+  color: var(--ciano-claro);
+  font-size: 0.6rem;
 }

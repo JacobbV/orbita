@@ -327,6 +327,14 @@ function ItemAula({
             )}
             {' · '}
             {aula.slides ? <span>com slides</span> : <span className="painel-sem-link">sem slides</span>}
+            {' · '}
+            {aula.exercicios > 0 ? (
+              <span>
+                {aula.exercicios} {aula.exercicios === 1 ? 'exercício' : 'exercícios'}
+              </span>
+            ) : (
+              <span className="painel-sem-link">sem exercícios</span>
+            )}
           </p>
         </div>
         <div className="painel-botoes painel-aula-botoes">
@@ -350,6 +358,9 @@ function ItemAula({
           >
             {aula.liberada ? 'Bloquear' : 'Liberar'}
           </button>
+          <Link to={`/professor/exercicios/${aula.id}`} className="botao" aria-label={`Exercícios da aula ${rotulo}`}>
+            Exercícios
+          </Link>
           <button
             type="button"
             className="botao"

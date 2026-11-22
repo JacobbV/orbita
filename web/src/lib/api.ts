@@ -73,6 +73,12 @@ export async function listarOfertas(): Promise<Oferta[]> {
   )
 }
 
+export async function buscarOferta(id: number): Promise<Oferta | null> {
+  const { data, error } = await supabase().from('turma_disciplinas').select(CAMPOS_OFERTA).eq('id', id).maybeSingle()
+  if (error) throw error
+  return data ? converterOferta(data as unknown as OfertaDoBanco) : null
+}
+
 /** Disciplinas distintas a partir das ofertas, na ordem alfabética. */
 export function disciplinasDasOfertas(ofertas: Oferta[]): Oferta['disciplina'][] {
   const mapa = new Map<number, Oferta['disciplina']>()

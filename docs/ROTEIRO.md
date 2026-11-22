@@ -46,21 +46,28 @@ Site: https://jacobbv.github.io/orbita/
 
 - Print de tela, foto com o celular e ferramentas de desenvolvedor do navegador não podem ser bloqueados por um site. A marca-d'água identifica de quem veio uma cópia.
 
-## Fases 2 e 3: gamificação e laboratório (em andamento, PR #8)
+## Fases 2 e 3: gamificação e laboratório (em andamento)
+
+PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um merge só no final.
 
 - [x] Banco da gamificação e do laboratório, com testes (patentes, XP, medalhas, avatares, exercícios, testes ocultos e secretos, entregas).
 - [x] Licença da arte original (todos os direitos reservados).
 - [x] XP e patente na ponte do aluno, com aviso de conquista ao abrir uma aula.
-- [ ] Arte original em pixel art (lote para aprovação).
-- [ ] Hangar (montar o avatar).
-- [ ] Painel do professor: avatar, XP da turma e XP à mão.
-- [ ] Medalhas na tela.
-- [ ] Laboratório: editor e Testar em Python; professor cria exercícios; Entregar; reconferência.
+- [x] Hangar: aluno e professor montam o boneco, com peças trancadas por XP.
+- [x] Botão "Ver como aluno" no painel (aba Turmas), com a marca-d'água de exemplo nos slides.
+- [x] Painel do professor: boneco do professor na ponte dos alunos, XP da turma e XP por participação (1 a 100 por vez, com motivo).
+- [x] Medalhas na tela: arte própria em pixel art, últimas ganhas na ponte e página com as ganhas e as que faltam.
+- [x] 20 tipos de medalha: estudo (redondas), código (losango), especiais (escudo) e a série da cobra para Python (Cobrinha, Ninho de Cobras, Cobra Criada, Encantador de Serpentes).
+- [ ] Ideia: medalhas de outras linguagens, HTML e CSS (pensar depois).
+- [x] Arte original em pixel art aprovada (46 peças, aluno e professor).
+- [x] Laboratório: editor de código e botões Rodar e Testar em Python, no navegador.
+- [x] Laboratório: professor cria, edita e remove exercícios no painel, com testes visíveis, ocultos e secretos e saídas preenchidas pela solução.
+- [x] Laboratório: Entregar (XP na hora, "a confirmar") e reconferência do professor com testes secretos.
+- [x] Correção: remover aula ou exercício que já deu XP não falha mais; o XP fica com o aluno.
 - [ ] JavaScript, HTML e CSS; relatório do professor.
 
 ## Ideias
 
-- 💡 **Ver como aluno** (pedido em 22/11): um botão no painel para o professor ver a ponte de uma turma exatamente como o aluno vê, com as aulas liberadas e bloqueadas e os slides com marca-d'água. Esforço estimado: uma etapa pequena. Dá para reaproveitar a tela da ponte do aluno com os dados da turma escolhida, só para ver, sem criar conta de teste nem mudar as regras do banco.
 - 💡 **Avatar do professor** (pedido em 22/11): o professor também tem boneco em pixel art, montado por ele no Hangar, com visual de nerd (óculos, barba e roupas próprias), sem jaleco. Entra junto com o avatar dos alunos, na gamificação.
 
 ## Próximas fases (detalhes em PROJETO.md)

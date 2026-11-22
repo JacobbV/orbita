@@ -1,0 +1,32 @@
+/* Boneco do professor na ponte do aluno */
+.professor-da-nave {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+}
+
+.professor-da-nave-boneco {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 4px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: radial-gradient(circle at 50% 40%, rgba(250, 204, 21, 0.14), transparent 70%), var(--espaco);
+}
+
+.professor-da-nave-selo {
+  margin-bottom: 4px;
+  color: var(--estrela);
+  font-size: 0.6rem;
+}
+
+.professor-da-nave-nome {
+  font-weight: 800;
+  font-size: 1.0625rem;
+}
+
+.professor-da-nave-texto {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
@@ -93,10 +94,8 @@ function CartaoTurma({
   const [ocupado, setOcupado] = useState(false)
   const id = `turma-${turma.id}`
 
-  const disciplinas = useMemo(
-    () => dados.ofertas.filter((o) => o.turma.id === turma.id).map((o) => o.disciplina.nome),
-    [dados.ofertas, turma.id],
-  )
+  const ofertasDaTurma = useMemo(() => dados.ofertas.filter((o) => o.turma.id === turma.id), [dados.ofertas, turma.id])
+  const disciplinas = ofertasDaTurma.map((o) => o.disciplina.nome)
   const daTurma = dados.pedidos.filter((p) => p.oferta.turma.id === turma.id)
   const aprovados = new Set(daTurma.filter((p) => p.status === 'aprovado').map((p) => p.aluno.email)).size
   const pendentes = daTurma.filter((p) => p.status === 'pendente').length
@@ -130,6 +129,28 @@ function CartaoTurma({
           {aprovados} {aprovados === 1 ? 'aluno aprovado' : 'alunos aprovados'} · {pendentes}{' '}
           {pendentes === 1 ? 'pedido aguardando' : 'pedidos aguardando'}
         </p>
+        {ofertasDaTurma.length > 0 && (
+          <ul className="painel-ver-como-aluno" role="list">
+            {ofertasDaTurma.map((o) => (
+              <li key={o.id}>
+                <Link to={`/professor/ver-como-aluno/${o.id}`} className="botao botao-compacto">
+                  Ver como aluno{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
+                  <span className="sr-only">
+                    {' '}
+                    ({turma.nome}, {o.disciplina.nome})
+                  </span>
+                </Link>
+                <Link to={`/professor/xp/${o.id}`} className="botao botao-compacto">
+                  XP da turma{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
+                  <span className="sr-only">
+                    {' '}
+                    ({turma.nome}, {o.disciplina.nome})
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <form className="painel-turma-form" onSubmit={salvar} noValidate aria-labelledby={`${id}-nome`}>
         <div className={`campo painel-campo-ano${erroAno ? ' campo-com-erro' : ''}`}>
