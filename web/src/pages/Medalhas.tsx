@@ -6,6 +6,7 @@ import { Carregando } from '../components/Carregando'
 import { Medalha } from '../components/Medalha'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarMedalhas, type MedalhaDoAluno } from '../lib/medalhas'
+import { useModoNinja } from '../ninja/ModoNinja'
 import './Medalhas.css'
 
 const formatoData = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -13,6 +14,7 @@ const formatoData = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2
 /** Todas as medalhas: as ganhas, com a data, e as que faltam, com como ganhar. */
 export function Medalhas() {
   const { perfil } = useAuth()
+  const ninja = useModoNinja()
   const [medalhas, setMedalhas] = useState<MedalhaDoAluno[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -21,7 +23,8 @@ export function Medalhas() {
     let ativo = true
     carregarMedalhas(perfil.id)
       .then((m) => {
-        if (ativo) setMedalhas(m)
+        // O ninja tem todas acesas, para o professor ver cada desenho.
+        if (ativo) setMedalhas(ninja.ativo ? m.map((x) => ({ ...x, ganhaEm: x.ganhaEm ?? 'ninja' })) : m)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(mensagemDeErro(e))
@@ -29,9 +32,13 @@ export function Medalhas() {
     return () => {
       ativo = false
     }
-  }, [perfil])
+  }, [perfil, ninja.ativo])
 
-  const voltar = (
+  const voltar = ninja.ativo ? (
+    <Link to="/ninja" className="botao">
+      Voltar à ponte ninja
+    </Link>
+  ) : (
     <Link to={perfil?.papel === 'professor' ? '/professor' : '/ponte'} className="botao">
       {perfil?.papel === 'professor' ? 'Voltar ao painel' : 'Voltar à ponte'}
     </Link>
@@ -55,7 +62,7 @@ export function Medalhas() {
       <header className="cartao medalhas-topo">
         <div>
           <p className="pixel medalhas-selo">Medalhas</p>
-          <h1>Suas medalhas</h1>
+          <h1>{ninja.ativo ? 'Todas as medalhas' : 'Suas medalhas'}</h1>
           <p className="medalhas-contagem">
             {ganhas} de {medalhas.length} {medalhas.length === 1 ? 'medalha ganha' : 'medalhas ganhas'}
           </p>
@@ -72,7 +79,9 @@ export function Medalhas() {
               {m.ganhaEm ? (
                 <>
                   <p>{m.descricao}</p>
-                  <p className="medalhas-quando">Ganha em {formatoData.format(new Date(m.ganhaEm))}</p>
+                  <p className="medalhas-quando">
+                    {m.ganhaEm === 'ninja' ? 'Acesa no Modo Ninja' : `Ganha em ${formatoData.format(new Date(m.ganhaEm))}`}
+                  </p>
                 </>
               ) : (
                 <>

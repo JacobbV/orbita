@@ -46,9 +46,9 @@ Site: https://jacobbv.github.io/orbita/
 
 - Print de tela, foto com o celular e ferramentas de desenvolvedor do navegador não podem ser bloqueados por um site. A marca-d'água identifica de quem veio uma cópia.
 
-## Fases 2 e 3: gamificação e laboratório (em andamento)
+## Fases 2 e 3: gamificação e laboratório (no ar)
 
-PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um merge só no final.
+PRs #8, #9 e #10 no ar em 22/11.
 
 - [x] Banco da gamificação e do laboratório, com testes (patentes, XP, medalhas, avatares, exercícios, testes ocultos e secretos, entregas).
 - [x] Licença da arte original (todos os direitos reservados).
@@ -67,6 +67,15 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] Laboratório de JavaScript (console.log, input() e prompt()) e de HTML e CSS (prévia ao vivo e testes por consulta: texto, propriedade CSS, atributo e contagem).
 - [x] Relatório do professor: nota de cada aluno por exercício, tentativas, código de cada entrega e planilha (CSV).
 - [x] Revisão final: maiúsculas acentuadas (Á, É, Ó...) inteiras nos selos em pixel, com fonte derivada da Press Start 2P (OFL).
+
+## Modo Ninja e apelidos (PR novo, em revisão)
+
+- [x] Apelidos só por sorteio: nome + adjetivo de listas aprovadas (294 nomes, 155 adjetivos, mais de 45 mil combinações), com concordância de gênero e sem repetição entre contas. Não há campo para digitar.
+- [x] Aluno sorteia na ponte (cartão aparece enquanto não tem apelido) e troca no Hangar.
+- [x] Professor vê o apelido ao lado do nome (pedidos, XP da turma e relatório) e pode sortear outro ou apagar.
+- [x] Apelido do professor no cartão "Comandante da nave".
+- [x] Modo Ninja: botão no boneco do professor; ponte de qualquer turma com todas as aulas abertas, todas as medalhas acesas, exercícios para testar sem entregar e sem XP. Faixa no topo com "Sair do modo Ninja".
+- [x] Boneco ninja separado, montado no Hangar ninja com qualquer peça e 5 peças só dele (capuz, máscara, traje, faixa e estrela).
 
 ## Ideias
 

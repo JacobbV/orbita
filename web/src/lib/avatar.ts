@@ -1,4 +1,4 @@
-import { PADRAO_ALUNO, PADRAO_PROFESSOR, PECAS, type Camada, type Escolhas } from '../arte/avatar'
+import { PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, PECAS, type Camada, type Escolhas } from '../arte/avatar'
 import { supabase } from './supabase'
 
 const CAMADAS: Camada[] = ['corpo', 'pele', 'rosto', 'cabelo', 'cor-do-cabelo', 'roupa', 'acessorio']
@@ -30,8 +30,21 @@ export async function salvarAvatar(escolhas: Escolhas): Promise<void> {
   if (error) throw error
 }
 
+/** Boneco do Modo Ninja do professor, ou o ninja padrão. */
+export async function carregarAvatarNinja(perfilId: string): Promise<Escolhas> {
+  const { data, error } = await supabase().from('avatares').select('escolhas_ninja').eq('perfil_id', perfilId).maybeSingle()
+  if (error) throw error
+  return data?.escolhas_ninja ? { ...PADRAO_NINJA, ...limparEscolhas(data.escolhas_ninja) } : PADRAO_NINJA
+}
+
+export async function salvarAvatarNinja(escolhas: Escolhas): Promise<void> {
+  const { error } = await supabase().rpc('salvar_avatar_ninja', { p_escolhas: limparEscolhas(escolhas) })
+  if (error) throw error
+}
+
 export interface ProfessorDaNave {
   nome: string
+  apelido: string | null
   escolhas: Escolhas
 }
 
@@ -39,7 +52,7 @@ export interface ProfessorDaNave {
 export async function carregarProfessorDaNave(): Promise<ProfessorDaNave | null> {
   const { data, error } = await supabase().rpc('professor_da_nave')
   if (error) throw error
-  const linha = (data as { nome: string; escolhas: unknown }[] | null)?.[0]
+  const linha = (data as { nome: string; apelido: string | null; escolhas: unknown }[] | null)?.[0]
   if (!linha) return null
-  return { nome: linha.nome, escolhas: { ...avatarPadrao('professor'), ...limparEscolhas(linha.escolhas) } }
+  return { nome: linha.nome, apelido: linha.apelido ?? null, escolhas: { ...avatarPadrao('professor'), ...limparEscolhas(linha.escolhas) } }
 }

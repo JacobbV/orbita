@@ -140,6 +140,36 @@ const TELAS: Tela[] = [
     },
   },
   {
+    nome: 'Modo Ninja: ponte',
+    caminho: 'professor',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: 'Modo Ninja' }).click()
+      await expect(page.getByRole('heading', { name: 'Ninja na nave' })).toBeVisible()
+      await expect(page.locator('.ponte-disciplina').first()).toBeVisible()
+      await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)))
+    },
+  },
+  {
+    nome: 'Modo Ninja: Hangar',
+    caminho: 'professor',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: 'Modo Ninja' }).click()
+      await page.getByRole('link', { name: /Hangar/ }).click()
+      await expect(page.getByRole('heading', { name: 'Monte o seu ninja' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Hangar do aluno com apelido',
+    caminho: 'hangar',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: 'Sortear apelido' }).click()
+      await expect(page.getByRole('button', { name: 'Usar este' })).toBeVisible()
+    },
+  },
+  {
     nome: 'Painel: exercícios com formulário aberto',
     get caminho() {
       return `professor/exercicios/${aulaI1}`

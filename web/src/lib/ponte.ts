@@ -214,7 +214,31 @@ export async function carregarPonteComoAluno(oferta: Oferta): Promise<Disciplina
   return (await carregarDisciplinas([pedido]))[0] ?? null
 }
 
-async function carregarDisciplinas(aprovados: Pedido[]): Promise<DisciplinaDaPonte[]> {
+/** Modo Ninja: todas as turmas e disciplinas, com todas as aulas abertas. Nada é registrado. */
+export async function carregarPonteNinja(ofertas: Oferta[]): Promise<DisciplinaDaPonte[]> {
+  if (ofertas.length === 0) return []
+  const pedidos = ofertas.map((oferta): Pedido => ({
+    id: 0,
+    status: 'aprovado',
+    tentativa: 1,
+    motivoRecusa: null,
+    quemEVoce: '',
+    criadoEm: '',
+    oferta,
+  }))
+  return carregarDisciplinas(pedidos, true)
+}
+
+/** Uma liberação "de mentira" para cada aula de cada oferta (só para o Modo Ninja). */
+export function liberarTudo(ofertas: Pick<Oferta, 'id' | 'disciplina'>[], unidades: UnidadeDoBanco[]): LiberacaoDoBanco[] {
+  return ofertas.flatMap((o) =>
+    unidades
+      .filter((u) => u.disciplina_id === o.disciplina.id)
+      .flatMap((u) => u.aulas.map((a) => ({ aula_id: a.id, turma_disciplina_id: o.id, liberado_em: '' }))),
+  )
+}
+
+async function carregarDisciplinas(aprovados: Pedido[], tudoLiberado = false): Promise<DisciplinaDaPonte[]> {
   const disciplinaIds = [...new Set(aprovados.map((p) => p.oferta.disciplina.id))]
   const ofertaIds = aprovados.map((p) => p.oferta.id)
 
@@ -228,7 +252,9 @@ async function carregarDisciplinas(aprovados: Pedido[]): Promise<DisciplinaDaPon
   if (unidadesRes.error) throw unidadesRes.error
   if (liberacoesRes.error) throw liberacoesRes.error
   const unidades = unidadesRes.data as UnidadeDoBanco[]
-  const liberacoes = liberacoesRes.data as LiberacaoDoBanco[]
+  const liberacoes = tudoLiberado
+    ? liberarTudo(aprovados.map((p) => p.oferta), unidades)
+    : (liberacoesRes.data as LiberacaoDoBanco[])
 
   let materiais: MaterialDoBanco[] = []
   let exercicios: ExercicioDoBanco[] = []

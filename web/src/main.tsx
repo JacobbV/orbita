@@ -15,6 +15,7 @@ import './styles/global.css'
 import './styles/formularios.css'
 import { App } from './App'
 import { AuthProvider } from './auth/AuthProvider'
+import { ModoNinjaProvider } from './ninja/ModoNinjaProvider'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Elemento #root não encontrado no index.html')
@@ -23,7 +24,9 @@ createRoot(root).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
-        <App />
+        <ModoNinjaProvider>
+          <App />
+        </ModoNinjaProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

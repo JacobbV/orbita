@@ -45,14 +45,14 @@ isOneToOne: false
                   ]
                 },"avatares": {
                   Row: {
-                    "atualizado_em": string,"escolhas": NonNullable<Json>,"perfil_id": string
+                    "atualizado_em": string,"escolhas": NonNullable<Json>,"escolhas_ninja": Json | null,"perfil_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "atualizado_em"?: string,"escolhas": NonNullable<Json>,"perfil_id": string
+                    "atualizado_em"?: string,"escolhas": NonNullable<Json>,"escolhas_ninja"?: Json | null,"perfil_id": string
                   }
                   Update: {
-                    "atualizado_em"?: string,"escolhas"?: NonNullable<Json>,"perfil_id"?: string
+                    "atualizado_em"?: string,"escolhas"?: NonNullable<Json>,"escolhas_ninja"?: Json | null,"perfil_id"?: string
                   }
                   Relationships: [
                     {
@@ -303,14 +303,14 @@ isOneToOne: false
                   ]
                 },"perfis": {
                   Row: {
-                    "criado_em": string,"email": string,"id": string,"nome": string,"papel": string
+                    "apelido": string | null,"criado_em": string,"email": string,"id": string,"nome": string,"papel": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "criado_em"?: string,"email": string,"id": string,"nome": string,"papel"?: string
+                    "apelido"?: string | null,"criado_em"?: string,"email": string,"id": string,"nome": string,"papel"?: string
                   }
                   Update: {
-                    "criado_em"?: string,"email"?: string,"id"?: string,"nome"?: string,"papel"?: string
+                    "apelido"?: string | null,"criado_em"?: string,"email"?: string,"id"?: string,"nome"?: string,"papel"?: string
                   }
                   Relationships: [
                     
@@ -467,6 +467,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"apagar_apelido":
+{ Args: { "p_perfil": string }; Returns: undefined
+                           },
 "aprovar_todos":
 { Args: { "p_turma_disciplina_id": number }; Returns: number
                            },
@@ -505,6 +508,9 @@ isOneToOne: false
 "entregar":
 { Args: { "p_codigo": string,"p_exercicio_id": number,"p_testes_certos": number }; Returns: Json
                            },
+"escolher_apelido":
+{ Args: { "p_apelido": string }; Returns: string
+                           },
 "liberar_unidade":
 { Args: { "p_liberar": boolean,"p_turma_disciplina_id": number,"p_unidade_id": number }; Returns: number
                            },
@@ -533,7 +539,7 @@ isOneToOne: false
       } },
 "professor_da_nave":
 { Args: Record<PropertyKey, never>; Returns: {
-              "escolhas": Json,"nome": string
+              "apelido": string,"escolhas": Json,"nome": string
             }[]
                            },
 "registrar_abertura_da_aula":
@@ -554,8 +560,17 @@ isOneToOne: false
 "salvar_avatar":
 { Args: { "p_escolhas": Json }; Returns: undefined
                            },
+"salvar_avatar_ninja":
+{ Args: { "p_escolhas": Json }; Returns: undefined
+                           },
 "salvar_exercicio":
 { Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_linguagem"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
+                           },
+"sortear_apelido":
+{ Args: { "p_evitar"?: string }; Returns: string
+                           },
+"sortear_apelido_do_aluno":
+{ Args: { "p_perfil": string }; Returns: string
                            },
 "testes_do_exercicio":
 { Args: { "p_exercicio_id": number }; Returns: {
@@ -564,7 +579,7 @@ isOneToOne: false
                            },
 "xp_da_turma":
 { Args: { "p_turma_disciplina_id": number }; Returns: {
-              "aluno_id": string,"nome": string,"patente": string,"xp": number
+              "aluno_id": string,"apelido": string,"nome": string,"patente": string,"xp": number
             }[]
                            }
           }

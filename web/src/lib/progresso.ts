@@ -141,6 +141,7 @@ export function frasesDaConquista(c: Conquista): string[] {
 export interface XpDoAluno {
   alunoId: string
   nome: string
+  apelido: string | null
   xp: number
   patente: string
 }
@@ -149,9 +150,10 @@ export interface XpDoAluno {
 export async function carregarXpDaTurma(ofertaId: number): Promise<XpDoAluno[]> {
   const { data, error } = await supabase().rpc('xp_da_turma', { p_turma_disciplina_id: ofertaId })
   if (error) throw error
-  return ((data ?? []) as { aluno_id: string; nome: string; xp: number; patente: string }[]).map((l) => ({
+  return ((data ?? []) as { aluno_id: string; nome: string; apelido?: string | null; xp: number; patente: string }[]).map((l) => ({
     alunoId: l.aluno_id,
     nome: l.nome,
+    apelido: l.apelido ?? null,
     xp: l.xp,
     patente: l.patente,
   }))

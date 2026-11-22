@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router'
+import { FaixaNinja } from '../ninja/FaixaNinja'
 import { AvisoConquista } from './AvisoConquista'
 import { SiteFooter } from './SiteFooter'
 import { SiteHeader } from './SiteHeader'
@@ -13,6 +14,7 @@ export function PublicLayout() {
       </a>
       <ScrollToHash />
       <SiteHeader />
+      <FaixaNinja />
       <main id="conteudo" className="principal" tabIndex={-1}>
         <Outlet />
       </main>

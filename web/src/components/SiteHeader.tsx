@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { useModoNinja } from '../ninja/ModoNinja'
 import { Logo } from './Logo'
 import './SiteHeader.css'
 
@@ -7,6 +8,7 @@ import './SiteHeader.css'
 export function SiteHeader() {
   const { sessao, perfil, sair } = useAuth()
   const navegar = useNavigate()
+  const ninja = useModoNinja()
 
   const sairDaConta = async () => {
     await sair()
@@ -27,7 +29,7 @@ export function SiteHeader() {
         <div className="topo-acoes">
           {sessao ? (
             <>
-              <Link to={perfil?.papel === 'professor' ? '/professor' : '/aguardando'} className="botao botao-compacto">
+              <Link to={ninja.ativo ? '/ninja' : perfil?.papel === 'professor' ? '/professor' : '/aguardando'} className="botao botao-compacto">
                 Minha área
               </Link>
               <button type="button" className="botao botao-compacto" onClick={() => void sairDaConta()}>

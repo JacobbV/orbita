@@ -22,3 +22,36 @@
   font-family: var(--fonte-pixel);
   font-size: 0.6rem;
 }
+
+.boneco-hangar-ninja {
+  border-color: #d23b43;
+  background: radial-gradient(circle at 50% 40%, rgba(210, 59, 67, 0.2), transparent 70%), var(--espaco);
+}
+
+/* Coluna do professor: boneco + chave do Modo Ninja */
+.boneco-hangar-coluna {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.boneco-hangar-chave {
+  min-height: var(--alvo-toque);
+  padding: 4px 8px;
+  border: 1px solid #d23b43;
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  color: #fca5a5;
+  font-family: var(--fonte-pixel);
+  font-size: 0.55rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.boneco-hangar-chave:hover {
+  background: rgba(210, 59, 67, 0.18);
+  color: var(--texto);
+}

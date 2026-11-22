@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { PECAS, type Camada, type Escolhas, type Peca } from '../arte/avatar'
 import { useAuth } from '../auth/AuthContext'
+import { EscolherApelido } from '../components/Apelido'
 import { Aviso } from '../components/Aviso'
 import { Avatar } from '../components/Avatar'
 import { Carregando } from '../components/Carregando'
-import { carregarAvatar, salvarAvatar } from '../lib/avatar'
+import { carregarAvatar, carregarAvatarNinja, salvarAvatar, salvarAvatarNinja } from '../lib/avatar'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarProgresso } from '../lib/progresso'
+import { useModoNinja } from '../ninja/ModoNinja'
 import './Hangar.css'
 
 const ABAS: { camada: Camada; rotulo: string }[] = [
@@ -24,6 +26,7 @@ const ABAS: { camada: Camada; rotulo: string }[] = [
 export function Hangar() {
   const { perfil } = useAuth()
   const papel = perfil?.papel === 'professor' ? 'professor' : 'aluno'
+  const ninja = useModoNinja().ativo
   const [salvo, setSalvo] = useState<Escolhas | null>(null)
   const [escolhas, setEscolhas] = useState<Escolhas | null>(null)
   const [xp, setXp] = useState(0)
@@ -36,7 +39,7 @@ export function Hangar() {
     if (!perfil) return
     let ativo = true
     Promise.all([
-      carregarAvatar(perfil.id, papel),
+      ninja ? carregarAvatarNinja(perfil.id) : carregarAvatar(perfil.id, papel),
       papel === 'aluno' ? carregarProgresso().then((p) => p.xp, () => 0) : Promise.resolve(Number.MAX_SAFE_INTEGER),
     ])
       .then(([avatar, xpAtual]) => {
@@ -51,7 +54,7 @@ export function Hangar() {
     return () => {
       ativo = false
     }
-  }, [perfil, papel])
+  }, [perfil, papel, ninja])
 
   if (erro) {
     return (
@@ -64,9 +67,10 @@ export function Hangar() {
   }
   if (!escolhas || !salvo) return <Carregando />
 
-  const pecasDaAba = PECAS.filter((p) => p.camada === aba && (p.para === 'todos' || p.para === papel))
+  // O ninja usa qualquer peça; aluno e professor, só as do seu papel.
+  const pecasDaAba = PECAS.filter((p) => p.camada === aba && (ninja || p.para === 'todos' || p.para === papel))
   const mudou = JSON.stringify(escolhas) !== JSON.stringify(salvo)
-  const voltarPara = papel === 'professor' ? '/professor' : '/ponte'
+  const voltarPara = ninja ? '/ninja' : papel === 'professor' ? '/professor' : '/ponte'
 
   function escolher(peca: Peca | null) {
     setMensagem(null)
@@ -83,9 +87,9 @@ export function Hangar() {
     setSalvando(true)
     setMensagem(null)
     try {
-      await salvarAvatar(escolhas)
+      await (ninja ? salvarAvatarNinja(escolhas) : salvarAvatar(escolhas))
       setSalvo(escolhas)
-      setMensagem({ tipo: 'sucesso', texto: 'Boneco salvo!' })
+      setMensagem({ tipo: 'sucesso', texto: ninja ? 'Ninja salvo!' : 'Boneco salvo!' })
     } catch (e) {
       setMensagem({ tipo: 'erro', texto: mensagemDeErro(e) })
     } finally {
@@ -99,10 +103,12 @@ export function Hangar() {
         ← Voltar
       </Link>
       <header className="cartao hangar-topo">
-        <p className="pixel hangar-selo">Hangar</p>
-        <h1>{papel === 'professor' ? 'Monte o seu boneco' : 'Monte o seu tripulante'}</h1>
+        <p className="pixel hangar-selo">{ninja ? 'Hangar ninja' : 'Hangar'}</p>
+        <h1>{ninja ? 'Monte o seu ninja' : papel === 'professor' ? 'Monte o seu boneco' : 'Monte o seu tripulante'}</h1>
         <p className="hangar-intro">
-          {papel === 'professor'
+          {ninja
+            ? 'O ninja pode usar qualquer peça, inclusive as cinco só dele. Ele aparece só no Modo Ninja: os alunos continuam vendo o seu boneco de professor.'
+            : papel === 'professor'
             ? 'Os alunos veem o seu boneco. As peças de professor são só suas.'
             : `Você tem ${xp} XP. Peças com cadeado se abrem quando você ganha mais XP. Só você e o professor veem o seu boneco.`}
         </p>
@@ -111,11 +117,11 @@ export function Hangar() {
       <div className="hangar-oficina">
         <section className="cartao hangar-previa" aria-label="Prévia do boneco">
           <div className="hangar-palco">
-            <Avatar escolhas={escolhas} tamanho={192} rotulo="Prévia do seu boneco" />
+            <Avatar escolhas={escolhas} tamanho={192} rotulo={ninja ? 'Prévia do seu ninja' : 'Prévia do seu boneco'} />
           </div>
           <div className="hangar-acoes">
             <button type="button" className="botao botao-primario" onClick={salvar} disabled={!mudou || salvando}>
-              {salvando ? 'Salvando…' : 'Salvar boneco'}
+              {salvando ? 'Salvando…' : ninja ? 'Salvar ninja' : 'Salvar boneco'}
             </button>
             <button type="button" className="botao" onClick={() => setEscolhas(salvo)} disabled={!mudou || salvando}>
               Desfazer
@@ -163,6 +169,10 @@ export function Hangar() {
           </div>
         </section>
       </div>
+
+      {!ninja && (
+        <EscolherApelido titulo={papel === 'professor' ? 'Seu apelido (aparece para os alunos)' : 'Seu apelido na nave'} />
+      )}
     </div>
   )
 }

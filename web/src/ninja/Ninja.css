@@ -1,0 +1,72 @@
+/* Modo Ninja do professor */
+.ponte-topo.ninja-topo {
+  border-color: #d23b43;
+}
+
+.ponte-selo.ninja-selo {
+  color: #fca5a5;
+}
+
+.ninja-turmas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ninja-turma {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: var(--alvo-toque);
+  padding: 8px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--casco);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ninja-turma:hover {
+  border-color: #d23b43;
+}
+
+.ninja-turma-atual {
+  border-color: #d23b43;
+  background: rgba(210, 59, 67, 0.18);
+}
+
+.ninja-turma-turno {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Faixa no topo das telas */
+.faixa-ninja {
+  border-bottom: 1px solid #d23b43;
+  background: linear-gradient(90deg, rgba(210, 59, 67, 0.28), rgba(210, 59, 67, 0.08));
+}
+
+.faixa-ninja-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-block: 8px;
+  font-size: 0.875rem;
+}
+
+.faixa-ninja-selo {
+  margin-right: 6px;
+  color: #fca5a5;
+  font-size: 0.6rem;
+}
+
+.faixa-ninja-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

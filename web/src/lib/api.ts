@@ -16,6 +16,8 @@ export interface Perfil {
   nome: string
   email: string
   papel: 'aluno' | 'professor'
+  /** Apelido sorteado (lista aprovada). Null enquanto a pessoa não escolheu. */
+  apelido?: string | null
 }
 
 export interface Pedido {
@@ -89,7 +91,7 @@ export function disciplinasDasOfertas(ofertas: Oferta[]): Oferta['disciplina'][]
 export async function buscarPerfil(id: string): Promise<Perfil | null> {
   const { data, error } = await supabase()
     .from('perfis')
-    .select('id, nome, email, papel')
+    .select('id, nome, email, papel, apelido')
     .eq('id', id)
     .maybeSingle()
   if (error) throw error

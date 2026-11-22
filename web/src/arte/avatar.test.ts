@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { ALTURA, LADO, PADRAO_ALUNO, PADRAO_PROFESSOR, PECAS, montarPixels, retangulosSvg } from './avatar'
-import migration from '../../../supabase/migrations/20261122001200_pecas_do_avatar.sql?raw'
+import { ALTURA, LADO, PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, PECAS, montarPixels, retangulosSvg } from './avatar'
+import primeiroLote from '../../../supabase/migrations/20261122001200_pecas_do_avatar.sql?raw'
+import pecasNinja from '../../../supabase/migrations/20261122001900_modo_ninja.sql?raw'
+
+const migration = primeiroLote + pecasNinja
 
 
 describe('arte do avatar', () => {
@@ -19,6 +22,15 @@ describe('arte do avatar', () => {
       expect(peca?.para).not.toBe('professor')
       expect(peca?.xpMinimo).toBe(0)
     }
+  })
+
+  it('o boneco padrão do aluno não usa peças do ninja', () => {
+    for (const id of Object.values(PADRAO_ALUNO)) expect(PECAS.find((p) => p.id === id)?.para).not.toBe('ninja')
+  })
+
+  it('o ninja padrão usa capuz, máscara, traje e faixa', () => {
+    const ninja = Object.values(PADRAO_NINJA).filter((id) => PECAS.find((p) => p.id === id)?.para === 'ninja')
+    expect(ninja.sort()).toEqual(['acessorio-faixa-ninja', 'cabelo-capuz-ninja', 'rosto-ninja-mascara', 'roupa-traje-ninja'])
   })
 
   it('monta a grade 48×52 com contorno e cores da pele e do cabelo escolhidos', () => {

@@ -684,6 +684,19 @@
   font-weight: 700;
 }
 
+.xp-turma-apelido {
+  display: block;
+  color: var(--estrela);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.xp-turma-acoes-apelido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .xp-turma-patente {
   color: var(--texto-suave);
   font-size: 0.9375rem;
@@ -692,4 +705,9 @@
 .xp-turma-patente .pixel {
   color: var(--ciano-claro);
   font-size: 0.6rem;
+}
+
+.painel-pedido-apelido {
+  color: var(--estrela);
+  font-weight: 600;
 }
