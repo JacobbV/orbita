@@ -1,4 +1,4 @@
--- Mais tipos de medalhas: estudo, laboratório, Hangar e coleção.
+-- Mais tipos de medalhas: estudo, laboratório, Hangar e coleção (16 no total).
 --
 -- As medalhas de código contam só entregas que acertaram todos os testes
 -- visíveis e ocultos e que o professor não marcou como "não confere".
@@ -11,10 +11,11 @@ insert into public.medalhas (codigo, nome, descricao, ordem) values
   ('primeiro-codigo', 'Primeiro Código', 'Acertou todos os testes de um exercício.', 9),
   ('nota-dez', 'Nota Dez', 'Acertou de primeira 5 exercícios diferentes.', 10),
   ('cacador-de-bugs', 'Caçador de Bugs', 'Acertou um exercício depois de errar 3 vezes ou mais.', 11),
-  ('programador-de-bordo', 'Programador de Bordo', 'Resolveu 10 exercícios diferentes.', 12),
-  ('destaque-triplo', 'Coroa de Estrelas', 'Recebeu XP do professor por participação em 3 dias diferentes.', 13),
-  ('estrela-em-ascensao', 'Estrela em Ascensão', 'Juntou 500 XP.', 14),
-  ('colecionador', 'Colecionador', 'Ganhou 8 outras medalhas.', 15)
+  ('mestre-dos-lacos', 'Mestre dos Laços', 'Resolveu 5 exercícios diferentes usando for ou while.', 12),
+  ('programador-de-bordo', 'Programador de Bordo', 'Resolveu 10 exercícios diferentes.', 13),
+  ('destaque-triplo', 'Coroa de Estrelas', 'Recebeu XP do professor por participação em 3 dias diferentes.', 14),
+  ('estrela-em-ascensao', 'Estrela em Ascensão', 'Juntou 500 XP.', 15),
+  ('colecionador', 'Colecionador', 'Ganhou 8 outras medalhas.', 16)
 on conflict (codigo) do update set nome = excluded.nome, descricao = excluded.descricao, ordem = excluded.ordem;
 
 create or replace function privado.conferir_medalhas(p_aluno_id uuid)
@@ -30,7 +31,7 @@ begin
   with
   -- Entregas que acertaram tudo e não foram recusadas na reconferência.
   certas as (
-    select en.exercicio_id, en.tentativa
+    select en.exercicio_id, en.tentativa, en.codigo
     from public.entregas en
     where en.aluno_id = p_aluno_id and en.testes_total > 0 and en.testes_certos = en.testes_total
       and en.situacao <> 'nao_confere'
@@ -97,6 +98,10 @@ begin
     union all
     select 'cacador-de-bugs'
     where exists (select 1 from certas where tentativa >= 4)
+    union all
+    -- Laço em Python: for ou while como palavra (fora de comentários é o mais comum).
+    select 'mestre-dos-lacos'
+    where (select count(distinct exercicio_id) from certas where codigo ~ '\m(for|while)\M') >= 5
     union all
     select 'programador-de-bordo'
     where (select count(distinct exercicio_id) from certas) >= 10

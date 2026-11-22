@@ -1,7 +1,7 @@
 -- Testes dos novos tipos de medalha. Nomes inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(13);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -35,7 +35,7 @@ $$;
 
 grant execute on function pg_temp.entrar(text) to authenticated;
 
-select is((select count(*) from public.medalhas), 15::bigint, 'catálogo com 15 medalhas');
+select is((select count(*) from public.medalhas), 16::bigint, 'catálogo com 16 medalhas');
 
 select pg_temp.criar_conta('fb000000-0000-0000-0000-00000000000f', 'docente.medalhas@academico.ifpb.edu.br');
 update public.perfis set papel = 'professor' where id = 'fb000000-0000-0000-0000-00000000000f';
@@ -94,6 +94,23 @@ select ok(not pg_temp.tem('explorador'), 'antes de conferir, nada');
 select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
 select ok(pg_temp.tem('explorador') and pg_temp.tem('estrela-em-ascensao'), '10 aulas dão Explorador e 500 XP dão Estrela em Ascensão');
 select ok(pg_temp.tem('colecionador'), 'com 8 outras medalhas vem o Colecionador');
+
+-- Mestre dos Laços: 5 exercícios resolvidos com for ou while.
+with novos as (
+  insert into public.exercicios (aula_id, titulo, enunciado)
+  select pg_temp.aula('ALG', 2, 1), 'Laço ' || i, 'x' from generate_series(1, 5) i returning id
+)
+insert into public.entregas (exercicio_id, aluno_id, codigo, testes_certos, testes_total, nota, tentativa)
+select id, 'fb000000-0000-0000-0000-0000000000a1',
+  case when row_number() over () = 5 then 'print(1)' else 'for i in range(3):' || E'\n' || '    print(i)' end, 1, 1, 10, 1
+from novos;
+select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
+select ok(not pg_temp.tem('mestre-dos-lacos'), '4 exercícios com laço ainda não dão Mestre dos Laços');
+update public.entregas set codigo = 'n = 3' || E'\n' || 'while n > 0:' || E'\n' || '    n -= 1'
+where aluno_id = 'fb000000-0000-0000-0000-0000000000a1' and codigo = 'print(1)'
+  and exercicio_id in (select id from public.exercicios where titulo like 'Laço %');
+select privado.conferir_medalhas('fb000000-0000-0000-0000-0000000000a1');
+select ok(pg_temp.tem('mestre-dos-lacos'), 'o quinto, com while, dá Mestre dos Laços');
 
 -- Sequência de 10 dias.
 insert into public.xp_eventos (aluno_id, quantidade, motivo, descricao, referencia_dia)

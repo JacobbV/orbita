@@ -114,6 +114,7 @@ const NOMES_DAS_MEDALHAS: Record<string, string> = {
   'primeiro-codigo': 'Primeiro Código',
   'nota-dez': 'Nota Dez',
   'cacador-de-bugs': 'Caçador de Bugs',
+  'mestre-dos-lacos': 'Mestre dos Laços',
   'programador-de-bordo': 'Programador de Bordo',
   'destaque-triplo': 'Coroa de Estrelas',
   'estrela-em-ascensao': 'Estrela em Ascensão',

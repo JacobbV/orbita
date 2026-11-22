@@ -57,7 +57,7 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] Botão "Ver como aluno" no painel (aba Turmas), com a marca-d'água de exemplo nos slides.
 - [x] Painel do professor: boneco do professor na ponte dos alunos, XP da turma e XP por participação (1 a 100 por vez, com motivo).
 - [x] Medalhas na tela: arte própria em pixel art, últimas ganhas na ponte e página com as ganhas e as que faltam.
-- [x] 15 tipos de medalha: estudo (redondas), código (losango) e especiais (escudo).
+- [x] 16 tipos de medalha: estudo (redondas), código (losango) e especiais (escudo).
 - [x] Arte original em pixel art aprovada (46 peças, aluno e professor).
 - [x] Laboratório: editor de código e botões Rodar e Testar em Python, no navegador.
 - [x] Laboratório: professor cria, edita e remove exercícios no painel, com testes visíveis, ocultos e secretos e saídas preenchidas pela solução.

@@ -11,8 +11,8 @@ describe('arte das medalhas', () => {
       return [...bloco.slice(0, bloco.indexOf(';')).matchAll(/\('([a-z0-9-]+)',/g)].map((m) => m[1] ?? '')
     }
     const codigos = [...codigosDe(migration), ...codigosDe(maisMedalhas)]
-    expect(codigos).toHaveLength(15)
-    expect(new Set(codigos).size).toBe(15)
+    expect(codigos).toHaveLength(16)
+    expect(new Set(codigos).size).toBe(16)
     for (const c of codigos) {
       expect(temArteDaMedalha(c), c).toBe(true)
       const [frase] = frasesDaConquista({ xp: 0, ganhos: [], medalhas: [c], novaPatente: null })

@@ -27,6 +27,7 @@ const ICONES = {
   estrela: ['..##..', '..##..', '######', '.####.', '.####.', '##..##'],
   codigo: ['######', '#....#', '#....#', '######', '..##..', '.####.'],
   inseto: ['#.##.#', '.####.', '######', '.####.', '######', '#....#'],
+  lacos: ['.####.', '#....#', '#.##.#', '#.#..#', '#.###.', '.#....'],
   alfinete: ['.####.', '##..##', '##..##', '.####.', '..##..', '..##..'],
   raio: ['...##.', '..##..', '.####.', '..##..', '.##...', '.#....'],
   trofeu: ['######', '#.##.#', '.####.', '..##..', '..##..', '.####.'],
@@ -53,6 +54,7 @@ const ESTILOS: Record<string, Estilo> = {
   'primeiro-codigo': { formato: 'losango', fita: ['#4ade80', '#15803d'], metal: ['#166534', '#86efac', '#f0fdf4'], icone: '#052e16', desenho: ICONES.terminal },
   'nota-dez': { formato: 'losango', fita: ['#a3e635', '#4d7c0f'], metal: ['#3f6212', '#bef264', '#f7fee7'], icone: '#1a2e05', desenho: ICONES.dez },
   'cacador-de-bugs': { formato: 'losango', fita: ['#f472b6', '#be185d'], metal: ['#9d174d', '#f9a8d4', '#fdf2f8'], icone: '#500724', desenho: ICONES.inseto },
+  'mestre-dos-lacos': { formato: 'losango', fita: ['#38bdf8', '#0369a1'], metal: ['#075985', '#7dd3fc', '#f0f9ff'], icone: '#082f49', desenho: ICONES.lacos },
   'programador-de-bordo': { formato: 'losango', fita: ['#60a5fa', '#1d4ed8'], metal: ['#1e40af', '#93c5fd', '#eff6ff'], icone: '#172554', desenho: ICONES.codigo },
   // Especiais: escudo
   'disciplina-completa': { formato: 'escudo', fita: ['#e879f9', '#a21caf'], metal: ['#a16207', '#facc15', '#fefce8'], icone: '#713f12', desenho: ICONES.trofeu },
