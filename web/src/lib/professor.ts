@@ -178,6 +178,8 @@ export interface AulaDoPainel {
   link: { titulo: string; url: string } | null
   /** Slides HTML enviados para a aula (arquivo no armazenamento privado). */
   slides: { id: number; caminho: string } | null
+  /** Quantos exercícios do laboratório a aula tem. */
+  exercicios: number
 }
 
 export interface UnidadeDoPainel {
@@ -188,7 +190,7 @@ export interface UnidadeDoPainel {
 }
 
 export interface EstruturaDoBanco {
-  unidades: Array<{ id: number; numero: number; titulo: string; aulas: Array<{ id: number; numero: number; titulo: string }> }>
+  unidades: Array<{ id: number; numero: number; titulo: string; aulas: Array<{ id: number; numero: number; titulo: string; exercicios?: Array<{ count: number }> }> }>
   liberadas: number[]
   links: Array<{ id: number; aula_id: number; titulo: string; url: string | null; tipo: string; caminho_storage: string | null }>
 }
@@ -216,6 +218,7 @@ export function montarEstrutura({ unidades, liberadas, links }: EstruturaDoBanco
           liberada: liberadasSet.has(a.id),
           link: linkPorAula.get(a.id) ?? null,
           slides: slidesPorAula.get(a.id) ?? null,
+          exercicios: a.exercicios?.[0]?.count ?? 0,
         })),
     }))
 }
@@ -224,7 +227,7 @@ export async function carregarEstrutura(oferta: Oferta): Promise<UnidadeDoPainel
   const [unidadesRes, liberacoesRes] = await Promise.all([
     supabase()
       .from('unidades')
-      .select('id, numero, titulo, aulas(id, numero, titulo)')
+      .select('id, numero, titulo, aulas(id, numero, titulo, exercicios(count))')
       .eq('disciplina_id', oferta.disciplina.id),
     supabase().from('liberacoes').select('aula_id').eq('turma_disciplina_id', oferta.id),
   ])

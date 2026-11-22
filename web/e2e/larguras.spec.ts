@@ -21,6 +21,8 @@ type Papel = 'visitante' | 'aluno' | 'professor'
 let slidesId = 0
 /** Oferta de Algoritmos do 1º INFO M, para o XP da turma. */
 let ofertaAlgM = 0
+/** Aula I.1 de Algoritmos, para a tela de exercícios do painel. */
+let aulaI1 = 0
 
 interface Tela {
   nome: string
@@ -122,6 +124,18 @@ const TELAS: Tela[] = [
       await expect(page.getByRole('heading', { name: 'Dar XP por participação' })).toBeVisible()
     },
   },
+  {
+    nome: 'Painel: exercícios com formulário aberto',
+    get caminho() {
+      return `professor/exercicios/${aulaI1}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: '+ Novo exercício' }).click()
+      await page.getByRole('button', { name: 'Salvar exercício' }).click()
+      await page.getByText('Preencher as saídas com a sua solução').click()
+    },
+  },
 ]
 
 const sessoes: Partial<Record<Papel, Awaited<ReturnType<BrowserContext['storageState']>>>> = {}
@@ -166,6 +180,7 @@ test.beforeAll(async ({ browser }) => {
     headers: { Prefer: 'resolution=ignore-duplicates' },
     body: JSON.stringify({ turma_disciplina_id: algM, aula_id: aula }),
   })
+  aulaI1 = aula ?? 0
 
   slidesId = await enviarSlidesDeTeste(
     aula ?? 0,
@@ -196,7 +211,7 @@ for (const [largura, altura] of LARGURAS) {
         const medida = await page.evaluate(() => {
           const raiz = document.documentElement
           const ceu = document.querySelector('.ceu-estrelas')?.getBoundingClientRect()
-          const alvos = [...document.querySelectorAll('a, button, input:not([type=checkbox]), select, textarea, summary, label.painel-caixa')]
+          const alvos = [...document.querySelectorAll('a, button, input:not([type=checkbox]):not([type=radio]), select, textarea, summary, label.painel-caixa, label.exercicios-opcao')]
           const pequenos = alvos
             .filter((el) => {
               const r = el.getBoundingClientRect()

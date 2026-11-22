@@ -59,7 +59,8 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] Medalhas na tela: arte própria em pixel art, últimas ganhas na ponte e página com as ganhas e as que faltam.
 - [x] Arte original em pixel art aprovada (46 peças, aluno e professor).
 - [x] Laboratório: editor de código e botões Rodar e Testar em Python, no navegador.
-- [ ] Laboratório: professor cria exercícios; Entregar; reconferência.
+- [x] Laboratório: professor cria, edita e remove exercícios no painel, com testes visíveis, ocultos e secretos e saídas preenchidas pela solução.
+- [ ] Laboratório: Entregar e reconferência.
 - [ ] JavaScript, HTML e CSS; relatório do professor.
 
 ## Ideias

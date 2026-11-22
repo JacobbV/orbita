@@ -38,6 +38,18 @@ const MENSAGENS_DO_BANCO = [
   'Pedido não encontrado ou já decidido.',
   'Unidade não encontrada.',
   'Aula não encontrada.',
+  'Escolha de 1 a 100 XP.',
+  'Escreva o motivo do XP.',
+  'Aluno não encontrado entre os aprovados.',
+  'Escreva o título do exercício (até 160 letras).',
+  'Escreva o enunciado do exercício.',
+  'Escolha a dificuldade.',
+  'O código inicial passou do limite de 20 mil letras.',
+  'Coloque de 1 a 30 testes.',
+  'Confira os testes: cada um precisa do tipo e da saída esperada.',
+  'Coloque pelo menos um teste visível ou oculto: é com eles que o aluno confere o código.',
+  'Exercício não encontrado.',
+  'Este exercício já tem entregas de alunos e não pode ser removido.',
 ]
 
 export function mensagemDeErro(erro: unknown): string {

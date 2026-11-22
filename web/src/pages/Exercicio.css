@@ -158,16 +158,6 @@
   text-decoration: underline;
 }
 
-.editor-codigo .cm-editor {
-  min-height: 16rem;
-  max-height: 32rem;
-  font-size: 0.95rem;
-}
-
-.editor-codigo .cm-scroller {
-  font-family: var(--fonte-codigo);
-}
-
 .exercicio-lateral {
   display: flex;
   flex-direction: column;

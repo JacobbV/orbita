@@ -3,15 +3,18 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView, basicSetup } from 'codemirror'
 import { indentUnit } from '@codemirror/language'
 import { useEffect, useRef } from 'react'
+import './EditorCodigo.css'
 
 interface Props {
   valor: string
   aoMudar: (codigo: string) => void
   rotulo: string
+  /** Editor mais baixo, para trechos curtos (código inicial, solução). */
+  baixo?: boolean
 }
 
 /** Editor de código (CodeMirror 6) com cores do Python e números de linha. */
-export function EditorCodigo({ valor, aoMudar, rotulo }: Props) {
+export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false }: Props) {
   const caixa = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const aoMudarAtual = useRef(aoMudar)
@@ -49,5 +52,5 @@ export function EditorCodigo({ valor, aoMudar, rotulo }: Props) {
     }
   }, [valor])
 
-  return <div ref={caixa} className="editor-codigo" />
+  return <div ref={caixa} className={`editor-codigo${baixo ? ' editor-codigo-baixo' : ''}`} />
 }
