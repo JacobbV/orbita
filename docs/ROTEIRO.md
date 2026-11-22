@@ -66,6 +66,7 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] Correção: remover aula ou exercício que já deu XP não falha mais; o XP fica com o aluno.
 - [x] Laboratório de JavaScript (console.log, input() e prompt()) e de HTML e CSS (prévia ao vivo e testes por consulta: texto, propriedade CSS, atributo e contagem).
 - [x] Relatório do professor: nota de cada aluno por exercício, tentativas, código de cada entrega e planilha (CSV).
+- [x] Revisão final: maiúsculas acentuadas (Á, É, Ó...) inteiras nos selos em pixel, com fonte derivada da Press Start 2P (OFL).
 
 ## Ideias
 

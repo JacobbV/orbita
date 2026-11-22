@@ -12,6 +12,7 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 | Inter | Rasmus Andersson e The Inter Project Authors | https://github.com/rsms/inter | SIL Open Font License 1.1 | Texto e títulos |
 | JetBrains Mono | JetBrains e The JetBrains Mono Project Authors | https://github.com/JetBrains/JetBrainsMono | SIL Open Font License 1.1 | Código |
 | Press Start 2P | Cody "CodeMan38" Boisclair | https://fonts.google.com/specimen/Press+Start+2P | SIL Open Font License 1.1 | Detalhes em pixel (logo e selos) |
+| Orbita Pixel Acentos (derivada da Press Start 2P) | Cody "CodeMan38" Boisclair; maiúsculas acentuadas redesenhadas para o Órbita (`web/scripts/fonte-pixel-acentos.py`) | https://fonts.google.com/specimen/Press+Start+2P | SIL Open Font License 1.1 | Maiúsculas acentuadas nos selos em pixel |
 | Fontsource | Fontsource contributors | https://fontsource.org | MIT (pacotes) | Empacota as fontes |
 
 ## Bibliotecas e ferramentas
