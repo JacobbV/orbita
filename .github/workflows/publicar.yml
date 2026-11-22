@@ -39,9 +39,10 @@ jobs:
             exit 1
           fi
       - name: Ligar ao projeto
-        run: npx --yes $SUPABASE_CLI link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: npx --yes $SUPABASE_CLI link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Aplicar as migrations novas
-        run: npx --yes $SUPABASE_CLI db push --password "$SUPABASE_DB_PASSWORD"
+        # --remote: sem ele, o CLI 3 aplica no banco local, não no projeto ligado.
+        run: npx --yes $SUPABASE_CLI db push --remote --password "$SUPABASE_DB_PASSWORD"
 
   site:
     name: Site no GitHub Pages
