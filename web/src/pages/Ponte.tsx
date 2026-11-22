@@ -5,6 +5,7 @@ import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
+import { saudacao } from '../lib/saudacao'
 import {
   carregarPonte,
   numeroRomano,
@@ -51,7 +52,6 @@ export function Ponte() {
   if (dados.disciplinas.length === 0) return <Navigate to="/aguardando" replace />
 
   const nome = perfil?.nome.trim() || 'Tripulante'
-  const primeiroNome = nome.split(/\s+/)[0]
   const turmas = [
     ...new Map(dados.disciplinas.map((d) => [d.oferta.turma.id, d.oferta.turma])).values(),
   ]
@@ -61,7 +61,7 @@ export function Ponte() {
       <header className="cartao ponte-topo">
         <div>
           <p className="pixel ponte-selo">Ponte de comando</p>
-          <h1>Olá, {primeiroNome}.</h1>
+          <h1>{saudacao(nome, 'Tripulante')}</h1>
           <p className="ponte-quem">
             {nome}
             {turmas.map((t) => (
