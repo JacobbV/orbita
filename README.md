@@ -17,4 +17,19 @@ npm test         # testes automáticos
 npm run build    # gera a versão de publicação em web/dist
 ```
 
+## Banco de dados (Supabase local)
+
+Precisa do Docker rodando. Os comandos ficam na raiz do repositório.
+
+```bash
+npx supabase start      # sobe o Supabase local e aplica as migrations
+npx supabase test db    # roda os testes das regras de acesso (RLS) em supabase/tests
+npx supabase db reset   # apaga o banco local e aplica tudo de novo
+npx supabase stop       # desliga
+```
+
+- `supabase/migrations/`: uma migration por mudança (tabelas, regras RLS, conteúdo inicial).
+- `supabase/tests/database/`: testes pgTAP das regras de acesso.
+- `supabase/scripts/tornar-professor.sql`: dá o papel de professor a uma conta (rodar no painel).
+
 Desenvolvido por QYUDEV. — https://jacobbv.github.io

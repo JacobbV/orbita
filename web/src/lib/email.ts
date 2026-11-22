@@ -10,6 +10,7 @@ export function normalizeEmail(email: string): string {
 
 /**
  * true se o e-mail termina em @academico.ifpb.edu.br e tem algo válido antes.
+ * O banco usa a mesma regra; se mudar aqui, mude lá também.
  * Não aceita subdomínios disfarçados (ex.: x@academico.ifpb.edu.br.site.com)
  * nem domínios parecidos (ex.: x@academico-ifpb.edu.br).
  */
@@ -17,6 +18,7 @@ export function isAcademicEmail(email: string): boolean {
   const limpo = normalizeEmail(email)
   if (!limpo.endsWith(DOMINIO_ACADEMICO)) return false
   const usuario = limpo.slice(0, -DOMINIO_ACADEMICO.length)
-  // Parte antes do @: letras, números e . _ % + - ; sem @ extra e sem ponto nas pontas.
-  return /^[a-z0-9._%+-]+$/.test(usuario) && !usuario.startsWith('.') && !usuario.endsWith('.')
+  // Mesma regra do servidor (privado.email_academico_valido): letras, números e _ % + -,
+  // separados por pontos simples, sem ponto nas pontas.
+  return /^[a-z0-9_%+-]+(\.[a-z0-9_%+-]+)*$/.test(usuario)
 }

@@ -23,6 +23,7 @@ describe('isAcademicEmail', () => {
     'aluno com espaco@academico.ifpb.edu.br',
     '.aluno@academico.ifpb.edu.br',
     'aluno.@academico.ifpb.edu.br',
+    'aluno..teste@academico.ifpb.edu.br',
   ])('recusa %s', (email) => {
     expect(isAcademicEmail(email)).toBe(false)
   })
