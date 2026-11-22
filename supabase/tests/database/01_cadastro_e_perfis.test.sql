@@ -2,7 +2,7 @@
 -- Todos os nomes e e-mails são inventados (LGPD).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(18);
 
 -- Ajudante: cria uma conta como o Supabase Auth faria (os gatilhos disparam).
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
@@ -19,6 +19,17 @@ create function pg_temp.oferta(p_turma text, p_sigla text) returns bigint langua
   join public.disciplinas d on d.id = td.disciplina_id
   where t.nome = p_turma and d.sigla = p_sigla;
 $$;
+
+-- 0) O serviço de login (papel supabase_auth_admin) consegue rodar os gatilhos.
+--    Sem isso o cadastro pelo site falha com erro 500, mesmo com os testes abaixo passando.
+select ok(
+  has_schema_privilege('supabase_auth_admin', 'privado', 'usage'),
+  'o serviço de login pode usar o esquema privado'
+);
+select ok(
+  has_function_privilege('supabase_auth_admin', 'privado.email_academico_valido(text)', 'execute'),
+  'o serviço de login pode rodar a regra do e-mail'
+);
 
 -- 1) E-mail fora do domínio não cria conta ----------------------------------
 select throws_ok(
