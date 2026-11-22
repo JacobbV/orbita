@@ -1,0 +1,56 @@
+# Roteiro do Órbita
+
+Lista viva do que já foi feito, do que falta e das ideias novas. Atualizada a cada etapa. A visão completa e as fases estão em [PROJETO.md](PROJETO.md).
+
+Legenda: `[x]` feito · `[ ]` falta · 💡 ideia (ainda não decidida)
+
+## Fase 1: login, aprovação e liberação de aulas (no ar)
+
+Site: https://jacobbv.github.io/orbita/
+
+### Feito
+
+- [x] Base do site (Vite + React + TypeScript), tema galáxia e rodapé de créditos QYUDEV.
+- [x] Banco no Supabase com regras de acesso (RLS) em todas as tabelas.
+- [x] Cadastro só com e-mail `@academico.ifpb.edu.br`, confirmação por e-mail e recuperação de senha.
+- [x] Campo obrigatório "Quem é você" (nome, turma, turno) no pedido de acesso.
+- [x] Aprovação e recusa de alunos pelo professor, com motivo opcional e até 3 tentativas por turma.
+- [x] Ponte de comando do aluno: aulas liberadas da turma, com links.
+- [x] Painel do professor: pedidos, aulas (unidades, títulos, links, liberar e bloquear por turma) e turmas.
+- [x] Testes do banco (pgTAP), da interface (Vitest) e de ponta a ponta (Playwright), rodando no GitHub a cada PR.
+- [x] Publicação automática no GitHub Pages e migrations no Supabase da nuvem a cada merge na `main` (PRs #1 a #3).
+- [x] Conta de professor criada.
+- [x] Saudação "Olá, Prof. Jacó." (PR #4).
+- [x] E-mails de confirmação, senha nova e troca de e-mail em português, com imagem do Órbita (PR #5).
+- [x] Slides HTML das aulas no armazenamento privado (PR #6):
+  - um arquivo `.html` por aula, enviado pelo painel, um por vez ou vários de uma vez pelo nome (`ALG_U1_A2.html`);
+  - aluno abre só os slides das aulas liberadas para a turma dele, em tela própria com tela cheia;
+  - professor abre qualquer slide a qualquer hora (modo apresentação).
+
+### Em andamento (PR #7)
+
+- [x] Barreiras contra salvar os slides: sem botão direito, Ctrl+S, Ctrl+P, Ctrl+U, arrastar ou selecionar; impressão em branco.
+- [x] Marca-d'água com nome completo e e-mail do aluno por cima do slide (o professor apresenta sem ela).
+- [x] Envio em lote escolhendo a pasta inteira (com as subpastas das unidades).
+- [x] Aviso que barra arquivo de outra disciplina no envio em lote (ex.: `DAW_...` com Algoritmos escolhido).
+- [ ] Merge do PR #7.
+
+### Falta
+
+- [ ] Enviar os slides de Algoritmos (24) e de Desenvolvimento Web (24) pelo painel publicado.
+- [ ] Teste real com uma conta de aluno: cadastro, aprovação, aula liberada e slides.
+- [ ] Slides de Fundamentos (ainda não feitos).
+
+### Limites conhecidos
+
+- Print de tela, foto com o celular e ferramentas de desenvolvedor do navegador não podem ser bloqueados por um site. A marca-d'água identifica de quem veio uma cópia.
+
+## Ideias
+
+- 💡 **Ver como aluno** (pedido em 22/11): um botão no painel para o professor ver a ponte de uma turma exatamente como o aluno vê, com as aulas liberadas e bloqueadas e os slides com marca-d'água. Esforço estimado: uma etapa pequena. Dá para reaproveitar a tela da ponte do aluno com os dados da turma escolhida, só para ver, sem criar conta de teste nem mudar as regras do banco.
+
+## Próximas fases (detalhes em PROJETO.md)
+
+- [ ] Gamificação: XP, patentes, medalhas e avatar em pixel art no Hangar.
+- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada) e modo prova, a partir da Fase 3.
+- [ ] Java, C e C++ com servidor de execução, na Fase 5.
