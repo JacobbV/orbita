@@ -42,7 +42,8 @@ jobs:
         run: npx --yes $SUPABASE_CLI link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Aplicar as migrations novas
         # --remote: sem ele, o CLI 3 aplica no banco local, não no projeto ligado.
-        run: npx --yes $SUPABASE_CLI db push --remote --password "$SUPABASE_DB_PASSWORD"
+        # --yes: a CI não tem terminal para confirmar; o merge na main já é a aprovação.
+        run: npx --yes $SUPABASE_CLI db push --remote --yes --password "$SUPABASE_DB_PASSWORD"
 
   site:
     name: Site no GitHub Pages
