@@ -23,8 +23,14 @@ Plataforma web para os alunos das disciplinas do Jacó (Rameson Jacó Gomes da F
 - Chaves: só a chave pública (anon) do Supabase vai no site. A chave de serviço fica nos segredos, nunca em arquivo.
 
 ## Git
-- O Jacó roda os comandos de git ele mesmo (add, commit, push).
-- Não faça push. Edite os arquivos e entregue um resumo com os comandos que ele deve rodar.
+- Cada fase tem a sua branch (Fase 1: `fase-1-login`). Push só nessa branch.
+- Nunca faça push na main, nunca use force push e nunca apague branches.
+- O merge na main é feito só pelo Jacó, depois de revisar.
+
+## Commits
+- O autor de todo commit é só o Jacó (Rameson Jacó), sem coautor.
+- Não coloque linhas de atribuição ("Co-Authored-By", "Claude-Session", "Generated with Claude Code" ou parecidas) em commits, pull requests ou arquivos.
+- Mensagens curtas, em português, no estilo `feat: ...`, `fix: ...`, `docs: ...`, `test: ...`.
 
 ## Idioma
 - Interface, comentários de negócio e documentação em português do Brasil.

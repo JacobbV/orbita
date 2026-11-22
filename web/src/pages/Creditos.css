@@ -1,0 +1,105 @@
+.creditos {
+  padding-block: 32px 56px;
+}
+
+.creditos-selo {
+  color: var(--nebulosa);
+  margin-bottom: 12px;
+}
+
+.creditos h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  font-weight: 800;
+}
+
+.creditos-intro {
+  max-width: 40rem;
+  margin-top: 12px;
+  color: var(--texto-suave);
+}
+
+.creditos-grupo {
+  margin-top: 40px;
+}
+
+.creditos-grupo h2,
+.creditos-marca h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.creditos-lista {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credito {
+  padding: 16px 20px;
+}
+
+.credito h3 {
+  font-size: 1.0625rem;
+}
+
+.credito h3 a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+}
+
+.credito dl {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.credito dl div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+}
+
+.credito dt {
+  color: var(--texto-suave);
+}
+
+.credito dt::after {
+  content: ':';
+}
+
+.credito dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.creditos-marca {
+  margin-top: 40px;
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .creditos {
+    padding-block: 48px 72px;
+  }
+
+  .creditos-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .creditos-lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.creditos-marca .qyudev {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+}
