@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import type { Session } from '@supabase/supabase-js'
 import type { DadosDaPonte } from '../lib/ponte'
 import { abrir, prepararNavegadorFalso, SEM_LOGIN } from '../test/renderizar'
@@ -22,6 +22,24 @@ vi.mock('../lib/ponte', async (original) => ({
     return r
   },
 }))
+
+// Progresso falso: null = o banco falhou (a ponte abre mesmo assim).
+const progressoFalso = vi.hoisted(() => ({ valor: null as unknown, aberturas: [] as number[] }))
+
+vi.mock('../lib/progresso', async (original) => {
+  const real = await original<typeof import('../lib/progresso')>()
+  return {
+    ...real,
+    carregarProgresso: async () => {
+      if (!progressoFalso.valor) throw new Error('sem progresso')
+      return progressoFalso.valor
+    },
+    registrarAberturaEmSilencio: (aulaId: number) => {
+      progressoFalso.aberturas.push(aulaId)
+      real.anunciarConquista({ xp: 10, ganhos: [{ quantidade: 10, descricao: 'Primeira vez nesta aula' }], medalhas: [], novaPatente: null })
+    },
+  }
+})
 
 vi.mock('../lib/api', async (original) => ({
   ...(await original<typeof import('../lib/api')>()),
@@ -80,6 +98,30 @@ beforeAll(prepararNavegadorFalso)
 beforeEach(() => carregarPonte.mockReset())
 
 describe('Ponte de comando', () => {
+  beforeEach(() => {
+    progressoFalso.valor = null
+    progressoFalso.aberturas = []
+  })
+
+  it('mostra a patente, o XP e quanto falta para a próxima', async () => {
+    progressoFalso.valor = { xp: 175, nivel: 2, patente: 'Piloto', xpDaPatente: 100, proxima: 'Navegador', xpDaProxima: 250 }
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    expect(await screen.findByText('Piloto')).toBeInTheDocument()
+    expect(screen.getByText('175 XP')).toBeInTheDocument()
+    expect(screen.getByText('Faltam 75 XP para Navegador.')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'XP até a patente Navegador' })).toHaveAttribute('aria-valuenow', '50')
+  })
+
+  it('abrir o link externo da aula registra a abertura e mostra o XP ganho', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const item = (await screen.findAllByText('O que é um algoritmo?')).at(-1)?.closest('li')
+    fireEvent.click(within(item as HTMLElement).getByRole('link', { name: /Apostila/ }))
+    expect(await screen.findByText('+10 XP · Primeira vez nesta aula')).toBeInTheDocument()
+    expect(progressoFalso.aberturas).toEqual([11])
+  })
+
   it('mostra o nome, a turma e o progresso da disciplina', async () => {
     carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
     abrir('/ponte', ALUNO)

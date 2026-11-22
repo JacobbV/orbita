@@ -47,6 +47,42 @@
   align-self: flex-start;
 }
 
+/* Patente e XP */
+.ponte-patente {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--espaco);
+}
+
+.ponte-patente-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.ponte-patente-nome {
+  color: var(--ciano);
+}
+
+.ponte-patente-xp {
+  font-weight: 800;
+}
+
+.ponte-barra-xp {
+  max-width: none;
+  margin-top: 8px;
+}
+
+.ponte-patente-falta {
+  margin-top: 6px;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
 @media (min-width: 600px) {
   .ponte-topo {
     flex-direction: row;
@@ -58,6 +94,10 @@
   .ponte-pedidos {
     align-self: center;
     flex-shrink: 0;
+  }
+
+  .ponte-patente {
+    flex: 0 1 18rem;
   }
 }
 

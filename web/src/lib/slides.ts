@@ -8,6 +8,7 @@ import { supabase } from './supabase'
 
 export interface SlidesDaAula {
   id: number
+  aulaId: number
   /** "ALG · Unidade IV · Aula 1" */
   onde: string
   titulo: string
@@ -19,6 +20,7 @@ interface MaterialDoBanco {
   tipo: string
   caminho_storage: string | null
   aula: {
+    id: number
     numero: number
     titulo: string
     unidade: { numero: number; disciplina: { sigla: string } }
@@ -36,7 +38,7 @@ export async function carregarSlides(id: number): Promise<SlidesDaAula> {
   const { data, error } = await supabase()
     .from('materiais')
     .select(
-      'id, tipo, caminho_storage, aula:aulas!inner(numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla)))',
+      'id, tipo, caminho_storage, aula:aulas!inner(id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla)))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -50,6 +52,7 @@ export async function carregarSlides(id: number): Promise<SlidesDaAula> {
   const { aula } = material
   return {
     id: material.id,
+    aulaId: aula.id,
     onde: `${aula.unidade.disciplina.sigla} · Unidade ${numeroRomano(aula.unidade.numero)} · Aula ${aula.numero}`,
     titulo: aula.titulo,
     html: protegerSlides(await arquivo.text()),

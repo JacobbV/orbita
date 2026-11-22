@@ -35,7 +35,8 @@ Hospedadas no próprio site (pacotes Fontsource), sem CDN.
 
 | Recurso | Autor | Licença | Uso |
 | --- | --- | --- | --- |
-| Céu de estrelas, planeta da página inicial, cadeado, favicon e topo dos e-mails | QYUDEV. | Arte original do projeto | Fundo, ilustração, ícones e e-mails de cadastro e senha |
+| Céu de estrelas, planeta da página inicial, cadeado, favicon e topo dos e-mails | QYUDEV. | Arte original do projeto, todos os direitos reservados (LICENCA-ARTE.md) | Fundo, ilustração, ícones e e-mails de cadastro e senha |
+| Bonecos e peças do avatar, medalhas e patentes | QYUDEV. | Arte original do projeto, todos os direitos reservados (LICENCA-ARTE.md) | Hangar, ponte e painel do professor |
 
 ---
 

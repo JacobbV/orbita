@@ -146,6 +146,8 @@ test.describe.serial('Fluxo completo: cadastro, aprovação e aula liberada', ()
     const moldura = estudante.page.frameLocator('iframe.slides-moldura')
     await expect(moldura.getByRole('heading', { name: 'Slide e2e da aula liberada' })).toBeVisible()
     await expect(moldura.locator('#js')).toHaveText('script isolado')
+    // Primeira vez na aula liberada: +10 XP, com aviso na tela.
+    await expect(estudante.page.getByRole('status').getByText(/\+10 XP/)).toBeVisible()
     // Barreiras contra salvar: botão direito bloqueado no slide e marca-d'água com o nome do aluno.
     const bloqueouMenu = await estudante.page
       .frame({ url: /about:srcdoc/ })

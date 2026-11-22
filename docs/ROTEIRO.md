@@ -27,7 +27,7 @@ Site: https://jacobbv.github.io/orbita/
   - aluno abre só os slides das aulas liberadas para a turma dele, em tela própria com tela cheia;
   - professor abre qualquer slide a qualquer hora (modo apresentação).
 
-### Em andamento (PR #7)
+### Proteção e apresentação dos slides (PR #7, no ar em 22/11)
 
 - [x] Botões dos slides (Iniciar, Anterior, Próximo e setas) funcionando dentro do site.
 - [x] Botão "▶ Apresentar" em cada aula com slides no painel, à vista mesmo com a aula bloqueada (dar aula antes de liberar).
@@ -35,7 +35,6 @@ Site: https://jacobbv.github.io/orbita/
 - [x] Marca-d'água com nome completo e e-mail do aluno por cima do slide (o professor apresenta sem ela).
 - [x] Envio em lote escolhendo a pasta inteira (com as subpastas das unidades).
 - [x] Aviso que barra arquivo de outra disciplina no envio em lote (ex.: `DAW_...` com Algoritmos escolhido).
-- [ ] Merge do PR #7.
 
 ### Falta
 
@@ -47,6 +46,18 @@ Site: https://jacobbv.github.io/orbita/
 
 - Print de tela, foto com o celular e ferramentas de desenvolvedor do navegador não podem ser bloqueados por um site. A marca-d'água identifica de quem veio uma cópia.
 
+## Fases 2 e 3: gamificação e laboratório (em andamento, PR #8)
+
+- [x] Banco da gamificação e do laboratório, com testes (patentes, XP, medalhas, avatares, exercícios, testes ocultos e secretos, entregas).
+- [x] Licença da arte original (todos os direitos reservados).
+- [x] XP e patente na ponte do aluno, com aviso de conquista ao abrir uma aula.
+- [ ] Arte original em pixel art (lote para aprovação).
+- [ ] Hangar (montar o avatar).
+- [ ] Painel do professor: avatar, XP da turma e XP à mão.
+- [ ] Medalhas na tela.
+- [ ] Laboratório: editor e Testar em Python; professor cria exercícios; Entregar; reconferência.
+- [ ] JavaScript, HTML e CSS; relatório do professor.
+
 ## Ideias
 
 - 💡 **Ver como aluno** (pedido em 22/11): um botão no painel para o professor ver a ponte de uma turma exatamente como o aluno vê, com as aulas liberadas e bloqueadas e os slides com marca-d'água. Esforço estimado: uma etapa pequena. Dá para reaproveitar a tela da ponte do aluno com os dados da turma escolhida, só para ver, sem criar conta de teste nem mudar as regras do banco.
@@ -55,5 +66,5 @@ Site: https://jacobbv.github.io/orbita/
 ## Próximas fases (detalhes em PROJETO.md)
 
 - [ ] Gamificação: XP, patentes, medalhas e avatar em pixel art no Hangar (plano junto com o laboratório em revisão, 22/11).
-- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada), junto com a gamificação; modo prova na Fase 4.
+- [ ] Laboratório de código no navegador (Python com Pyodide; JavaScript, HTML e CSS em moldura isolada), junto com a gamificação; modo prova na Fase 4. Correção no servidor gratuito não cabe (Python gasta ~2,4 s de CPU para carregar, limite de 2 s): plano é corrigir no navegador com reconferência pelo professor.
 - [ ] Java, C e C++ com servidor de execução, na Fase 5.
