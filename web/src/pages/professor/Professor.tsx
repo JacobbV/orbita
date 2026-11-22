@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
+import { BonecoDoHangar } from '../../components/BonecoDoHangar'
 import { saudacao } from '../../lib/saudacao'
 import { Aulas } from './Aulas'
 import { Pedidos } from './Pedidos'
@@ -23,9 +24,12 @@ export function Professor() {
   return (
     <div className="painel container">
       <header className="cartao painel-topo">
-        <p className="pixel painel-selo">Painel do professor</p>
-        <h1>{saudacao(perfil?.nome, 'professor')}</h1>
-        <p className="painel-intro">Aprove os pedidos de acesso, libere as aulas de cada turma e organize as disciplinas.</p>
+        <BonecoDoHangar />
+        <div>
+          <p className="pixel painel-selo">Painel do professor</p>
+          <h1>{saudacao(perfil?.nome, 'professor')}</h1>
+          <p className="painel-intro">Aprove os pedidos de acesso, libere as aulas de cada turma e organize as disciplinas.</p>
+        </div>
       </header>
 
       <nav className="painel-abas" aria-label="Seções do painel">

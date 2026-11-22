@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
+import { BonecoDoHangar } from '../components/BonecoDoHangar'
 import { Carregando } from '../components/Carregando'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
+import { PreviaDoProfessor } from '../lib/previa'
 import { saudacao } from '../lib/saudacao'
 import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
@@ -70,7 +72,8 @@ export function Ponte() {
   return (
     <div className="ponte container">
       <header className="cartao ponte-topo">
-        <div>
+        <BonecoDoHangar />
+        <div className="ponte-topo-nome">
           <p className="pixel ponte-selo">Ponte de comando</p>
           <h1>{saudacao(nome, 'Tripulante')}</h1>
           <p className="ponte-quem">
@@ -95,7 +98,7 @@ export function Ponte() {
   )
 }
 
-function PainelDisciplina({ disciplina }: { disciplina: DisciplinaDaPonte }) {
+export function PainelDisciplina({ disciplina }: { disciplina: DisciplinaDaPonte }) {
   const { oferta, unidades, totalAulas, totalLiberadas, ultimaLiberada } = disciplina
   const idTitulo = `disciplina-${oferta.id}`
   const nenhumaLiberada = totalLiberadas === 0
@@ -206,13 +209,14 @@ function ItemAula({ aula, romano }: { aula: AulaDaPonte; romano: string }) {
 }
 
 function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; materiais: Material[]; primario?: boolean }) {
+  const previa = useContext(PreviaDoProfessor)
   if (materiais.length === 0) return <p className="ponte-sem-material">Material em breve.</p>
   return (
     <ul className="ponte-materiais" role="list">
       {materiais.map((m) => (
         <li key={m.id}>
           {m.url === null ? (
-            <Link to={`/slides/${m.id}`} className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}>
+            <Link to={`/slides/${m.id}${previa ? '?comoAluno=1' : ''}`} className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}>
               {rotuloMaterial(m)}
             </Link>
           ) : (
@@ -221,7 +225,9 @@ function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; ma
               target="_blank"
               rel="noopener noreferrer"
               className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}
-              onClick={() => registrarAberturaEmSilencio(aulaId)}
+              onClick={() => {
+                if (!previa) registrarAberturaEmSilencio(aulaId)
+              }}
             >
               {rotuloMaterial(m)}
               <span aria-hidden="true">↗</span>

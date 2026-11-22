@@ -8,11 +8,13 @@ import { Aguardando } from './pages/Aguardando'
 import { Cadastro } from './pages/Cadastro'
 import { Creditos } from './pages/Creditos'
 import { Entrar } from './pages/Entrar'
+import { Hangar } from './pages/Hangar'
 import { Inicio } from './pages/Inicio'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
+import { VerComoAluno } from './pages/professor/VerComoAluno'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 import { Slides } from './pages/Slides'
 
@@ -52,6 +54,22 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <Professor />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/ver-como-aluno/:ofertaId"
+            element={
+              <RotaProtegida papel="professor">
+                <VerComoAluno />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="hangar"
+            element={
+              <RotaProtegida>
+                <Hangar />
               </RotaProtegida>
             }
           />

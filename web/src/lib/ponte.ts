@@ -197,6 +197,24 @@ export async function carregarPonte(): Promise<DadosDaPonte> {
   const temOutrosPedidos = pedidos.some((p) => p.status !== 'aprovado')
   if (aprovados.length === 0) return { disciplinas: [], temOutrosPedidos }
 
+  return { disciplinas: await carregarDisciplinas(aprovados), temOutrosPedidos }
+}
+
+/** "Ver como aluno": a ponte de uma turma, montada com o acesso do professor. */
+export async function carregarPonteComoAluno(oferta: Oferta): Promise<DisciplinaDaPonte | null> {
+  const pedido: Pedido = {
+    id: 0,
+    status: 'aprovado',
+    tentativa: 1,
+    motivoRecusa: null,
+    quemEVoce: '',
+    criadoEm: '',
+    oferta,
+  }
+  return (await carregarDisciplinas([pedido]))[0] ?? null
+}
+
+async function carregarDisciplinas(aprovados: Pedido[]): Promise<DisciplinaDaPonte[]> {
   const disciplinaIds = [...new Set(aprovados.map((p) => p.oferta.disciplina.id))]
   const ofertaIds = aprovados.map((p) => p.oferta.id)
 
@@ -229,5 +247,5 @@ export async function carregarPonte(): Promise<DadosDaPonte> {
     if (!exerciciosRes.error) exercicios = exerciciosRes.data
   }
 
-  return { disciplinas: montarPonte(aprovados, unidades, liberacoes, materiais, exercicios), temOutrosPedidos }
+  return montarPonte(aprovados, unidades, liberacoes, materiais, exercicios)
 }

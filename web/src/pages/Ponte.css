@@ -365,3 +365,22 @@
 .ponte-exercicio-xp {
   color: var(--estrela);
 }
+
+.ponte-topo-nome {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .ponte-topo-nome {
+    flex: 1 1 auto;
+  }
+}
+
+/* "Ver como aluno" do professor */
+.ponte-previa {
+  border-color: var(--estrela);
+}
+
+.ponte-previa .ponte-selo {
+  color: var(--estrela);
+}

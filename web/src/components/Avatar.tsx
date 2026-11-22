@@ -5,6 +5,7 @@ interface Props {
   escolhas: Escolhas
   /** Largura em pixels de tela (múltiplo de 48 deixa o traço mais nítido). */
   tamanho?: number
+  /** Texto para leitor de tela; vazio deixa o desenho só decorativo. */
   rotulo?: string
 }
 
@@ -14,8 +15,7 @@ export function Avatar({ escolhas, tamanho = 144, rotulo = 'Avatar' }: Props) {
   const desenho = useMemo(() => retangulosSvg(escolhas), [escolhas])
   return (
     <svg
-      role="img"
-      aria-label={rotulo}
+      {...(rotulo ? { role: 'img', 'aria-label': rotulo } : { 'aria-hidden': true })}
       viewBox={`0 0 ${LADO} ${ALTURA}`}
       width={tamanho}
       height={Math.round((tamanho * ALTURA) / LADO)}

@@ -53,8 +53,8 @@ PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um
 - [x] Banco da gamificação e do laboratório, com testes (patentes, XP, medalhas, avatares, exercícios, testes ocultos e secretos, entregas).
 - [x] Licença da arte original (todos os direitos reservados).
 - [x] XP e patente na ponte do aluno, com aviso de conquista ao abrir uma aula.
-- [ ] Hangar (montar o avatar).
-- [ ] Botão "Ver como aluno" no painel (pedido em 22/11, junto com o Hangar).
+- [x] Hangar: aluno e professor montam o boneco, com peças trancadas por XP.
+- [x] Botão "Ver como aluno" no painel (aba Turmas), com a marca-d'água de exemplo nos slides.
 - [ ] Painel do professor: avatar, XP da turma e XP à mão.
 - [ ] Medalhas na tela.
 - [x] Arte original em pixel art aprovada (46 peças, aluno e professor).

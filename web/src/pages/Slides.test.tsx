@@ -69,6 +69,14 @@ describe('Slides da aula', () => {
     expect(falso.aberturas).toEqual([])
   })
 
+  it('no "Ver como aluno", o professor vê a marca-d\'água de exemplo', async () => {
+    falso.resposta = { id: 7, aulaId: 41, onde: 'ALG · Unidade IV · Aula 1', titulo: 'Listas', html: '<h1>Slide 1</h1>' }
+    abrir('/slides/7?comoAluno=1', { ...ALUNO, perfil: { ...ALUNO.perfil, nome: 'Professor Fictício', papel: 'professor' as const } })
+    await screen.findByTitle('Slides: Listas')
+    expect(screen.getByTestId('marca-dagua')).toHaveTextContent('Nome do aluno · aluno@academico.ifpb.edu.br')
+    expect(falso.aberturas).toEqual([])
+  })
+
   it('explica quando os slides não estão liberados', async () => {
     const { SlidesIndisponiveis } = await import('../lib/slides')
     falso.resposta = new SlidesIndisponiveis()
