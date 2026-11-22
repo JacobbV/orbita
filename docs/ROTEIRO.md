@@ -46,13 +46,16 @@ Site: https://jacobbv.github.io/orbita/
 
 - Print de tela, foto com o celular e ferramentas de desenvolvedor do navegador não podem ser bloqueados por um site. A marca-d'água identifica de quem veio uma cópia.
 
-## Fases 2 e 3: gamificação e laboratório (em andamento, PR #8)
+## Fases 2 e 3: gamificação e laboratório (em andamento)
+
+PR #8 (banco e XP na ponte) no ar em 22/11. O restante segue num PR novo, com um merge só no final.
 
 - [x] Banco da gamificação e do laboratório, com testes (patentes, XP, medalhas, avatares, exercícios, testes ocultos e secretos, entregas).
 - [x] Licença da arte original (todos os direitos reservados).
 - [x] XP e patente na ponte do aluno, com aviso de conquista ao abrir uma aula.
 - [ ] Arte original em pixel art (lote para aprovação).
 - [ ] Hangar (montar o avatar).
+- [ ] Botão "Ver como aluno" no painel (pedido em 22/11, junto com o Hangar).
 - [ ] Painel do professor: avatar, XP da turma e XP à mão.
 - [ ] Medalhas na tela.
 - [ ] Laboratório: editor e Testar em Python; professor cria exercícios; Entregar; reconferência.
@@ -60,7 +63,6 @@ Site: https://jacobbv.github.io/orbita/
 
 ## Ideias
 
-- 💡 **Ver como aluno** (pedido em 22/11): um botão no painel para o professor ver a ponte de uma turma exatamente como o aluno vê, com as aulas liberadas e bloqueadas e os slides com marca-d'água. Esforço estimado: uma etapa pequena. Dá para reaproveitar a tela da ponte do aluno com os dados da turma escolhida, só para ver, sem criar conta de teste nem mudar as regras do banco.
 - 💡 **Avatar do professor** (pedido em 22/11): o professor também tem boneco em pixel art, montado por ele no Hangar, com visual de nerd (óculos, barba e roupas próprias), sem jaleco. Entra junto com o avatar dos alunos, na gamificação.
 
 ## Próximas fases (detalhes em PROJETO.md)
