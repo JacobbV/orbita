@@ -6,6 +6,7 @@ import { Carregando } from '../components/Carregando'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { saudacao } from '../lib/saudacao'
+import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
   carregarPonte,
   numeroRomano,
@@ -23,9 +24,17 @@ export function Ponte() {
   const { perfil } = useAuth()
   const [dados, setDados] = useState<DadosDaPonte | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [progresso, setProgresso] = useState<Progresso | null>(null)
 
   useEffect(() => {
     let ativo = true
+    // O progresso é um extra: se falhar, a ponte abre do mesmo jeito.
+    carregarProgresso().then(
+      (p) => {
+        if (ativo) setProgresso(p)
+      },
+      () => {},
+    )
     carregarPonte()
       .then((d) => {
         if (ativo) setDados(d)
@@ -71,6 +80,7 @@ export function Ponte() {
             ))}
           </p>
         </div>
+        {progresso && <CartaoPatente progresso={progresso} />}
         <Link to="/aguardando" className="botao ponte-pedidos">
           {dados.temOutrosPedidos ? 'Meus pedidos de acesso' : 'Pedir outra disciplina'}
         </Link>
@@ -121,7 +131,7 @@ function PainelDisciplina({ disciplina }: { disciplina: DisciplinaDaPonte }) {
             Unidade {numeroRomano(ultimaLiberada.unidade.numero)} · Aula {ultimaLiberada.aula.numero} —{' '}
             {ultimaLiberada.aula.titulo}
           </p>
-          <Materiais materiais={ultimaLiberada.aula.materiais} primario />
+          <Materiais aulaId={ultimaLiberada.aula.id} materiais={ultimaLiberada.aula.materiais} primario />
         </div>
       )}
 
@@ -178,7 +188,7 @@ function ItemAula({ aula, romano }: { aula: AulaDaPonte; romano: string }) {
           {aula.titulo}
         </p>
         {aula.liberada ? (
-          <Materiais materiais={aula.materiais} />
+          <Materiais aulaId={aula.id} materiais={aula.materiais} />
         ) : (
           <p className="ponte-cadeado">
             <Cadeado />
@@ -190,7 +200,7 @@ function ItemAula({ aula, romano }: { aula: AulaDaPonte; romano: string }) {
   )
 }
 
-function Materiais({ materiais, primario = false }: { materiais: Material[]; primario?: boolean }) {
+function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; materiais: Material[]; primario?: boolean }) {
   if (materiais.length === 0) return <p className="ponte-sem-material">Material em breve.</p>
   return (
     <ul className="ponte-materiais" role="list">
@@ -206,6 +216,7 @@ function Materiais({ materiais, primario = false }: { materiais: Material[]; pri
               target="_blank"
               rel="noopener noreferrer"
               className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}
+              onClick={() => registrarAberturaEmSilencio(aulaId)}
             >
               {rotuloMaterial(m)}
               <span aria-hidden="true">↗</span>
@@ -215,6 +226,35 @@ function Materiais({ materiais, primario = false }: { materiais: Material[]; pri
         </li>
       ))}
     </ul>
+  )
+}
+
+/** Patente atual e quanto falta para a próxima. */
+function CartaoPatente({ progresso }: { progresso: Progresso }) {
+  const { xp, patente, proxima, xpDaProxima } = progresso
+  const porcentagem = porcentagemDaPatente(progresso)
+  return (
+    <div className="ponte-patente">
+      <p className="ponte-patente-linha">
+        <span className="pixel ponte-patente-nome">{patente}</span>
+        <span className="ponte-patente-xp">{xp} XP</span>
+      </p>
+      <div
+        className="ponte-barra ponte-barra-xp"
+        role="progressbar"
+        aria-label={proxima ? `XP até a patente ${proxima}` : 'Patente máxima'}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={porcentagem}
+      >
+        <span style={{ width: `${porcentagem}%` }} />
+      </div>
+      <p className="ponte-patente-falta">
+        {proxima && xpDaProxima !== null
+          ? `Faltam ${xpDaProxima - xp} XP para ${proxima}.`
+          : 'Patente máxima da nave!'}
+      </p>
+    </div>
   )
 }
 

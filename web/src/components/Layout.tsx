@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router'
+import { AvisoConquista } from './AvisoConquista'
 import { SiteFooter } from './SiteFooter'
 import { SiteHeader } from './SiteHeader'
 import { ScrollToHash } from './ScrollToHash'
@@ -16,6 +17,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <AvisoConquista />
     </>
   )
 }

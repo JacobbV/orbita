@@ -2,7 +2,7 @@
 -- patentes, medalhas, XP dado pelo professor e avatares. Nomes inventados.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(33);
 
 create function pg_temp.criar_conta(p_id uuid, p_email text, p_meta jsonb default '{}')
 returns void language sql as $$
@@ -131,6 +131,10 @@ select pg_temp.oferta('1º INFO M', 'ALG'), a.id
 from public.aulas a join public.unidades u on u.id = a.unidade_id join public.disciplinas d on d.id = u.disciplina_id
 where d.sigla = 'ALG' and u.numero = 1 and a.numero >= 3;
 
+-- 15 XP extras para a aula I.6 cruzar os 100 XP.
+insert into public.xp_eventos (aluno_id, quantidade, motivo, descricao, dado_por)
+values ('f0000000-0000-0000-0000-0000000000a1', 15, 'professor', 'Extra do teste', 'f0000000-0000-0000-0000-00000000000f');
+
 select pg_temp.entrar('f0000000-0000-0000-0000-0000000000a1');
 set local role authenticated;
 select public.registrar_abertura_da_aula(a.id)
@@ -138,8 +142,10 @@ from public.aulas a join public.unidades u on u.id = a.unidade_id join public.di
 where d.sigla = 'ALG' and u.numero = 1 and a.numero between 3 and 5;
 select is((select count(*) from public.medalhas_ganhas where medalha = 'unidade-completa'), 0::bigint,
   'faltando uma aula, ainda não completa a unidade');
-select ok(public.registrar_abertura_da_aula(pg_temp.aula('ALG', 1, 6)) -> 'medalhas' ? 'unidade-completa',
+create temp table ultima as select public.registrar_abertura_da_aula(pg_temp.aula('ALG', 1, 6)) as r;
+select ok((select r from ultima) -> 'medalhas' ? 'unidade-completa',
   'abriu todas as aulas da unidade: medalha Unidade Completa');
+select is((select r ->> 'nova_patente' from ultima), 'Piloto', 'passou de 100 XP: avisa a nova patente');
 reset role;
 
 -- ---------------------------------------------------------------------------
@@ -152,10 +158,10 @@ select throws_ok($$ select public.dar_xp('f0000000-0000-0000-0000-0000000000a1',
 select lives_ok($$ select public.dar_xp('f0000000-0000-0000-0000-0000000000a1', 20, 'Participação na aula') $$,
   'professor dá XP por participação');
 select is((select xp from public.xp_da_turma(pg_temp.oferta('1º INFO M', 'ALG'))
-  where aluno_id = 'f0000000-0000-0000-0000-0000000000a1'), 110,
-  'professor vê o XP do aluno: 6 aulas + sequência + participação');
+  where aluno_id = 'f0000000-0000-0000-0000-0000000000a1'), 125,
+  'professor vê o XP do aluno: 6 aulas + sequência + extras + participação');
 select is((select patente from public.xp_da_turma(pg_temp.oferta('1º INFO M', 'ALG'))
-  where aluno_id = 'f0000000-0000-0000-0000-0000000000a1'), 'Piloto', 'com 110 XP é Piloto');
+  where aluno_id = 'f0000000-0000-0000-0000-0000000000a1'), 'Piloto', 'com 125 XP é Piloto');
 select is((select count(*) from public.medalhas_ganhas
   where aluno_id = 'f0000000-0000-0000-0000-0000000000a1' and medalha = 'destaque'), 1::bigint,
   'XP do professor dá a medalha Destaque da Aula');

@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { mensagemDeErro } from '../lib/erros'
+import { registrarAberturaEmSilencio } from '../lib/progresso'
 import { carregarSlides, SlidesIndisponiveis, type SlidesDaAula } from '../lib/slides'
 import './Slides.css'
 
@@ -17,6 +18,7 @@ export function Slides() {
   const location = useLocation()
   const navigate = useNavigate()
   const [slides, setSlides] = useState<SlidesDaAula | null>(null)
+  const ehAluno = perfil?.papel === 'aluno'
   const [erro, setErro] = useState<string | null>(null)
   const [telaCheia, setTelaCheia] = useState(false)
   const palco = useRef<HTMLDivElement>(null)
@@ -26,7 +28,10 @@ export function Slides() {
     let ativo = true
     carregarSlides(Number(id))
       .then((s) => {
-        if (ativo) setSlides(s)
+        if (!ativo) return
+        setSlides(s)
+        // Aluno ganha XP na primeira vez que abre a aula (o banco confere tudo).
+        if (ehAluno) registrarAberturaEmSilencio(s.aulaId)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(e instanceof SlidesIndisponiveis ? e.message : mensagemDeErro(e))
@@ -34,7 +39,7 @@ export function Slides() {
     return () => {
       ativo = false
     }
-  }, [id])
+  }, [id, ehAluno])
 
   useEffect(() => {
     const aoMudar = () => setTelaCheia(document.fullscreenElement === palco.current)

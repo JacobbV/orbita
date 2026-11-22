@@ -162,6 +162,7 @@ declare
   v_xp integer := 0;
   v_ganhos jsonb := '[]';
   v_id bigint;
+  v_patente_antes text;
 begin
   if v_aluno is null or privado.eh_professor() then
     raise exception 'Só o aluno entrega exercícios.' using errcode = '42501';
@@ -183,6 +184,8 @@ begin
   if p_testes_certos is null or p_testes_certos < 0 or p_testes_certos > v_total then
     raise exception 'Resultado dos testes inválido.' using errcode = '22023';
   end if;
+
+  v_patente_antes := privado.patente_de(privado.xp_total(v_aluno));
 
   select coalesce(max(tentativa), 0) + 1 into v_tentativa
   from public.entregas where exercicio_id = p_exercicio_id and aluno_id = v_aluno;
@@ -213,7 +216,8 @@ begin
     'tentativa', v_tentativa,
     'xp', v_xp,
     'ganhos', v_ganhos,
-    'medalhas', to_jsonb(privado.conferir_medalhas(v_aluno))
+    'medalhas', to_jsonb(privado.conferir_medalhas(v_aluno)),
+    'nova_patente', nullif(privado.patente_de(privado.xp_total(v_aluno)), v_patente_antes)
   );
 end;
 $$;

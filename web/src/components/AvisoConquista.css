@@ -1,0 +1,44 @@
+/* Aviso de conquista (XP, patente, medalha) */
+
+.aviso-conquista {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: 16px;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.aviso-conquista-caixa {
+  max-width: 28rem;
+  padding: 12px 18px;
+  border: 1px solid var(--ciano);
+  border-radius: var(--raio);
+  background: var(--casco);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.45);
+  text-align: center;
+  animation: aviso-conquista-entra 0.25s ease-out;
+}
+
+.aviso-conquista-caixa p + p {
+  margin-top: 4px;
+}
+
+.aviso-conquista-principal {
+  color: var(--ciano);
+  font-weight: 800;
+}
+
+@keyframes aviso-conquista-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso-conquista-caixa {
+    animation: none;
+  }
+}

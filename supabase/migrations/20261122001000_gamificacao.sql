@@ -150,6 +150,19 @@ $$;
 
 revoke all on function privado.xp_total(uuid) from public;
 
+-- Nome da patente para um total de XP.
+create or replace function privado.patente_de(p_xp integer)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select nome from public.patentes where xp_minimo <= p_xp order by xp_minimo desc limit 1;
+$$;
+
+revoke all on function privado.patente_de(integer) from public;
+
 -- Progresso do aluno logado: XP, patente atual e quanto falta para a próxima.
 create or replace function public.meu_progresso()
 returns jsonb
@@ -191,7 +204,7 @@ begin
   perform privado.exigir_professor();
   return query
     select p.id, p.nome, privado.xp_total(p.id),
-      (select pt.nome from public.patentes pt where pt.xp_minimo <= privado.xp_total(p.id) order by pt.xp_minimo desc limit 1)
+      privado.patente_de(privado.xp_total(p.id))
     from public.matriculas m
     join public.perfis p on p.id = m.aluno_id
     where m.turma_disciplina_id = p_turma_disciplina_id and m.status = 'aprovado'
@@ -256,7 +269,7 @@ revoke all on function privado.conferir_medalhas(uuid) from public;
 -- O aluno abriu uma aula (slides ou link): XP da aula e da sequência de estudo
 -- -----------------------------------------------------------------------------
 -- Devolve o que o aluno ganhou agora, para o site mostrar o aviso de conquista:
--- {"xp": 10, "ganhos": [{"quantidade": 10, "descricao": "..."}], "medalhas": [...]}
+-- {"xp": 10, "ganhos": [{"quantidade": 10, "descricao": "..."}], "medalhas": [...], "nova_patente": null}
 create or replace function public.registrar_abertura_da_aula(p_aula_id bigint)
 returns jsonb
 language plpgsql
@@ -271,13 +284,14 @@ declare
   v_dia date;
   v_titulo text;
   v_id bigint;
+  v_patente_antes text;
 begin
   if v_aluno is null then
     raise exception 'Entre na sua conta para continuar.' using errcode = '42501';
   end if;
   -- Professor não ganha XP.
   if privado.eh_professor() then
-    return jsonb_build_object('xp', 0, 'ganhos', v_ganhos, 'medalhas', '[]'::jsonb);
+    return jsonb_build_object('xp', 0, 'ganhos', v_ganhos, 'medalhas', '[]'::jsonb, 'nova_patente', null);
   end if;
   if not exists (
     select 1
@@ -289,6 +303,7 @@ begin
   end if;
 
   select titulo into v_titulo from public.aulas where id = p_aula_id;
+  v_patente_antes := privado.patente_de(privado.xp_total(v_aluno));
 
   insert into public.xp_eventos (aluno_id, quantidade, motivo, descricao, aula_id)
   values (v_aluno, 10, 'aula', 'Abriu a aula ' || v_titulo, p_aula_id)
@@ -320,7 +335,8 @@ begin
   return jsonb_build_object(
     'xp', (select coalesce(sum((g ->> 'quantidade')::integer), 0) from jsonb_array_elements(v_ganhos) g),
     'ganhos', v_ganhos,
-    'medalhas', to_jsonb(privado.conferir_medalhas(v_aluno))
+    'medalhas', to_jsonb(privado.conferir_medalhas(v_aluno)),
+    'nova_patente', nullif(privado.patente_de(privado.xp_total(v_aluno)), v_patente_antes)
   );
 end;
 $$;
