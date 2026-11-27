@@ -3,6 +3,8 @@ import type { Perfil } from './api'
 export interface ItemDoMenu {
   para: string
   rotulo: string
+  /** Some do topo em telas bem estreitas (o item continua no menu da conta). */
+  secundario?: boolean
 }
 
 /** Rotas do sistema (depois de entrar). Nelas o topo mostra os menus do sistema. */
@@ -37,13 +39,14 @@ export function itensDoMenu(papel: Perfil['papel'], ninja: boolean): ItemDoMenu[
     return [
       { para: '/professor', rotulo: 'Painel' },
       { para: '/hangar', rotulo: 'Hangar' },
-      { para: '/medalhas', rotulo: 'Medalhas' },
+      { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
     ]
   }
   return [
     { para: '/ponte', rotulo: 'Ponte' },
+    { para: '/mapa', rotulo: 'Mapa' },
     { para: '/hangar', rotulo: 'Hangar' },
-    { para: '/medalhas', rotulo: 'Medalhas' },
+    { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
   ]
 }
 

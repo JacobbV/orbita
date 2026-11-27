@@ -27,7 +27,7 @@ export function SiteHeader() {
           {noSistema && perfil ? (
             <nav className="topo-nav topo-nav-sistema" aria-label="Menu do sistema">
               {itensDoMenu(perfil.papel, ninja.ativo).map((i) => (
-                <NavLink key={i.para} to={i.para} end={i.para === '/professor'}>
+                <NavLink key={i.para} to={i.para} end={i.para === '/professor'} {...(i.secundario ? { className: 'topo-nav-secundario' } : {})}>
                   {i.rotulo}
                 </NavLink>
               ))}

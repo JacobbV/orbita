@@ -37,6 +37,7 @@ test.describe.serial('Menu do sistema e ponte', () => {
     await page.goto('ponte')
     const menu = page.getByRole('navigation', { name: 'Menu do sistema' })
     await expect(menu.getByRole('link', { name: 'Ponte' })).toBeVisible()
+    await expect(menu.getByRole('link', { name: 'Mapa' })).toBeVisible()
     await expect(menu.getByRole('link', { name: 'Hangar' })).toBeVisible()
     await expect(menu.getByRole('link', { name: 'Medalhas' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Como funciona' })).toHaveCount(0)
@@ -72,6 +73,22 @@ test.describe.serial('Menu do sistema e ponte', () => {
     }).toPass({ timeout: 20_000 })
     await expect(page.getByRole('link', { name: 'Continuar aula' })).toHaveAttribute('href', new RegExp(`/aula/${aulaId}$`))
     await expect(page.getByText('dia seguido estudando')).toBeVisible()
+    expect(erros).toEqual([])
+  })
+
+  test('o mapa mostra os planetas e abre a aula na unidade atual', async ({ page }) => {
+    const erros = registrarErros(page)
+    await entrar(page, aluno)
+    await page.goto('mapa')
+    await expect(page.getByRole('heading', { name: 'Mapa da galáxia' })).toBeVisible()
+    const galaxia = page.getByRole('navigation', { name: 'Unidades da disciplina' })
+    await expect(galaxia.getByRole('button')).toHaveCount(4)
+    // A aula aberta no teste anterior é a III.1: a unidade III já vem aberta.
+    await expect(galaxia.getByRole('button', { name: /Unidade III/ })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('link', { name: /Continuar a aula 1/ })).toHaveAttribute('href', new RegExp(`/aula/${aulaId}$`))
+    // Outra unidade mostra as aulas dela, com cadeado nas que ainda não foram liberadas.
+    await galaxia.getByRole('button', { name: /Unidade I\b/ }).click()
+    await expect(page.getByText('bloqueada').first()).toBeVisible()
     expect(erros).toEqual([])
   })
 })
