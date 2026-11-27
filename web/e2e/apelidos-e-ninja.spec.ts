@@ -83,7 +83,8 @@ test.describe.serial('Apelidos e Modo Ninja', () => {
     // Hangar do ninja: peças só do ninja e qualquer outra peça.
     await page.goto('hangar')
     await expect(page.getByRole('heading', { name: 'Monte o seu ninja' })).toBeVisible()
-    await page.getByRole('tab', { name: 'Acessório' }).click()
+    await page.getByRole('tab', { name: 'Acessórios' }).click()
+    await page.getByRole('button', { name: 'Corpo e mãos' }).click()
     await page.getByRole('button', { name: /Estrela ninja/ }).click()
     await page.getByRole('tab', { name: 'Cabelo', exact: true }).click()
     await expect(page.getByRole('button', { name: /Arrepiado/ })).toBeEnabled()

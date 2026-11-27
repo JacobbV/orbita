@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { ALTURA, LADO, PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, PECAS, montarPixels, retangulosSvg } from './avatar'
-import primeiroLote from '../../../supabase/migrations/20261122001200_pecas_do_avatar.sql?raw'
-import pecasNinja from '../../../supabase/migrations/20261122001900_modo_ninja.sql?raw'
+import { ALTURA, LADO, PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, PECAS, geometria, montarPixels, recorteDaCamada, retangulosSvg } from './avatar'
+import hangarNovo from '../../../supabase/migrations/20261127000400_hangar_novo.sql?raw'
 
-const migration = primeiroLote + pecasNinja
+// O catálogo completo está na migration do Hangar novo.
+const migration = hangarNovo
 
 
 describe('arte do avatar', () => {
@@ -46,5 +46,39 @@ describe('arte do avatar', () => {
   it('peça de outra camada é ignorada', () => {
     const { roupa: _roupa, ...semRoupa } = PADRAO_ALUNO
     expect(retangulosSvg({ ...PADRAO_ALUNO, roupa: 'cabelo-longo' })).toBe(retangulosSvg(semRoupa))
+  })
+
+  it('cor livre pinta o cabelo e ignora cor fora do formato', () => {
+    const cores = new Set(montarPixels({ ...PADRAO_ALUNO, 'cor-do-cabelo': 'cabelo-cor-livre', 'cor-livre': '#22aa88' }).flat())
+    expect(cores).toContain('#22aa88')
+    const invalida = new Set(montarPixels({ ...PADRAO_ALUNO, 'cor-do-cabelo': 'cabelo-cor-livre', 'cor-livre': 'red' }).flat())
+    expect(invalida).not.toContain('red')
+  })
+
+  it('degradê usa as duas cores no cabelo longo', () => {
+    const cores = new Set(montarPixels({ ...PADRAO_ALUNO, cabelo: 'cabelo-longo', 'cor-do-cabelo': 'cabelo-galaxia' }).flat())
+    expect(cores).toContain('#6a3fd0')
+    expect(cores).toContain('#22d3ee')
+  })
+
+  it('todas as combinações de corpo cabem na grade e têm os pés na mesma linha', () => {
+    for (const base of ['base-masculina', 'base-feminina']) for (const altura of ['altura-baixa', 'altura-media', 'altura-alta'])
+      for (const corpo of ['corpo-estreito', 'corpo-medio', 'corpo-gordinho', 'corpo-largo']) {
+        const g = geometria({ base, altura, corpo })
+        expect(g.be).toBeGreaterThan(0)
+        expect(g.bd + g.braco).toBeLessThan(LADO)
+        const grade = montarPixels({ ...PADRAO_ALUNO, base, altura, corpo, cabelo: 'cabelo-moicano', 'acessorio-cabeca': 'acessorio-capacete' })
+        expect(grade[52]?.some((c) => c === '#f4f6fb')).toBe(true) // tênis branco
+        expect(grade[0]?.every((c) => c === null || c === '#0b0e1c')).toBe(true) // nada cortado em cima
+      }
+  })
+
+  it('cada peça tem um quadradinho de prévia recortado dentro da grade', () => {
+    for (const p of PECAS) {
+      const r = recorteDaCamada(p.camada, PADRAO_ALUNO)
+      if (!r) continue
+      expect(r[0]).toBeGreaterThanOrEqual(0)
+      expect(r[0] + r[2]).toBeLessThanOrEqual(LADO)
+    }
   })
 })

@@ -21,7 +21,7 @@ select pg_temp.entrar('fb000000-0000-0000-0000-00000000000f');
 set local role authenticated;
 select lives_ok($$ select public.salvar_avatar('{"rosto": "rosto-barba"}') $$, 'professor salva o boneco normal');
 select lives_ok($$ select public.salvar_avatar_ninja('{"rosto": "rosto-ninja-mascara", "cabelo": "cabelo-arrepiado",
-  "roupa": "roupa-traje-ninja", "acessorio": "acessorio-capacete"}') $$, 'ninja usa peças ninja e qualquer outra');
+  "roupa": "roupa-traje-ninja", "acessorio-cabeca": "acessorio-capacete"}') $$, 'ninja usa peças ninja e qualquer outra');
 select is((select escolhas from public.avatares where perfil_id = 'fb000000-0000-0000-0000-00000000000f'),
   '{"rosto": "rosto-barba"}'::jsonb, 'boneco normal fica como estava');
 reset role;

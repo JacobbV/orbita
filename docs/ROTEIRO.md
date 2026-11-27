@@ -103,7 +103,12 @@ Plano completo em /mnt/project-files/ideias-novembro/PLANO-aula-escola-e-correco
 ### Próximos blocos
 
 - [x] Bloco 3: Fase 4 (provas), já aprovada (PR #13, em revisão).
-- [ ] Bloco 4: Hangar novo (base masculina e feminina, mais corpos, paletas, acessórios em três grupos, farda do IF sem logotipo).
+- [x] Bloco 4: Hangar novo (branch `hangar-novo`, em revisão):
+  - arte aprovada em 27/11: base feminina e masculina, 3 alturas e 4 tipos de corpo (24 combinações); no feminino, cintura fina, leve marcação do peito, queixo afilado e cílios;
+  - farda do IF sem logotipo (camisa branca com mangas e gola verdes, calça jeans azul ou preta, tênis preto ou branco);
+  - peças novas: rostos, barbas, cabelos (moicano punk, black power, tranças...), cores com degradê e "escolher minha cor", tons de pele, partes de cima, de baixo, calçados e acessórios de cabeça, rosto e corpo;
+  - tela nova com abas e grupos, bolinhas de cor, quadradinhos só com a peça e o boneco grande mudando na hora (preso no topo no celular);
+  - bonecos já salvos continuam iguais, pixel por pixel (teste com a arte antiga congelada).
 - [ ] Bloco 5: escola virtual 2D por degraus (mapa, colegas, frases prontas); chat livre só depois de conversar com a coordenação.
 
 ## Fase 4: provas (branch `fase-4-provas`, em revisão)

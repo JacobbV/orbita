@@ -172,25 +172,25 @@ reset role;
 -- ---------------------------------------------------------------------------
 insert into public.pecas (id, camada, nome, para, xp_minimo) values
   ('teste-corpo', 'corpo', 'Corpo de teste', 'todos', 0),
-  ('teste-barba', 'acessorio', 'Barba de teste', 'professor', 0),
-  ('teste-capacete', 'acessorio', 'Capacete de teste', 'todos', 900);
+  ('teste-barba', 'acessorio-corpo', 'Barba de teste', 'professor', 0),
+  ('teste-capacete', 'acessorio-cabeca', 'Capacete de teste', 'todos', 900);
 
 select pg_temp.entrar('f0000000-0000-0000-0000-0000000000a1');
 set local role authenticated;
 select lives_ok($$ select public.salvar_avatar('{"corpo": "teste-corpo"}') $$, 'aluno salva o avatar');
-select throws_ok($$ select public.salvar_avatar('{"acessorio": "teste-barba"}') $$,
+select throws_ok($$ select public.salvar_avatar('{"acessorio-corpo": "teste-barba"}') $$,
   '22023', 'Peça indisponível: teste-barba.', 'peça de professor não serve para aluno');
-select throws_ok($$ select public.salvar_avatar('{"acessorio": "teste-capacete"}') $$,
+select throws_ok($$ select public.salvar_avatar('{"acessorio-cabeca": "teste-capacete"}') $$,
   '22023', 'Peça indisponível: teste-capacete.', 'peça trancada por XP');
 select throws_ok($$ select public.salvar_avatar('{"cabelo": "teste-corpo"}') $$,
   '22023', null, 'peça na camada errada');
-select throws_ok($$ insert into public.avatares (perfil_id, escolhas) values (auth.uid(), '{"acessorio": "teste-barba"}') $$,
+select throws_ok($$ insert into public.avatares (perfil_id, escolhas) values (auth.uid(), '{"acessorio-corpo": "teste-barba"}') $$,
   '42501', null, 'aluno não grava o avatar direto na tabela');
 reset role;
 
 select pg_temp.entrar('f0000000-0000-0000-0000-00000000000f');
 set local role authenticated;
-select public.salvar_avatar('{"corpo": "teste-corpo", "acessorio": "teste-barba"}');
+select public.salvar_avatar('{"corpo": "teste-corpo", "acessorio-corpo": "teste-barba"}');
 reset role;
 
 select pg_temp.entrar('f0000000-0000-0000-0000-0000000000a2');

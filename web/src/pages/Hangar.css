@@ -164,3 +164,156 @@
   color: var(--estrela);
   font-size: 0.75rem;
 }
+
+/* Hangar novo: grupos, submenus, bolinhas de cor */
+.hangar-painel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hangar-submenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hangar-sub {
+  min-height: var(--alvo-toque);
+  padding: 6px 14px;
+  border-radius: var(--raio-pequeno);
+  border: 1px solid var(--borda);
+  background: var(--espaco);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.hangar-sub-atual {
+  border-color: var(--nebulosa);
+  color: var(--texto);
+  background: rgba(167, 139, 250, 0.16);
+}
+
+.hangar-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hangar-grupo-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.hangar-opcao-desenho {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+}
+
+.hangar-opcao-desenho svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.hangar-bolinhas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.hangar-bolinha {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--borda);
+  box-shadow: inset 0 0 0 2px rgba(11, 14, 31, 0.35);
+  cursor: pointer;
+  padding: 0;
+}
+
+.hangar-bolinha:hover:not(:disabled) {
+  border-color: var(--ciano-claro);
+}
+
+.hangar-bolinha-escolhida {
+  border-color: var(--ciano);
+  outline: 3px solid var(--ciano);
+  outline-offset: 2px;
+}
+
+.hangar-bolinha:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.55);
+}
+
+.hangar-bolinha-cadeado {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+}
+
+.hangar-cor-livre {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 2px 14px 2px 2px;
+  border: 2px solid var(--borda);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.hangar-cor-livre input {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+/* No celular, o boneco fica preso no topo enquanto a lista de peças rola. */
+@media (max-width: 839px) {
+  .hangar .hangar-previa {
+    position: sticky;
+    top: calc(var(--altura-topo) + 8px);
+    z-index: 2;
+    /* fundo sólido: as peças passam por baixo enquanto a lista rola */
+    background: var(--casco);
+    box-shadow: 0 8px 18px rgba(11, 14, 31, 0.65);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px;
+  }
+  .hangar-palco {
+    width: auto;
+    padding: 6px 12px;
+  }
+  .hangar-palco svg {
+    width: 84px;
+    height: auto;
+  }
+  .hangar-previa .hangar-acoes {
+    flex: 1 1 10rem;
+    flex-direction: column;
+  }
+  .hangar-previa .hangar-acoes .botao {
+    flex: 0 0 auto;
+  }
+  .hangar-previa .hangar-mensagem {
+    width: 100%;
+    text-align: center;
+    min-height: 0;
+  }
+}
