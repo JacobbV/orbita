@@ -26,7 +26,7 @@ export function Aula() {
 
   useEffect(() => {
     let ativo = true
-    carregarAula(Number(aulaId), ehProfessor)
+    carregarAula(Number(aulaId), ehProfessor, comoAluno)
       .then((a) => {
         if (!ativo) return
         setAula(a)
@@ -39,7 +39,7 @@ export function Aula() {
     return () => {
       ativo = false
     }
-  }, [aulaId, ehProfessor, ehAluno])
+  }, [aulaId, ehProfessor, ehAluno, comoAluno])
 
   const marca = comoAluno
     ? 'Nome do aluno · aluno@academico.ifpb.edu.br'
@@ -87,6 +87,7 @@ export function Aula() {
               html={aula.slides}
               titulo={`Slides: ${aula.titulo}`}
               marca={marca}
+              materialId={aula.slidesId}
               dica="Clique no slide e use as setas do teclado, ou deslize o dedo, para avançar e voltar. No celular, toque em Tela cheia e deite o aparelho."
             />
           ) : (

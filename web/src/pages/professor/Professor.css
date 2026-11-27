@@ -932,3 +932,100 @@
   font-size: 0.875rem;
   white-space: pre;
 }
+
+/* Unidades que abrem e fecham na aba Aulas: só a atual começa aberta. */
+.painel-unidades-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.painel-unidade-alternar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: var(--alvo-toque);
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .painel-unidade-alternar {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.painel-unidade-alternar:focus-visible {
+  outline: 2px solid var(--ciano);
+  outline-offset: 4px;
+  border-radius: var(--raio-pequeno);
+}
+
+.painel-unidade-textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.painel-unidade-textos .painel-unidade-contagem {
+  display: block;
+  font-weight: 400;
+}
+
+.painel-unidade-titulo {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+h3.painel-unidade-nome {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.painel-unidade-seta {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 4px;
+  border: 1px solid var(--borda);
+  border-radius: 50%;
+}
+
+.painel-unidade-seta::after {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ciano);
+  border-bottom: 2px solid var(--ciano);
+  content: '';
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+.painel-unidade-aberta .painel-unidade-seta::after {
+  transform: rotate(45deg) translate(-2px, -2px);
+}
+
+.painel-unidade-alternar:hover .painel-unidade-seta {
+  border-color: var(--ciano);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .painel-unidade-seta::after {
+    transition: none;
+  }
+}

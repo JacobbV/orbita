@@ -149,6 +149,37 @@ describe('Painel do professor: aulas', () => {
     expect(acoes.liberarUnidade).toHaveBeenCalledWith(11, 1, true)
   })
 
+  it('só a unidade atual começa aberta; a seta abre e fecha as outras', async () => {
+    const usuario = userEvent.setup()
+    const aula = (id: number, numero: number, liberada: boolean) => ({
+      id, numero, titulo: `Aula ${numero}`, liberada, link: null, slides: null, apostila: null, audio: null, topicos: [], exercicios: 0,
+    })
+    estrutura = [
+      { id: 1, numero: 1, titulo: 'Primeiros passos', aulas: [aula(11, 1, true)] },
+      { id: 2, numero: 2, titulo: 'Decisões', aulas: [aula(21, 1, true)] },
+      { id: 3, numero: 3, titulo: 'Repetição', aulas: [aula(31, 1, false)] },
+    ]
+    abrir('/professor?aba=aulas', PROFESSOR)
+    const seta = (titulo: string) => screen.getByRole('button', { name: new RegExp(titulo) })
+    expect(await screen.findByRole('button', { name: 'Bloquear aula II.1' })).toBeInTheDocument()
+    expect(seta('Decisões')).toHaveAttribute('aria-expanded', 'true')
+    expect(seta('Primeiros passos')).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'Bloquear aula I.1' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Liberar aula III.1' })).toBeNull()
+    // A unidade fechada continua com o botão de liberar a unidade inteira.
+    expect(screen.getByRole('button', { name: 'Bloquear unidade I' })).toBeInTheDocument()
+
+    await usuario.click(seta('Primeiros passos'))
+    expect(screen.getByRole('button', { name: 'Bloquear aula I.1' })).toBeInTheDocument()
+    await usuario.click(seta('Decisões'))
+    expect(screen.queryByRole('button', { name: 'Bloquear aula II.1' })).toBeNull()
+
+    await usuario.click(screen.getByRole('button', { name: 'Abrir todas as unidades' }))
+    expect(screen.getByRole('button', { name: 'Liberar aula III.1' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Fechar todas as unidades' }))
+    expect(screen.queryByRole('button', { name: 'Bloquear aula I.1' })).toBeNull()
+  })
+
   it('cada aula mostra quantos exercícios tem e o atalho para eles', async () => {
     abrir('/professor?aba=aulas', PROFESSOR)
     expect(await screen.findByRole('link', { name: 'Exercícios da aula I.1' })).toHaveAttribute('href', '/professor/exercicios/11')

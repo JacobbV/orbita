@@ -45,13 +45,17 @@ interface AulaDoBanco {
   materiais: Array<{ id: number; tipo: string; caminho_storage: string | null }>
 }
 
-async function baixarTexto(caminho: string): Promise<string | null> {
+async function baixarTexto(caminho: string, professor: boolean): Promise<string | null> {
   const { data, error } = await supabase().storage.from(BUCKET_MATERIAIS).download(caminho)
   if (error || !data) return null
-  return protegerSlides(await data.text())
+  return protegerSlides(await data.text(), { professor })
 }
 
-export async function carregarAula(aulaId: number, ehProfessor: boolean): Promise<DadosDaAula> {
+/**
+ * `ehProfessor` decide o que a pessoa pode ver. `comoAluno` (professor testando
+ * como o aluno vê) tira também o botão "Editar" que vem dentro dos slides.
+ */
+export async function carregarAula(aulaId: number, ehProfessor: boolean, comoAluno = false): Promise<DadosDaAula> {
   if (!Number.isInteger(aulaId) || aulaId <= 0) throw new AulaIndisponivel()
   const [aulaRes, liberacaoRes] = await Promise.all([
     supabase()
@@ -73,8 +77,8 @@ export async function carregarAula(aulaId: number, ehProfessor: boolean): Promis
   const slides = material('slide')
   const apostila = material('apostila')
   const [htmlSlides, htmlApostila] = await Promise.all([
-    slides?.caminho_storage ? baixarTexto(slides.caminho_storage) : null,
-    apostila?.caminho_storage ? baixarTexto(apostila.caminho_storage) : null,
+    slides?.caminho_storage ? baixarTexto(slides.caminho_storage, ehProfessor && !comoAluno) : null,
+    apostila?.caminho_storage ? baixarTexto(apostila.caminho_storage, ehProfessor && !comoAluno) : null,
   ])
 
   return {

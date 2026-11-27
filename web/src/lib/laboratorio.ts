@@ -1,4 +1,4 @@
-import type { TesteDoAluno } from '../lab/correcao'
+import { lerModo, type TesteDoAluno } from '../lab/correcao'
 import { supabase } from './supabase'
 
 export interface Exercicio {
@@ -43,7 +43,13 @@ export async function carregarExercicio(id: number): Promise<{ exercicio: Exerci
       dificuldade: data.dificuldade as Exercicio['dificuldade'],
       aula: { id: a.id, numero: a.numero, titulo: a.titulo, unidade: a.unidade.numero, sigla: a.unidade.disciplina.sigla },
     },
-    testes: (testes.data ?? []).map((t) => ({ ...t, tipo: t.tipo as TesteDoAluno['tipo'], saida_esperada: t.saida_esperada ?? null })),
+    testes: (testes.data ?? []).map((t) => ({
+      ...t,
+      tipo: t.tipo as TesteDoAluno['tipo'],
+      saida_esperada: t.saida_esperada ?? null,
+      conferencia: lerModo(t.conferencia),
+      palavras: t.palavras ?? '',
+    })),
   }
 }
 

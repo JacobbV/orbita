@@ -151,14 +151,14 @@ isOneToOne: false
                   ]
                 },"exercicios": {
                   Row: {
-                    "aula_id": number | null,"codigo_inicial": string,"criado_em": string,"dificuldade": number,"enunciado": string,"id": number,"linguagem": string,"ordem": number,"titulo": string
+                    "aula_id": number | null,"codigo_inicial": string,"conferencia": string,"criado_em": string,"dificuldade": number,"enunciado": string,"id": number,"linguagem": string,"ordem": number,"palavras_extras": string,"titulo": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "aula_id"?: number | null,"codigo_inicial"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado": string,"id"?: never,"linguagem"?: string,"ordem"?: number,"titulo": string
+                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado": string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo": string
                   }
                   Update: {
-                    "aula_id"?: number | null,"codigo_inicial"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado"?: string,"id"?: never,"linguagem"?: string,"ordem"?: number,"titulo"?: string
+                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado"?: string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo"?: string
                   }
                   Relationships: [
                     {
@@ -485,6 +485,33 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"slides_do_usuario": {
+                  Row: {
+                    "atualizado_em": string,"marcador": number | null,"material_id": number,"rabiscos": Json,"usuario_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "atualizado_em"?: string,"marcador"?: number | null,"material_id": number,"rabiscos"?: Json,"usuario_id": string
+                  }
+                  Update: {
+                    "atualizado_em"?: string,"marcador"?: number | null,"material_id"?: number,"rabiscos"?: Json,"usuario_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "slides_do_usuario_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materiais"
+      referencedColumns: ["id"]
+    },
+    {
+      foreignKeyName: "slides_do_usuario_usuario_id_fkey"
+      columns: ["usuario_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"testes": {
                   Row: {
                     "entrada": string,"exercicio_id": number,"id": number,"ordem": number,"saida_esperada": string,"saida_hash": string | null,"tipo": string
@@ -792,7 +819,7 @@ isOneToOne: false
 { Args: { "p_escolhas": Json }; Returns: undefined
                            },
 "salvar_exercicio":
-{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_linguagem"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
+{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_conferencia"?: string,"p_linguagem"?: string,"p_palavras_extras"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
                            },
 "salvar_prova":
 { Args: { "p_abre_em": string,"p_duracao_min": number,"p_fecha_em": string,"p_id": number,"p_instrucoes": string,"p_questoes": Json,"p_saidas_para_encerrar": number,"p_titulo": string,"p_turma_disciplina_id": number }; Returns: number
@@ -810,7 +837,7 @@ isOneToOne: false
                            },
 "testes_do_exercicio":
 { Args: { "p_exercicio_id": number }; Returns: {
-              "entrada": string,"id": number,"saida_esperada": string,"saida_hash": string,"tipo": string
+              "conferencia": string,"entrada": string,"id": number,"palavras": string,"saida_esperada": string,"saida_hash": string,"tipo": string
             }[]
                            },
 "xp_da_turma":

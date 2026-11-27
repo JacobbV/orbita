@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
-import { saidaConfere } from '../lab/correcao'
+import { CaixaDoEnunciado } from '../components/CaixaDoEnunciado'
+import { modoDoExercicio, saidaConfere } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import type { Executor, ResultadoDaExecucao } from '../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
@@ -522,7 +523,7 @@ function QuestoesDaProva({
         <p className="exercicio-etiquetas">
           <span className="exercicio-etiqueta">{linguagem.nome}</span>
         </p>
-        <div className="exercicio-enunciado">{q.enunciado}</div>
+        <CaixaDoEnunciado texto={q.enunciado} modo={modoDoExercicio(q.testes)} />
         {visiveis.length > 0 && (
           <div className="exercicio-exemplos">
             {visiveis.map((t, i) => (

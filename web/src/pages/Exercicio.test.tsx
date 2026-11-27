@@ -57,9 +57,9 @@ vi.mock('../lib/laboratorio', async (original) => ({
       aula: { id: 11, numero: 1, titulo: 'Entrada e saída', unidade: 1, sigla: 'ALG' },
     },
     testes: [
-      { id: 1, tipo: 'visivel', entrada: '1\n2', saida_esperada: '3', saida_hash: 'h1' },
+      { id: 1, tipo: 'visivel', entrada: '1\n2', saida_esperada: '3', saida_hash: 'h1', conferencia: 'valores', palavras: '' },
       // impressão digital de "10"
-      { id: 2, tipo: 'oculto', entrada: '5\n5', saida_esperada: null, saida_hash: '4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5' },
+      { id: 2, tipo: 'oculto', entrada: '5\n5', saida_esperada: null, saida_hash: '4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5', conferencia: 'valores', palavras: '' },
     ],
   }),
 }))
@@ -143,6 +143,26 @@ describe('Exercício do laboratório', () => {
     expect(lista[0]).toHaveTextContent('certo')
     expect(lista[1]).toHaveTextContent('Resposta escondida')
     expect(within(lista[1] as HTMLElement).queryByText('10')).toBeNull()
+  })
+
+  it('enunciado numa caixa própria, com o jeito de conferir', async () => {
+    abrir('/exercicio/7', ALUNO)
+    const caixa = await screen.findByRole('region', { name: 'Enunciado' })
+    expect(caixa).toHaveTextContent('Leia dois números e mostre a soma.')
+    expect(caixa).toHaveTextContent('Como o site confere:')
+    expect(caixa).toHaveTextContent('O texto que você escreve em volta')
+  })
+
+  it('só os valores: o texto em volta do número não conta, e o erro mostra o que foi comparado', async () => {
+    falso.saidas.set('1\n2', 'A soma é: 3\n')
+    falso.saidas.set('5\n5', 'A soma é: 11\n')
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    expect(await screen.findByRole('heading', { name: '1 de 2 testes certos' })).toBeInTheDocument()
+    const lista = screen.getAllByRole('listitem').filter((li) => li.textContent?.includes('Teste'))
+    expect(lista[0]).toHaveTextContent('certo')
+    expect(lista[1]).toHaveTextContent('O que o site comparou')
+    expect(lista[1]).toHaveTextContent('No seu programa: 11')
   })
 
   it('acertando tudo, comemora; o código fica guardado como rascunho', async () => {

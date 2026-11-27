@@ -1,0 +1,61 @@
+/* Caixa do enunciado: fundo próprio e borda ciano à esquerda, para a pergunta
+   não se perder entre o título, as etiquetas e os exemplos. */
+.caixa-enunciado {
+  background: rgb(34 211 238 / 0.06);
+  border: 1px solid rgb(34 211 238 / 0.35);
+  border-left: 4px solid var(--ciano);
+  border-radius: var(--raio-pequeno);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 600px) {
+  .caixa-enunciado {
+    padding: 16px 20px;
+  }
+}
+
+.caixa-enunciado-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ciano-claro);
+}
+
+.caixa-enunciado-icone {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ciano);
+  color: var(--espaco);
+  font-size: 0.8125rem;
+}
+
+.caixa-enunciado-texto {
+  white-space: pre-wrap;
+  line-height: 1.65;
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+  color: var(--texto);
+  max-width: 75ch;
+}
+
+.caixa-enunciado-conferencia {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+  border-top: 1px dashed rgb(34 211 238 / 0.3);
+  padding-top: 10px;
+}
+
+.caixa-enunciado-conferencia strong {
+  color: var(--texto);
+}

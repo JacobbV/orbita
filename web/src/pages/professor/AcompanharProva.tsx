@@ -2,11 +2,11 @@ import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 
 import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
-import { normalizarSaida } from '../../lab/correcao'
+import { saidasConferem } from '../../lab/correcao'
 import type { Executor } from '../../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../../lab/linguagens'
 import { mensagemDeErro } from '../../lib/erros'
-import { decidirReconferencia, type TipoDeTeste } from '../../lib/exercicios'
+import { decidirReconferencia, regraDe, type TipoDeTeste } from '../../lib/exercicios'
 import {
   carregarProva,
   conferirResposta,
@@ -498,7 +498,7 @@ function Reconferencia({ prova, aoTerminar, aoFechar }: { prova: ProvaParaEditar
           const resultados: { tipo: TipoDeTeste; certo: boolean }[] = []
           for (const t of questao.testes) {
             const saida = await executor.rodar(r.codigo, t.entrada, false)
-            const certo = !saida.erro && !saida.tempoEsgotado && normalizarSaida(saida.saida) === normalizarSaida(t.saidaEsperada)
+            const certo = !saida.erro && !saida.tempoEsgotado && saidasConferem(saida.saida, t.saidaEsperada, t.entrada, regraDe(questao))
             resultados.push({ tipo: t.tipo, certo })
           }
           const decisao = decidirReconferencia(r, resultados)

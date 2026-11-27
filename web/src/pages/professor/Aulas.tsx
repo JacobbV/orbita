@@ -34,6 +34,7 @@ import {
   type AulaDoPainel,
   type OfertaDoPainel,
   type UnidadeDoPainel,
+  unidadeAtual,
 } from '../../lib/professor'
 
 /** Executa uma ação no banco, recarrega a estrutura e mostra o recado ou o erro. */
@@ -47,6 +48,8 @@ export function Aulas() {
   const [recado, setRecado] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [versao, setVersao] = useState(0)
+  // Unidades abertas na turma escolhida. Null = ainda não mexeu: só a atual aberta.
+  const [abertas, setAbertas] = useState<{ ofertaId: number; ids: Set<number> } | null>(null)
 
   useEffect(() => {
     let ativo = true
@@ -105,6 +108,21 @@ export function Aulas() {
     setParams({ aba: 'aulas', oferta: id }, { replace: true })
   }
 
+  const idsAbertos =
+    abertas && oferta && abertas.ofertaId === oferta.id ? abertas.ids : new Set(unidades ? [unidadeAtual(unidades)?.id ?? -1] : [])
+  const todasAbertas = Boolean(unidades && unidades.length > 0 && unidades.every((u) => idsAbertos.has(u.id)))
+  function alternar(id: number) {
+    if (!oferta) return
+    const ids = new Set(idsAbertos)
+    if (ids.has(id)) ids.delete(id)
+    else ids.add(id)
+    setAbertas({ ofertaId: oferta.id, ids })
+  }
+  function abrirOuFecharTodas() {
+    if (!oferta || !unidades) return
+    setAbertas({ ofertaId: oferta.id, ids: new Set(todasAbertas ? [] : unidades.map((u) => u.id)) })
+  }
+
   const total = unidades?.reduce((s, u) => s + u.aulas.length, 0) ?? 0
   const liberadas = unidades?.reduce((s, u) => s + u.aulas.filter((a) => a.liberada).length, 0) ?? 0
 
@@ -142,6 +160,14 @@ export function Aulas() {
             {oferta.turma.nome}: {liberadas} de {total} {total === 1 ? 'aula liberada' : 'aulas liberadas'}.
           </p>
           <EnvioEmLote unidades={unidades} disciplina={oferta.disciplina.nome} sigla={oferta.disciplina.sigla} ocupado={ocupado} executar={executar} />
+          {unidades.length > 1 && (
+            <div className="painel-unidades-barra">
+              <p className="campo-dica">Só a unidade atual começa aberta. Toque no nome de uma unidade para abrir ou fechar.</p>
+              <button type="button" className="botao botao-compacto" onClick={abrirOuFecharTodas}>
+                {todasAbertas ? 'Fechar todas as unidades' : 'Abrir todas as unidades'}
+              </button>
+            </div>
+          )}
           <div className="painel-unidades">
             {unidades.map((u) => (
               <CartaoUnidade
@@ -149,6 +175,8 @@ export function Aulas() {
                 unidade={u}
                 oferta={oferta}
                 totalUnidades={unidades.length}
+                aberta={idsAbertos.has(u.id)}
+                aoAlternar={() => alternar(u.id)}
                 ocupado={ocupado}
                 executar={executar}
               />
@@ -173,12 +201,16 @@ function CartaoUnidade({
   unidade,
   oferta,
   totalUnidades,
+  aberta,
+  aoAlternar,
   ocupado,
   executar,
 }: {
   unidade: UnidadeDoPainel
   oferta: OfertaDoPainel
   totalUnidades: number
+  aberta: boolean
+  aoAlternar: () => void
   ocupado: boolean
   executar: Executar
 }) {
@@ -190,17 +222,30 @@ function CartaoUnidade({
   const idTitulo = `unidade-${unidade.id}`
 
   return (
-    <section className="cartao painel-unidade" aria-labelledby={idTitulo}>
+    <section className={`cartao painel-unidade${aberta ? ' painel-unidade-aberta' : ''}`} aria-labelledby={idTitulo}>
       <div className="painel-unidade-topo">
-        <div className="painel-unidade-nome">
-          <p className="pixel painel-unidade-numero">Unidade {romano}</p>
-          <h3 id={idTitulo}>{unidade.titulo}</h3>
-          <p className="painel-unidade-contagem">
-            {unidade.aulas.length === 0
-              ? 'Sem aulas ainda'
-              : `${liberadas} de ${unidade.aulas.length} liberadas para ${oferta.turma.nome}`}
-          </p>
-        </div>
+        <h3 className="painel-unidade-nome">
+          <button
+            type="button"
+            className="painel-unidade-alternar"
+            aria-expanded={aberta}
+            aria-controls={`${idTitulo}-aulas`}
+            onClick={aoAlternar}
+          >
+            <span className="painel-unidade-seta" aria-hidden="true" />
+            <span className="painel-unidade-textos">
+              <span className="pixel painel-unidade-numero">Unidade {romano}</span>
+              <span id={idTitulo} className="painel-unidade-titulo">
+                {unidade.titulo}
+              </span>
+              <span className="painel-unidade-contagem">
+                {unidade.aulas.length === 0
+                  ? 'Sem aulas ainda'
+                  : `${liberadas} de ${unidade.aulas.length} liberadas para ${oferta.turma.nome}`}
+              </span>
+            </span>
+          </button>
+        </h3>
         <div className="painel-botoes">
           {unidade.aulas.length > 0 && (
             <button
@@ -279,21 +324,27 @@ function CartaoUnidade({
         </div>
       )}
 
-      {unidade.aulas.length > 0 && (
-        <ol className="painel-aulas" role="list">
-          {unidade.aulas.map((a) => (
-            <ItemAula key={a.id} aula={a} romano={romano} oferta={oferta} ocupado={ocupado} executar={executar} />
-          ))}
-        </ol>
-      )}
+      <div id={`${idTitulo}-aulas`} className="painel-unidade-conteudo" hidden={!aberta}>
+        {aberta && (
+          <>
+            {unidade.aulas.length > 0 && (
+              <ol className="painel-aulas" role="list">
+                {unidade.aulas.map((a) => (
+                  <ItemAula key={a.id} aula={a} romano={romano} oferta={oferta} ocupado={ocupado} executar={executar} />
+                ))}
+              </ol>
+            )}
 
-      <FormNovo
-        rotulo={`Nova aula na unidade ${romano}`}
-        botao="Adicionar aula"
-        ocupado={ocupado}
-        maximo={160}
-        aoEnviar={(titulo) => executar(() => adicionarAula(unidade.id, titulo), `Aula "${titulo}" adicionada.`)}
-      />
+            <FormNovo
+              rotulo={`Nova aula na unidade ${romano}`}
+              botao="Adicionar aula"
+              ocupado={ocupado}
+              maximo={160}
+              aoEnviar={(titulo) => executar(() => adicionarAula(unidade.id, titulo), `Aula "${titulo}" adicionada.`)}
+            />
+          </>
+        )}
+      </div>
     </section>
   )
 }

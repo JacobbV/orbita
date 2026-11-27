@@ -1,4 +1,4 @@
-import type { TesteDoAluno } from '../lab/correcao'
+import { lerModo, type ModoDeConferencia, type TesteDoAluno } from '../lab/correcao'
 import type { Linguagem } from '../lab/linguagens'
 import type { TesteDoProfessor, TipoDeTeste } from './exercicios'
 import type { OfertaDoPainel } from './professor'
@@ -136,6 +136,8 @@ export interface QuestaoDoPainel {
   linguagem: Linguagem
   codigoInicial: string
   testes: TesteDoProfessor[]
+  conferencia: ModoDeConferencia
+  palavrasExtras: string
   /** "ALG · U I · Aula 2", ou null para questão só desta prova. */
   origem: { unidade: number; aula: number; tituloDaAula: string } | null
 }
@@ -145,7 +147,7 @@ export interface ProvaParaEditar extends ProvaDoPainel {
 }
 
 const CAMPOS_EXERCICIO =
-  'id, titulo, enunciado, linguagem, codigo_inicial, testes(tipo, entrada, saida_esperada, ordem), aula:aulas(numero, titulo, unidade:unidades!inner(numero))'
+  'id, titulo, enunciado, linguagem, codigo_inicial, conferencia, palavras_extras, testes(tipo, entrada, saida_esperada, ordem), aula:aulas(numero, titulo, unidade:unidades!inner(numero))'
 
 interface ExercicioDoBanco {
   id: number
@@ -153,6 +155,8 @@ interface ExercicioDoBanco {
   enunciado: string
   linguagem: string
   codigo_inicial: string
+  conferencia: string
+  palavras_extras: string
   testes: { tipo: string; entrada: string; saida_esperada: string; ordem: number }[]
   aula: { numero: number; titulo: string; unidade: { numero: number } } | null
 }
@@ -165,6 +169,8 @@ function converterQuestao(e: ExercicioDoBanco, peso: number): QuestaoDoPainel {
     enunciado: e.enunciado,
     linguagem: e.linguagem as Linguagem,
     codigoInicial: e.codigo_inicial,
+    conferencia: lerModo(e.conferencia),
+    palavrasExtras: e.palavras_extras,
     testes: [...e.testes]
       .sort((a, b) => a.ordem - b.ordem)
       .map((t) => ({ tipo: t.tipo as TipoDeTeste, entrada: t.entrada, saidaEsperada: t.saida_esperada })),
@@ -339,7 +345,7 @@ export async function questoesDaProva(id: number): Promise<QuestaoDaProva[]> {
     linguagem: q.linguagem as Linguagem,
     codigoInicial: q.codigo_inicial,
     peso: Number(q.peso),
-    testes: (q.testes as unknown as TesteDoAluno[]) ?? [],
+    testes: ((q.testes as unknown as TesteDoAluno[]) ?? []).map((t) => ({ ...t, conferencia: lerModo(t.conferencia), palavras: t.palavras ?? '' })),
     minhaResposta: q.minha_resposta ?? null,
   }))
 }

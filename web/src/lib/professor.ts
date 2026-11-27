@@ -540,3 +540,11 @@ export function validarAnoLetivo(ano: string): string | null {
   if (!Number.isInteger(n) || n < 2020 || n > 2100) return 'Use um ano entre 2020 e 2100.'
   return null
 }
+
+/**
+ * Unidade em que a turma está: a última com alguma aula liberada. Sem nenhuma
+ * liberada, a primeira.
+ */
+export function unidadeAtual(unidades: UnidadeDoPainel[]): UnidadeDoPainel | undefined {
+  return [...unidades].reverse().find((u) => u.aulas.some((a) => a.liberada)) ?? unidades[0]
+}

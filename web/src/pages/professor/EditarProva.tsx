@@ -146,6 +146,8 @@ export function EditarProva() {
       linguagem: dados.linguagem,
       codigoInicial: dados.codigoInicial,
       testes: dados.testes,
+      conferencia: dados.conferencia,
+      palavrasExtras: dados.palavrasExtras,
       origem: null,
     }
     setQuestoes((lista) =>

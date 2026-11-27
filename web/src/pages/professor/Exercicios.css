@@ -266,3 +266,70 @@
 .exercicios-nao-confere span[aria-hidden] {
   color: var(--plasma);
 }
+
+/* Como conferir a saída (formulário do exercício) */
+.exercicios-conferencia {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  min-width: 0;
+}
+
+.exercicios-conferencia legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.exercicios-conferencia-opcoes {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.exercicios-conferencia-opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-height: var(--alvo-toque);
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+  cursor: pointer;
+}
+
+.exercicios-conferencia-opcao input {
+  margin-top: 0.3rem;
+  flex: none;
+}
+
+.exercicios-conferencia-opcao > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.exercicios-conferencia-escolhida {
+  border-color: var(--ciano);
+}
+
+.exercicios-o-que-conta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.exercicios-o-que-conta code {
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.3rem;
+  background: var(--espaco);
+  border: 1px solid var(--borda);
+  font-family: var(--fonte-codigo);
+  overflow-wrap: anywhere;
+}

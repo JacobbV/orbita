@@ -1,3 +1,4 @@
+import { lerModo, type ModoDeConferencia, type RegraDeConferencia } from '../lab/correcao'
 import type { Linguagem } from '../lab/linguagens'
 import { supabase } from './supabase'
 
@@ -20,6 +21,9 @@ export interface ExercicioDoPainel {
   linguagem: Linguagem
   codigoInicial: string
   testes: TesteDoProfessor[]
+  /** Como a saída é conferida e as palavras extras que contam. */
+  conferencia: ModoDeConferencia
+  palavrasExtras: string
   /** Quantas entregas de alunos já existem (com entregas, não pode remover). */
   entregas: number
   /** Entregas esperando a reconferência do professor. */
@@ -49,7 +53,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
   const { data, error } = await supabase()
     .from('aulas')
     .select(
-      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
+      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, conferencia, palavras_extras, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
     )
     .eq('id', aulaId)
     .maybeSingle()
@@ -73,6 +77,8 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
         dificuldade: e.dificuldade as 1 | 2 | 3,
         linguagem: e.linguagem as Linguagem,
         codigoInicial: e.codigo_inicial,
+        conferencia: lerModo(e.conferencia),
+        palavrasExtras: e.palavras_extras,
         testes: [...e.testes]
           .sort((a, b) => a.ordem - b.ordem)
           .map((t) => ({ tipo: t.tipo as TipoDeTeste, entrada: t.entrada, saidaEsperada: t.saida_esperada })),
@@ -89,9 +95,17 @@ export interface DadosDoExercicio {
   linguagem: Linguagem
   codigoInicial: string
   testes: TesteDoProfessor[]
+  conferencia: ModoDeConferencia
+  palavrasExtras: string
 }
 
-export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes', string>> & {
+/** Regra de conferência de um exercício, no formato da correção. */
+export const regraDe = (d: { conferencia: ModoDeConferencia; palavrasExtras: string }): RegraDeConferencia => ({
+  modo: d.conferencia,
+  palavras: d.palavrasExtras,
+})
+
+export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes' | 'palavrasExtras', string>> & {
   /** Erro de cada teste, pela posição na lista. */
   porTeste?: Record<number, string>
 }
@@ -106,6 +120,7 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
   else if (d.testes.length > MAX_TESTES) erros.testes = `Use até ${MAX_TESTES} testes.`
   else if (!d.testes.some((t) => t.tipo !== 'secreto'))
     erros.testes = 'Coloque pelo menos um teste visível ou oculto: é com eles que o aluno confere o código.'
+  if (d.palavrasExtras.trim().length > 500) erros.palavrasExtras = 'Use até 500 letras nas palavras que também contam.'
   const porTeste: Record<number, string> = {}
   d.testes.forEach((t, i) => {
     if (!t.saidaEsperada.trim()) porTeste[i] = 'Escreva a saída esperada (ou preencha com a sua solução).'
@@ -115,7 +130,7 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
 }
 
 export function temErros(e: ErrosDoExercicio): boolean {
-  return Boolean(e.titulo || e.enunciado || e.testes || e.porTeste)
+  return Boolean(e.titulo || e.enunciado || e.testes || e.palavrasExtras || e.porTeste)
 }
 
 /**
@@ -133,6 +148,8 @@ export async function salvarExercicio(id: number | null, aulaId: number | null, 
     p_codigo_inicial: d.codigoInicial,
     p_testes: d.testes.map((t) => ({ tipo: t.tipo, entrada: t.entrada, saida_esperada: t.saidaEsperada })),
     p_linguagem: d.linguagem,
+    p_conferencia: d.conferencia,
+    p_palavras_extras: d.palavrasExtras.trim(),
   })
   if (error) throw error
   return data
@@ -192,7 +209,9 @@ export function decidirReconferencia(
   const certosAgora = abertos.filter((r) => r.certo).length
   const secretos = resultados.filter((r) => r.tipo === 'secreto')
   const secretosCertos = secretos.filter((r) => r.certo).length
-  if (certosAgora !== entrega.testesCertos) {
+  // Dar menos do que o aluno enviou é sinal de resultado mexido. Dar mais
+  // acontece quando a conferência ficou mais flexível depois da entrega.
+  if (certosAgora < entrega.testesCertos) {
     return {
       confere: false,
       motivo: `A entrega dizia ${entrega.testesCertos} de ${entrega.testesTotal} testes certos, e agora deu ${certosAgora} de ${abertos.length}.`,
@@ -220,6 +239,8 @@ export const NOVO_EXERCICIO: DadosDoExercicio = {
   dificuldade: 1,
   linguagem: 'python',
   codigoInicial: '',
+  conferencia: 'valores',
+  palavrasExtras: '',
   testes: [
     { tipo: 'visivel', entrada: '', saidaEsperada: '' },
     { tipo: 'oculto', entrada: '', saidaEsperada: '' },
