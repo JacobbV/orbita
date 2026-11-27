@@ -1,15 +1,24 @@
-import { useEffect, useState, type MouseEvent } from 'react'
+import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams, type To } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
+import { AnotacoesDaAula } from '../components/AnotacoesDaAula'
 import { PalcoDeSlides } from '../components/PalcoDeSlides'
 import { AulaIndisponivel, carregarAudio, carregarAula, type DadosDaAula } from '../lib/aula'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
+import { corDaUnidade } from '../lib/mapa'
 import { anunciarConquista, registrarAberturaEmSilencio, registrarAudioOuvido } from '../lib/progresso'
 import { useModoNinja } from '../ninja/ModoNinja'
 import './Aula.css'
+
+function irPara(id: string) {
+  const alvo = document.getElementById(id)
+  if (!alvo) return
+  const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  alvo.scrollIntoView?.({ behavior: reduzido ? 'auto' : 'smooth', block: 'start' })
+}
 
 /** Página de uma aula: slides, "Nesta aula", exercícios, apostila e áudio. */
 export function Aula() {
@@ -68,8 +77,15 @@ export function Aula() {
   }
   if (!aula) return <Carregando />
 
+  const estilo = { '--cor-unidade': corDaUnidade(aula.unidade) } as CSSProperties
+  const secoes = [
+    { id: 'aula-slides', rotulo: 'Slides' },
+    { id: 'aula-apostila', rotulo: 'Apostila' },
+    ...(aula.audio ? [{ id: 'aula-audio', rotulo: 'Áudio' }] : []),
+  ]
+
   return (
-    <div className="aula container">
+    <div className="aula container" style={estilo}>
       <header className="aula-topo">
         <Link to={voltar} className="botao aula-voltar" onClick={aoVoltar}>
           <span aria-hidden="true">←</span> Voltar
@@ -80,8 +96,16 @@ export function Aula() {
         </div>
       </header>
 
+      <nav className="aula-menu" aria-label="Partes da aula">
+        {secoes.map((sec) => (
+          <button key={sec.id} type="button" className="aula-menu-item" onClick={() => irPara(sec.id)}>
+            {sec.rotulo}
+          </button>
+        ))}
+      </nav>
+
       <div className="aula-principal">
-        <section className="aula-slides" aria-label="Slides">
+        <section id="aula-slides" className="aula-slides" aria-label="Slides">
           {aula.slides ? (
             <PalcoDeSlides
               html={aula.slides}
@@ -125,10 +149,11 @@ export function Aula() {
               <p className="aula-vazio-texto">Esta aula não tem exercícios.</p>
             )}
           </section>
+          {perfil ? <AnotacoesDaAula aulaId={aula.id} usuarioId={perfil.id} /> : null}
         </aside>
       </div>
 
-      <section className="aula-apostila" aria-labelledby="aula-apostila-titulo">
+      <section id="aula-apostila" className="aula-apostila" aria-labelledby="aula-apostila-titulo">
         <h2 id="aula-apostila-titulo">Apostila</h2>
         {aula.apostila ? (
           <PalcoDeSlides
@@ -172,7 +197,7 @@ function AudioDaAula({ aulaId, caminho, daXp }: { aulaId: number; caminho: strin
   }
 
   return (
-    <section className="cartao aula-audio" aria-labelledby="aula-audio-titulo">
+    <section id="aula-audio" className="cartao aula-audio" aria-labelledby="aula-audio-titulo">
       <h2 id="aula-audio-titulo">Áudio da aula</h2>
       <p className="campo-dica">{daXp ? 'Ouça até o fim e ganhe +10 XP (uma vez por aula).' : 'Áudio da aula.'}</p>
       {endereco ? (
