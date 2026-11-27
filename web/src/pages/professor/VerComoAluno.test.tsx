@@ -67,7 +67,7 @@ describe('Ver como aluno', () => {
     expect(falso.ofertaPedida).toBe(11)
     expect(screen.getByText(/nada muda e ninguém ganha XP/)).toBeInTheDocument()
     const item = screen.getByText('O que é um algoritmo?').closest('li') as HTMLElement
-    expect(within(item).getByRole('link', { name: 'Abrir slides' })).toHaveAttribute('href', '/slides/3?comoAluno=1')
+    expect(within(item).getByRole('link', { name: 'Abrir a aula' })).toHaveAttribute('href', '/aula/21?comoAluno=1')
     await userEvent.click(within(item).getByRole('link', { name: /Apostila/ }))
     expect(falso.aberturas).toEqual([])
   })

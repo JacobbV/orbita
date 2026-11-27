@@ -9,7 +9,14 @@ import {
   adicionarAula,
   adicionarUnidade,
   carregarEstrutura,
+  enviarMaterial,
   enviarSlides,
+  lerTopicos,
+  removerMaterial,
+  salvarTopicos,
+  validarArquivoDeMaterial,
+  validarTopicos,
+  NOME_DO_ARQUIVO,
   liberarAula,
   liberarUnidade,
   listarOfertasDoPainel,
@@ -327,6 +334,8 @@ function ItemAula({
             )}
             {' · '}
             {aula.slides ? <span>com slides</span> : <span className="painel-sem-link">sem slides</span>}
+            {aula.apostila ? <span>{' · '}com apostila</span> : null}
+            {aula.audio ? <span>{' · '}com áudio</span> : null}
             {' · '}
             {aula.exercicios > 0 ? (
               <span>
@@ -395,7 +404,8 @@ function FormAula({
 }) {
   const [titulo, setTitulo] = useState(aula.titulo)
   const [link, setLink] = useState(aula.link?.url ?? '')
-  const [erros, setErros] = useState<{ titulo?: string; link?: string }>({})
+  const [topicos, setTopicos] = useState(aula.topicos.join('\n'))
+  const [erros, setErros] = useState<{ titulo?: string; link?: string; topicos?: string }>({})
   const [removendo, setRemovendo] = useState(false)
   const id = `aula-${aula.id}`
 
@@ -403,9 +413,19 @@ function FormAula({
     e.preventDefault()
     const erroTitulo = validarTitulo(titulo)
     const erroLink = validarLink(link)
-    setErros({ ...(erroTitulo ? { titulo: erroTitulo } : {}), ...(erroLink ? { link: erroLink } : {}) })
-    if (erroTitulo || erroLink) return
-    if (await executar(() => salvarAula(aula.id, titulo, link), `Aula ${rotulo} salva.`)) aoFechar()
+    const lista = lerTopicos(topicos)
+    const erroTopicos = validarTopicos(lista)
+    setErros({
+      ...(erroTitulo ? { titulo: erroTitulo } : {}),
+      ...(erroLink ? { link: erroLink } : {}),
+      ...(erroTopicos ? { topicos: erroTopicos } : {}),
+    })
+    if (erroTitulo || erroLink || erroTopicos) return
+    const salvou = await executar(async () => {
+      await salvarAula(aula.id, titulo, link)
+      await salvarTopicos(aula.id, lista)
+    }, `Aula ${rotulo} salva.`)
+    if (salvou) aoFechar()
   }
 
   return (
@@ -447,7 +467,28 @@ function FormAula({
           </p>
         )}
       </div>
+      <div className={`campo${erros.topicos ? ' campo-com-erro' : ''}`}>
+        <label htmlFor={`${id}-topicos`}>Nesta aula (um tópico por linha, até 5)</label>
+        <textarea
+          id={`${id}-topicos`}
+          rows={5}
+          value={topicos}
+          onChange={(e) => setTopicos(e.target.value)}
+          aria-invalid={erros.topicos ? true : undefined}
+          aria-describedby={`${id}-topicos-dica${erros.topicos ? ` ${id}-topicos-erro` : ''}`}
+        />
+        <p id={`${id}-topicos-dica`} className="campo-dica">
+          Aparecem para o aluno no cartão "Nesta aula" da página da aula.
+        </p>
+        {erros.topicos && (
+          <p id={`${id}-topicos-erro`} className="campo-erro">
+            {erros.topicos}
+          </p>
+        )}
+      </div>
       <CampoSlides aula={aula} rotulo={rotulo} ocupado={ocupado} executar={executar} />
+      <CampoMaterial tipo="apostila" aula={aula} rotulo={rotulo} ocupado={ocupado} executar={executar} />
+      <CampoMaterial tipo="audio" aula={aula} rotulo={rotulo} ocupado={ocupado} executar={executar} />
       <div className="painel-botoes">
         <button type="submit" className="botao botao-primario" disabled={ocupado}>
           Salvar aula
@@ -584,6 +625,109 @@ function CampoSlides({
   )
 }
 
+/** Apostila (.html) ou áudio (.mp3) de uma aula: enviar, trocar ou remover o arquivo. */
+function CampoMaterial({
+  tipo,
+  aula,
+  rotulo,
+  ocupado,
+  executar,
+}: {
+  tipo: 'apostila' | 'audio'
+  aula: AulaDoPainel
+  rotulo: string
+  ocupado: boolean
+  executar: Executar
+}) {
+  const atual = tipo === 'apostila' ? aula.apostila : aula.audio
+  const nome = NOME_DO_ARQUIVO[tipo]
+  const [arquivo, setArquivo] = useState<File | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [removendo, setRemovendo] = useState(false)
+  const entrada = useRef<HTMLInputElement>(null)
+  const id = `aula-${aula.id}-${tipo}`
+
+  async function enviar() {
+    const problema = arquivo ? validarArquivoDeMaterial(tipo, arquivo) : `Escolha o arquivo ${tipo === 'audio' ? '.mp3' : '.html'}.`
+    setErro(problema)
+    if (problema || !arquivo) return
+    const ok = await executar(
+      () => enviarMaterial(aula.id, tipo, arquivo),
+      tipo === 'audio' ? `Áudio da aula ${rotulo} ${atual ? 'trocado' : 'enviado'}.` : `Apostila da aula ${rotulo} ${atual ? 'trocada' : 'enviada'}.`,
+    )
+    if (ok) {
+      setArquivo(null)
+      if (entrada.current) entrada.current.value = ''
+    }
+  }
+
+  return (
+    <fieldset className={`painel-slides campo${erro ? ' campo-com-erro' : ''}`}>
+      <legend>
+        {tipo === 'audio' ? `Áudio da aula ${rotulo} (.mp3)` : `Apostila da aula ${rotulo} (HTML)`}
+      </legend>
+      <p className="campo-dica" id={`${id}-dica`}>
+        {atual
+          ? `Esta aula tem ${nome}. Enviar outro arquivo substitui o atual.`
+          : tipo === 'audio'
+            ? 'Arquivo .mp3 de até 10 MB (qualidade de voz, uns 3 MB para 12 minutos). O aluno ganha 10 XP ao ouvir até o fim.'
+            : 'Arquivo .html de até 10 MB, igual ao dos slides. Aparece na página da aula, com a marca-d\'água do aluno.'}
+      </p>
+      <label htmlFor={id} className="sr-only">
+        Arquivo de {nome} da aula {rotulo}
+      </label>
+      <input
+        ref={entrada}
+        id={id}
+        type="file"
+        accept={tipo === 'audio' ? '.mp3,audio/mpeg' : '.html,.htm,text/html'}
+        className="painel-arquivo"
+        onChange={(e) => {
+          setArquivo(e.target.files?.[0] ?? null)
+          setErro(null)
+        }}
+        aria-invalid={erro ? true : undefined}
+        aria-describedby={`${id}-dica${erro ? ` ${id}-erro` : ''}`}
+      />
+      {erro && (
+        <p id={`${id}-erro`} className="campo-erro">
+          {erro}
+        </p>
+      )}
+      <div className="painel-botoes">
+        <button type="button" className="botao" disabled={ocupado} onClick={enviar}>
+          {atual ? `Trocar ${nome}` : `Enviar ${nome}`}
+        </button>
+        {atual && (
+          <button type="button" className="botao painel-botao-perigo" disabled={ocupado} onClick={() => setRemovendo(true)}>
+            Remover {nome}
+          </button>
+        )}
+      </div>
+      {removendo && atual && (
+        <div className="painel-confirmar painel-confirmar-perigo">
+          <p>Remover {tipo === 'audio' ? 'o' : 'a'} {nome} da aula {rotulo}? O arquivo é apagado e sai para todas as turmas.</p>
+          <div className="painel-botoes">
+            <button
+              type="button"
+              className="botao painel-botao-perigo"
+              disabled={ocupado}
+              onClick={async () => {
+                if (await executar(() => removerMaterial(aula.id, tipo), `${tipo === 'audio' ? 'Áudio removido' : 'Apostila removida'} da aula ${rotulo}.`)) setRemovendo(false)
+              }}
+            >
+              Sim, remover {nome}
+            </button>
+            <button type="button" className="botao" disabled={ocupado} onClick={() => setRemovendo(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </fieldset>
+  )
+}
+
 /** Vários arquivos de uma vez: cada um vai para a aula indicada no nome (ex.: ALG_U1_A2). */
 function EnvioEmLote({
   unidades,
@@ -603,7 +747,7 @@ function EnvioEmLote({
   const entrada = useRef<HTMLInputElement>(null)
   const entradaPasta = useRef<HTMLInputElement>(null)
   const validos = itens.filter((i) => i.aula)
-  const substitui = validos.filter((i) => i.aula?.temSlides).length
+  const substitui = validos.filter((i) => i.aula?.substitui).length
 
   async function enviarTodos() {
     const falhas: string[] = []
@@ -611,7 +755,10 @@ function EnvioEmLote({
       for (const [n, item] of validos.entries()) {
         setProgresso(`Enviando ${n + 1} de ${validos.length}…`)
         try {
-          if (item.aula) await enviarSlides(item.aula.id, item.arquivo)
+          if (item.aula) {
+            if (item.tipo === 'slide') await enviarSlides(item.aula.id, item.arquivo)
+            else await enviarMaterial(item.aula.id, item.tipo, item.arquivo)
+          }
         } catch {
           falhas.push(item.arquivo.name)
         }
@@ -622,7 +769,9 @@ function EnvioEmLote({
           `${validos.length - falhas.length} de ${validos.length} enviados. Não foi possível enviar: ${falhas.join(', ')}.`,
         )
       }
-    }, `${validos.length} ${validos.length === 1 ? 'arquivo de slides enviado' : 'arquivos de slides enviados'}.`)
+    }, validos.every((i) => i.tipo === 'slide')
+        ? `${validos.length} ${validos.length === 1 ? 'arquivo de slides enviado' : 'arquivos de slides enviados'}.`
+        : `${validos.length} ${validos.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}.`)
     setProgresso(null)
     if (ok || falhas.length > 0) {
       setItens([])
@@ -637,8 +786,9 @@ function EnvioEmLote({
       <summary>Enviar vários slides de uma vez</summary>
       <div className="painel-lote-corpo">
         <p className="campo-dica">
-          Escolha os arquivos .html de {disciplina}, ou a pasta que guarda as pastas das unidades. O nome de cada
-          arquivo diz a aula: <code>ALG_U1_A2.html</code> vai para a Unidade I, Aula 2. Os slides valem para todas as
+          Escolha os arquivos de {disciplina} (.html e .mp3), ou a pasta que guarda as pastas das unidades. O nome de
+          cada arquivo diz a aula: <code>ALG_U1_A2.html</code> vai para a Unidade I, Aula 2 como slides,{' '}
+          <code>ALG_U1_A2_apostila.html</code> como apostila e <code>ALG_U1_A2_audio.mp3</code> como áudio. Os slides valem para todas as
           turmas desta disciplina e só aparecem para o aluno quando a aula é liberada.
         </p>
         <div className="campo">
@@ -648,7 +798,7 @@ function EnvioEmLote({
             id="lote-arquivos"
             type="file"
             multiple
-            accept=".html,.htm,text/html"
+            accept=".html,.htm,text/html,.mp3,audio/mpeg"
             className="painel-arquivo"
             onChange={(e) => setItens(planejarEnvioEmLote([...(e.target.files ?? [])], unidades, sigla))}
           />
@@ -673,7 +823,7 @@ function EnvioEmLote({
                   <span className="painel-lote-arquivo">{i.arquivo.name}</span>
                   <span>
                     {i.aula
-                      ? `→ Aula ${i.aula.rotulo}: ${i.aula.titulo}${i.aula.temSlides ? ' (substitui)' : ''}`
+                      ? `→ Aula ${i.aula.rotulo}${i.tipo === 'slide' ? '' : ` (${NOME_DO_ARQUIVO[i.tipo]})`}: ${i.aula.titulo}${i.aula.substitui ? ' (substitui)' : ''}`
                       : i.problema}
                   </span>
                 </li>
@@ -682,7 +832,7 @@ function EnvioEmLote({
             <p className="painel-resumo" aria-live="polite">
               {progresso ??
                 `${validos.length} de ${itens.length} ${itens.length === 1 ? 'arquivo pronto' : 'arquivos prontos'} para enviar${
-                  substitui > 0 ? `, ${substitui} substituindo slides que já existem` : ''
+                  substitui > 0 ? `, ${substitui} substituindo arquivos que já existem` : ''
                 }.`}
             </p>
             <div className="painel-botoes">

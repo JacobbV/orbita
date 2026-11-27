@@ -98,3 +98,21 @@
     display: none !important;
   }
 }
+
+.palco-de-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.palco-barra {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Apostila: mais alta que um slide, para ler rolando. */
+.slides-moldura-texto {
+  aspect-ratio: auto;
+  height: min(80dvh, 56rem);
+  max-height: none;
+}

@@ -80,6 +80,13 @@ export async function registrarAbertura(aulaId: number): Promise<Conquista> {
   return lerConquista(data)
 }
 
+/** O aluno ouviu o áudio da aula até o fim: 10 XP, uma vez por aula. */
+export async function registrarAudioOuvido(aulaId: number): Promise<Conquista> {
+  const { data, error } = await supabase().rpc('registrar_audio_ouvido', { p_aula_id: aulaId })
+  if (error) throw error
+  return lerConquista(data)
+}
+
 // ---------------------------------------------------------------------------
 // Aviso de conquista: qualquer tela anuncia, o aviso no canto mostra.
 // ---------------------------------------------------------------------------

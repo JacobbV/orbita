@@ -54,6 +54,8 @@ describe('montarPonte', () => {
       { id: 5, aula_id: 11, tipo: 'slide', titulo: 'Sem arquivo', url: 'https://exemplo.org/s', caminho_storage: null, ordem: 3 },
       { id: 1, aula_id: 11, tipo: 'link', titulo: 'Apostila', url: 'https://exemplo.org/apostila', ordem: 1 },
       { id: 3, aula_id: 21, tipo: 'link', titulo: 'Inseguro', url: 'http://exemplo.org/x', ordem: 1 },
+      { id: 6, aula_id: 21, tipo: 'apostila', titulo: 'Apostila da aula', url: null, caminho_storage: 'aulas/21/apostila-1.html', ordem: 2 },
+      { id: 7, aula_id: 21, tipo: 'audio', titulo: 'Áudio da aula', url: null, caminho_storage: 'aulas/21/audio-1.mp3', ordem: 3 },
       { id: 4, aula_id: 22, tipo: 'link', titulo: 'Não deveria aparecer', url: 'https://exemplo.org/y', ordem: 1 },
     ],
     [
@@ -90,7 +92,11 @@ describe('montarPonte', () => {
 
   it('slides HTML viram material interno, sem link externo', () => {
     expect(alg?.unidades[0]?.aulas[0]?.materiais[1]).toEqual({ id: 2, tipo: 'slide', titulo: 'Slides da aula', url: null })
-    expect(alg?.unidades[1]?.aulas[0]?.materiais).toEqual([])
+    expect(alg?.unidades[1]?.aulas[1]?.materiais).toEqual([])
+  })
+
+  it('apostila e áudio abrem na página da aula: um só botão por aula', () => {
+    expect(alg?.unidades[1]?.aulas[0]?.materiais).toEqual([{ id: 6, tipo: 'slide', titulo: 'Apostila da aula', url: null }])
   })
 
   it('aponta a aula liberada mais recentemente', () => {
@@ -124,7 +130,7 @@ describe('numeroRomano e rotuloMaterial', () => {
 
   it('usa o título do material ou um rótulo pelo tipo', () => {
     expect(rotuloMaterial({ tipo: 'link', titulo: 'Apostila' })).toBe('Apostila')
-    expect(rotuloMaterial({ tipo: 'slide', titulo: ' ' })).toBe('Abrir slides')
+    expect(rotuloMaterial({ tipo: 'slide', titulo: ' ' })).toBe('Abrir a aula')
     expect(rotuloMaterial({ tipo: 'outro', titulo: '' })).toBe('Abrir material')
   })
 })

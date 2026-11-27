@@ -17,6 +17,9 @@ const acoes = vi.hoisted(() => ({
   salvarTurma: vi.fn(async () => {}),
   enviarSlides: vi.fn(async (_aula: number, _arquivo: File) => {}),
   removerSlides: vi.fn(async () => {}),
+  salvarTopicos: vi.fn(async (_aula: number, _topicos: string[]) => {}),
+  enviarMaterial: vi.fn(async (_aula: number, _tipo: string, _arquivo: File) => {}),
+  removerMaterial: vi.fn(async () => {}),
 }))
 
 const ALG_M: OfertaDoPainel = {
@@ -79,8 +82,8 @@ beforeEach(() => {
       numero: 1,
       titulo: 'Primeiros passos',
       aulas: [
-        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' }, slides: { id: 90, caminho: 'aulas/11/slides-1.html' }, exercicios: 2 },
-        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null, slides: null, exercicios: 0 },
+        { id: 11, numero: 1, titulo: 'O que é um algoritmo?', liberada: true, link: { titulo: 'Material', url: 'https://exemplo.org/a' }, slides: { id: 90, caminho: 'aulas/11/slides-1.html' }, apostila: null, audio: null, topicos: [], exercicios: 2 },
+        { id: 12, numero: 2, titulo: 'Do algoritmo ao programa', liberada: false, link: null, slides: null, apostila: null, audio: null, topicos: [], exercicios: 0 },
       ],
     },
   ]
@@ -211,6 +214,38 @@ describe('Painel do professor: aulas', () => {
     await usuario.type(link, 'https://exemplo.org/slides')
     await usuario.click(screen.getByRole('button', { name: 'Salvar aula' }))
     expect(acoes.salvarAula).toHaveBeenCalledWith(12, 'Do algoritmo ao programa', 'https://exemplo.org/slides')
+  })
+
+  it('salva os tópicos "Nesta aula" e recusa mais de 5', async () => {
+    const usuario = userEvent.setup()
+    abrir('/professor?aba=aulas', PROFESSOR)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar aula I.2' }))
+    const campo = screen.getByLabelText('Nesta aula (um tópico por linha, até 5)')
+    await usuario.type(campo, 'a{Enter}b{Enter}c{Enter}d{Enter}e{Enter}f')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar aula' }))
+    expect(screen.getByText('Use no máximo 5 tópicos.')).toBeInTheDocument()
+    expect(acoes.salvarTopicos).not.toHaveBeenCalled()
+    await usuario.clear(campo)
+    await usuario.type(campo, 'Variáveis{Enter}{Enter}Tipos de dado')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar aula' }))
+    expect(acoes.salvarTopicos).toHaveBeenCalledWith(12, ['Variáveis', 'Tipos de dado'])
+  })
+
+  it('envia a apostila e o áudio de uma aula', async () => {
+    const usuario = userEvent.setup()
+    abrir('/professor?aba=aulas', PROFESSOR)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar aula I.2' }))
+    await usuario.click(screen.getByRole('button', { name: 'Enviar áudio' }))
+    expect(screen.getByText('Escolha o arquivo .mp3.')).toBeInTheDocument()
+    const audio = new File(['x'], 'ALG_U1_A2_audio.mp3', { type: 'audio/mpeg' })
+    await usuario.upload(screen.getByLabelText('Arquivo de áudio da aula I.2'), audio)
+    await usuario.click(screen.getByRole('button', { name: 'Enviar áudio' }))
+    expect(acoes.enviarMaterial).toHaveBeenCalledWith(12, 'audio', audio)
+    expect(await screen.findByText('Áudio da aula I.2 enviado.')).toBeInTheDocument()
+    const apostila = new File(['<h1>A</h1>'], 'ALG_U1_A2_apostila.html', { type: 'text/html' })
+    await usuario.upload(screen.getByLabelText('Arquivo de apostila da aula I.2'), apostila)
+    await usuario.click(screen.getByRole('button', { name: 'Enviar apostila' }))
+    expect(acoes.enviarMaterial).toHaveBeenCalledWith(12, 'apostila', apostila)
   })
 
   it('adiciona aula e só remove depois de confirmar', async () => {

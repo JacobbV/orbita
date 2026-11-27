@@ -77,7 +77,7 @@ PRs #8, #9 e #10 no ar em 22/11.
 - [x] Modo Ninja: botão no boneco do professor; ponte de qualquer turma com todas as aulas abertas, todas as medalhas acesas, exercícios para testar sem entregar e sem XP. Faixa no topo com "Sair do modo Ninja".
 - [x] Boneco ninja separado, montado no Hangar ninja com qualquer peça e 5 peças só dele (capuz, máscara, traje, faixa e estrela).
 
-## Melhorias da aula e dos exercícios (bloco 1 de 5, em revisão)
+## Melhorias da aula e dos exercícios (bloco 2 de 5, em revisão)
 
 Plano completo em /mnt/project-files/ideias-novembro/PLANO-aula-escola-e-correcoes.md. Ordem: 1 correções do exercício, 2 tela de aula, 3 provas (Fase 4), 4 Hangar novo, 5 escola virtual.
 
@@ -89,11 +89,19 @@ Plano completo em /mnt/project-files/ideias-novembro/PLANO-aula-escola-e-correco
 - [x] Aba "Entregas" no painel: turma, aula, exercício e aluno; abre o código, roda todos os testes (inclusive secretos), ajusta a nota, comenta e devolve.
 - [x] Ponte do aluno mostra se o exercício foi entregue, corrigido (com a nota) ou devolvido; a tela do exercício mostra nota e comentário do professor.
 - [x] Tripulação: grade com o boneco de cada aluno da turma; clicar abre o perfil (patente, XP, medalhas, últimas entregas).
-- [ ] Falta: rodar os testes e2e no GitHub (não rodam fora dele) e conferir no site publicado.
+- [x] Bloco 1 mergeado (PR #12).
+- [ ] Falta: conferir no site publicado.
+
+### Bloco 2: tela da aula
+
+- [x] Página da aula (`/aula/:id`): slides em cima, cartões "Nesta aula" e "Exercícios" na lateral (embaixo dos slides no celular), apostila em HTML e áudio da aula. A ponte tem um só botão "Abrir a aula".
+- [x] Professor escreve até 5 tópicos por aula e envia apostila (.html) e áudio (.mp3), um a um ou em lote pelo nome (`ALG_U4_A2_apostila.html`, `ALG_U4_A2_audio.mp3`).
+- [x] Mesmas barreiras dos slides na apostila (sem salvar, marca-d'água com o nome do aluno). O áudio só baixa quando o aluno pede e não oferece download.
+- [x] 10 XP por ouvir o áudio até o fim, uma vez por aula.
+- [ ] Falta: conferir o peso do áudio no tráfego do Supabase gratuito quando houver áudios reais (um de 12 min com qualidade de voz fica perto de 3 MB).
 
 ### Próximos blocos
 
-- [ ] Bloco 2: tela de aula (slides, "Nesta aula", "Exercícios", apostila em HTML e audiocast).
 - [ ] Bloco 3: Fase 4 (provas), já aprovada, usando a tela de exercício nova.
 - [ ] Bloco 4: Hangar novo (base masculina e feminina, mais corpos, paletas, acessórios em três grupos, farda do IF sem logotipo).
 - [ ] Bloco 5: escola virtual 2D por degraus (mapa, colegas, frases prontas); chat livre só depois de conversar com a coordenação.

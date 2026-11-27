@@ -186,13 +186,13 @@ describe('Ponte de comando', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   })
 
-  it('aula liberada tem os slides do Órbita e o link externo, que abre em outra aba', async () => {
+  it('aula liberada tem a página da aula do Órbita e o link externo, que abre em outra aba', async () => {
     carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
     abrir('/ponte', ALUNO)
     const item = (await screen.findAllByText('O que é um algoritmo?')).at(-1)?.closest('li')
     expect(item).toBeTruthy()
-    const slides = within(item as HTMLElement).getByRole('link', { name: 'Abrir slides' })
-    expect(slides).toHaveAttribute('href', '/slides/2')
+    const slides = within(item as HTMLElement).getByRole('link', { name: 'Abrir a aula' })
+    expect(slides).toHaveAttribute('href', '/aula/11')
     expect(slides).not.toHaveAttribute('target')
     const link = within(item as HTMLElement).getByRole('link', { name: /Apostila/ })
     expect(link).toHaveAttribute('href', 'https://exemplo.org/apostila')

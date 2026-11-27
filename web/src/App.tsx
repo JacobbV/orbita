@@ -20,6 +20,7 @@ import { VerComoAluno } from './pages/professor/VerComoAluno'
 import { XpDaTurma } from './pages/professor/XpDaTurma'
 import { Tripulacao } from './pages/professor/Tripulacao'
 import { RecuperarSenha } from './pages/RecuperarSenha'
+import { Aula } from './pages/Aula'
 import { Slides } from './pages/Slides'
 
 // O laboratório (editor e Python) só baixa quando alguém abre um exercício.
@@ -138,6 +139,14 @@ export function App() {
                 <Suspense fallback={<Carregando />}>
                   <Exercicio />
                 </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="aula/:aulaId"
+            element={
+              <RotaProtegida>
+                <Aula />
               </RotaProtegida>
             }
           />

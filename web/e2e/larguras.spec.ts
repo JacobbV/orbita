@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
-import { criarConta, criarProfessor, emailDeTeste, entrar, enviarSlidesDeTeste, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, criarProfessor, emailDeTeste, entrar, enviarApostilaDeTeste, enviarSlidesDeTeste, oferta, registrarErros, rest } from './apoio.ts'
 
 // Todas as telas em larguras de celular pequeno até monitor ultrawide:
 // sem rolagem horizontal, céu cobrindo a tela, alvos de toque com 44px ou
@@ -82,6 +82,17 @@ const TELAS: Tela[] = [
     papel: 'aluno',
     preparar: async (page) => {
       await expect(page.frameLocator('iframe.slides-moldura').getByRole('heading', { name: 'Slide de teste' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Página da aula',
+    get caminho() {
+      return `aula/${aulaI1}`
+    },
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Nesta aula' })).toBeVisible()
+      await expect(page.frameLocator('iframe[title^="Apostila"]').getByRole('heading', { name: 'Apostila de teste' })).toBeVisible()
     },
   },
   {
@@ -302,6 +313,16 @@ test.beforeAll(async ({ browser }) => {
     '<!doctype html><html lang="pt-BR"><body style="margin:0;font-family:sans-serif">' +
       '<h1 style="padding:24px">Slide de teste</h1><div style="width:1600px;height:40px;background:#22d3ee"></div></body></html>',
   )
+
+  await enviarApostilaDeTeste(
+    aula ?? 0,
+    '<!doctype html><html lang="pt-BR"><body style="margin:0;font-family:sans-serif">' +
+      '<h1 style="padding:24px">Apostila de teste</h1><div style="width:1600px;height:40px;background:#22d3ee"></div></body></html>',
+  )
+  await rest(`aulas?id=eq.${aula ?? 0}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ topicos: ['O que é um algoritmo', 'Entrada, processamento e saída'] }),
+  })
 
   const professor = emailDeTeste('professor-larguras')
   await criarProfessor(professor, 'Professor Fictício')
