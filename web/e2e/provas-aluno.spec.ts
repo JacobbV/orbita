@@ -80,7 +80,6 @@ test.describe.serial('Aluno faz a prova', () => {
     await rest(`matriculas?aluno_id=eq.${alunoId}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
     await criarProva('A', TITULO_A, { abreEmMs: -3_600_000, fechaEmMs: 3_600_000, saidas: null })
     await criarProva('B', TITULO_B, { abreEmMs: -3_600_000, fechaEmMs: 3_600_000, saidas: 1 })
-    await criarProva('C', TITULO_C, { abreEmMs: -3_600_000, fechaEmMs: 12_000, saidas: null })
   })
 
   test('faz a prova, salva a resposta, tem o colar barrado e a saída registrada, e entrega', async ({ page }) => {
@@ -157,6 +156,8 @@ test.describe.serial('Aluno faz a prova', () => {
 
   test('quando o tempo acaba, a prova é entregue sozinha', async ({ page }) => {
     await entrar(page, aluno)
+    // Criada aqui, e não no beforeAll, para o prazo curto contar a partir deste teste.
+    await criarProva('C', TITULO_C, { abreEmMs: -3_600_000, fechaEmMs: 15_000, saidas: null })
     await page.goto(`prova/${provas.C}`)
     await page.getByRole('button', { name: 'Começar a prova' }).click()
     await expect(page.getByText('Prova em andamento')).toBeVisible()
