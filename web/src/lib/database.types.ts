@@ -63,6 +63,32 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"aulas_abertas": {
+                  Row: {
+                    "aberta_em": string,"aluno_id": string,"aula_id": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aberta_em"?: string,"aluno_id": string,"aula_id": number
+                  }
+                  Update: {
+                    "aberta_em"?: string,"aluno_id"?: string,"aula_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "aulas_abertas_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "aulas_abertas_aula_id_fkey"
+      columns: ["aula_id"]
+isOneToOne: false
+      referencedRelation: "aulas"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"dias_de_estudo": {
                   Row: {
                     "aluno_id": string,"dia": string
@@ -731,6 +757,9 @@ isOneToOne: false
                            },
 "registrar_abertura_da_aula":
 { Args: { "p_aula_id": number }; Returns: Json
+                           },
+"registrar_aula_aberta":
+{ Args: { "p_aula_id": number }; Returns: undefined
                            },
 "registrar_saida_da_prova":
 { Args: { "p_prova_id": number }; Returns: Json

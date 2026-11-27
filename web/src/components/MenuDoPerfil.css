@@ -1,0 +1,76 @@
+.perfil-menu {
+  position: relative;
+}
+
+.perfil-bolinha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 2px solid var(--ciano);
+  border-radius: 50%;
+  background: var(--casco);
+  color: var(--ciano);
+  font-family: var(--fonte-pixel, inherit);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.perfil-bolinha:hover,
+.perfil-bolinha[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--ciano) 18%, var(--casco));
+}
+
+.perfil-painel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: min(260px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--casco);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
+}
+
+.perfil-quem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--borda);
+  overflow-wrap: anywhere;
+}
+
+.perfil-quem span {
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.perfil-painel a,
+.perfil-painel button {
+  display: flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.perfil-painel a:hover,
+.perfil-painel button:hover {
+  background: color-mix(in srgb, var(--ciano) 14%, transparent);
+  color: var(--ciano);
+}

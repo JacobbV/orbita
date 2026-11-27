@@ -65,3 +65,50 @@
     gap: 4px;
   }
 }
+
+/* Menu do sistema (depois de entrar): aparece também no celular. */
+.topo-nav.topo-nav-sistema {
+  display: flex;
+  gap: 0;
+  min-width: 0;
+}
+
+.topo-nav-sistema a {
+  padding-inline: 6px;
+  font-size: 0.8125rem;
+  border-bottom: 2px solid transparent;
+}
+
+.topo-nav-sistema a[aria-current='page'] {
+  border-bottom-color: var(--ciano);
+  color: var(--ciano);
+}
+
+@media (min-width: 600px) {
+  .topo-nav-sistema a {
+    padding-inline: 12px;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .topo-esquerda {
+    gap: 6px;
+  }
+}
+
+/* Telas bem estreitas (320px): cabe logo, três menus e a bolinha sem cortar. */
+@media (max-width: 359px) {
+  .topo-nav-sistema a {
+    padding-inline: 4px;
+    font-size: 0.75rem;
+  }
+
+  .topo-linha .logo {
+    font-size: 0.75rem;
+  }
+
+  .topo-linha {
+    gap: 6px;
+  }
+}

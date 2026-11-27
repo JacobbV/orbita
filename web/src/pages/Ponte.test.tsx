@@ -24,7 +24,7 @@ vi.mock('../lib/ponte', async (original) => ({
 }))
 
 // Progresso falso: null = o banco falhou (a ponte abre mesmo assim).
-const progressoFalso = vi.hoisted(() => ({ valor: null as unknown, aberturas: [] as number[] }))
+const progressoFalso = vi.hoisted(() => ({ valor: null as unknown, aberturas: [] as number[], estudo: null as unknown }))
 
 vi.mock('../lib/progresso', async (original) => {
   const real = await original<typeof import('../lib/progresso')>()
@@ -33,6 +33,10 @@ vi.mock('../lib/progresso', async (original) => {
     carregarProgresso: async () => {
       if (!progressoFalso.valor) throw new Error('sem progresso')
       return progressoFalso.valor
+    },
+    carregarEstudoRecente: async () => {
+      if (!progressoFalso.estudo) throw new Error('sem estudo')
+      return progressoFalso.estudo
     },
     registrarAberturaEmSilencio: (aulaId: number) => {
       progressoFalso.aberturas.push(aulaId)
@@ -122,8 +126,28 @@ describe('Ponte de comando', () => {
   beforeEach(() => {
     progressoFalso.valor = null
     progressoFalso.aberturas = []
+    progressoFalso.estudo = null
     professorFalso.valor = null
     medalhasFalsas.valor = null
+  })
+
+  it('mostra Continuar aula, atividades abertas e os dias seguidos', async () => {
+    progressoFalso.estudo = { seguidos: 4, estudouHoje: true, ultimaAulaId: 11 }
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    const continuar = await screen.findByRole('link', { name: 'Continuar aula' })
+    expect(continuar).toHaveAttribute('href', '/aula/11')
+    const abertas = screen.getByRole('heading', { name: 'Atividades abertas' }).closest('div') as HTMLElement
+    expect(within(abertas).getByRole('link', { name: /Soma de dois números/ })).toHaveAttribute('href', '/exercicio/5')
+    expect(await screen.findByText('dias seguidos estudando')).toBeInTheDocument()
+    expect(screen.getByText(/Hoje já conta/)).toBeInTheDocument()
+  })
+
+  it('sem histórico de estudo, convida a começar a aula e esconde os dias seguidos se o banco falhar', async () => {
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    expect(await screen.findByRole('link', { name: 'Começar aula' })).toHaveAttribute('href', '/aula/11')
+    expect(screen.queryByText(/dias? seguidos? estudando/)).toBeNull()
   })
 
   it('mostra as últimas medalhas ganhas e o atalho para todas', async () => {
@@ -221,7 +245,7 @@ describe('Ponte de comando', () => {
     carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
     abrir('/ponte', ALUNO)
     expect(await screen.findByText('Última aula liberada')).toBeInTheDocument()
-    expect(screen.getByText(/Unidade I · Aula 1 — O que é um algoritmo\?/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Unidade I · Aula 1 — O que é um algoritmo\?/).length).toBeGreaterThan(0)
     expect(screen.getByText('Aulas em breve.')).toBeInTheDocument()
   })
 

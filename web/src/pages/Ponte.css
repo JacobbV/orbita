@@ -436,3 +436,122 @@
   font-size: 0.875rem;
   font-weight: 700;
 }
+
+/* Resumo: continuar aula, atividades abertas e dias seguidos. */
+.ponte-resumo {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ponte-continuar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  border-color: color-mix(in srgb, var(--ciano) 55%, var(--borda));
+}
+
+.ponte-continuar-disciplina {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.ponte-resumo-titulo {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+
+.ponte-abertas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ponte-aberta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: var(--alvo-toque);
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--espaco);
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.ponte-aberta:hover {
+  border-color: var(--ciano);
+}
+
+.ponte-aberta-nome {
+  font-weight: 600;
+}
+
+.ponte-aberta-info {
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.ponte-sequencia {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ponte-sequencia-numero {
+  margin: 0;
+  color: var(--estrela);
+  font-family: var(--fonte-pixel, inherit);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ponte-sequencia-titulo {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ponte-sequencia-dica {
+  margin: 2px 0 0;
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 900px) {
+  .ponte-resumo {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+
+  .ponte-continuar {
+    grid-column: 1 / -1;
+  }
+
+  .ponte-abertas {
+    grid-column: 1;
+  }
+
+  .ponte-sequencia {
+    grid-column: 2;
+  }
+}
+
+.ponte-continuar,
+.ponte-abertas,
+.ponte-sequencia {
+  padding: 16px;
+}
+
+@media (min-width: 600px) {
+  .ponte-continuar,
+  .ponte-abertas,
+  .ponte-sequencia {
+    padding: 20px;
+  }
+}

@@ -75,6 +75,13 @@ export function lerConquista(dados: unknown): Conquista {
 
 /** Avisa o banco que o aluno abriu a aula (slides ou link) e devolve o que ele ganhou. */
 export async function registrarAbertura(aulaId: number): Promise<Conquista> {
+  // Guarda a aula como a última aberta ("Continuar aula"); se falhar, o XP segue normal.
+  void supabase()
+    .rpc('registrar_aula_aberta', { p_aula_id: aulaId })
+    .then(
+      () => {},
+      () => {},
+    )
   const { data, error } = await supabase().rpc('registrar_abertura_da_aula', { p_aula_id: aulaId })
   if (error) throw error
   return lerConquista(data)
@@ -175,4 +182,51 @@ export async function darXp(alunoId: string, quantidade: number, descricao: stri
     p_descricao: descricao.trim(),
   })
   if (error) throw error
+}
+
+// ---------------------------------------------------------------------------
+// Estudo recente: dias seguidos e última aula aberta (ponte do aluno)
+// ---------------------------------------------------------------------------
+
+export interface EstudoRecente {
+  /** Dias seguidos estudando (conta até hoje; se hoje ainda não teve aula, até ontem). */
+  seguidos: number
+  /** Se o aluno já estudou hoje. */
+  estudouHoje: boolean
+  /** Última aula aberta pelo aluno, ou null. */
+  ultimaAulaId: number | null
+}
+
+/** Hoje em Fortaleza (mesmo relógio do banco), no formato AAAA-MM-DD. */
+export function hojeEmFortaleza(agora: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Fortaleza' }).format(agora)
+}
+
+function diaAnterior(dia: string): string {
+  const d = new Date(`${dia}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Conta os dias seguidos a partir de hoje (ou de ontem, se hoje ainda não teve estudo). */
+export function diasSeguidos(dias: string[], hoje: string): { seguidos: number; estudouHoje: boolean } {
+  const conjunto = new Set(dias)
+  const estudouHoje = conjunto.has(hoje)
+  let dia = estudouHoje ? hoje : diaAnterior(hoje)
+  let seguidos = 0
+  while (conjunto.has(dia)) {
+    seguidos += 1
+    dia = diaAnterior(dia)
+  }
+  return { seguidos, estudouHoje }
+}
+
+export async function carregarEstudoRecente(): Promise<EstudoRecente> {
+  const [diasRes, abertaRes] = await Promise.all([
+    supabase().from('dias_de_estudo').select('dia').order('dia', { ascending: false }).limit(400),
+    supabase().from('aulas_abertas').select('aula_id').order('aberta_em', { ascending: false }).limit(1),
+  ])
+  const dias = diasRes.error ? [] : diasRes.data.map((d) => d.dia)
+  const ultimaAulaId = abertaRes.error ? null : (abertaRes.data[0]?.aula_id ?? null)
+  return { ...diasSeguidos(dias, hojeEmFortaleza()), ultimaAulaId }
 }
