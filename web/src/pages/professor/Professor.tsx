@@ -4,6 +4,7 @@ import { BonecoDoHangar } from '../../components/BonecoDoHangar'
 import { saudacao } from '../../lib/saudacao'
 import { Aulas } from './Aulas'
 import { Pedidos } from './Pedidos'
+import { Provas } from './Provas'
 import { Turmas } from './Turmas'
 import './Professor.css'
 
@@ -11,6 +12,7 @@ const ABAS = [
   { id: 'pedidos', rotulo: 'Pedidos' },
   { id: 'aulas', rotulo: 'Aulas' },
   { id: 'turmas', rotulo: 'Turmas' },
+  { id: 'provas', rotulo: 'Provas' },
 ] as const
 
 type Aba = (typeof ABAS)[number]['id']
@@ -28,7 +30,7 @@ export function Professor() {
         <div>
           <p className="pixel painel-selo">Painel do professor</p>
           <h1>{saudacao(perfil?.nome, 'professor')}</h1>
-          <p className="painel-intro">Aprove os pedidos de acesso, libere as aulas de cada turma e organize as disciplinas.</p>
+          <p className="painel-intro">Aprove os pedidos de acesso, libere as aulas de cada turma, organize as disciplinas e monte as provas.</p>
         </div>
       </header>
 
@@ -48,6 +50,7 @@ export function Professor() {
       {aba === 'pedidos' && <Pedidos />}
       {aba === 'aulas' && <Aulas />}
       {aba === 'turmas' && <Turmas />}
+      {aba === 'provas' && <Provas />}
     </div>
   )
 }

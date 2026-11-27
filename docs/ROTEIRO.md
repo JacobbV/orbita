@@ -68,7 +68,7 @@ PRs #8, #9 e #10 no ar em 22/11.
 - [x] Relatório do professor: nota de cada aluno por exercício, tentativas, código de cada entrega e planilha (CSV).
 - [x] Revisão final: maiúsculas acentuadas (Á, É, Ó...) inteiras nos selos em pixel, com fonte derivada da Press Start 2P (OFL).
 
-## Modo Ninja e apelidos (PR novo, em revisão)
+## Modo Ninja e apelidos (PR #11, no ar)
 
 - [x] Apelidos só por sorteio: nome + adjetivo de listas aprovadas (294 nomes, 155 adjetivos, mais de 45 mil combinações), com concordância de gênero e sem repetição entre contas. Não há campo para digitar.
 - [x] Aluno sorteia na ponte (cartão aparece enquanto não tem apelido) e troca no Hangar.
@@ -76,6 +76,14 @@ PRs #8, #9 e #10 no ar em 22/11.
 - [x] Apelido do professor no cartão "Comandante da nave".
 - [x] Modo Ninja: botão no boneco do professor; ponte de qualquer turma com todas as aulas abertas, todas as medalhas acesas, exercícios para testar sem entregar e sem XP. Faixa no topo com "Sair do modo Ninja".
 - [x] Boneco ninja separado, montado no Hangar ninja com qualquer peça e 5 peças só dele (capuz, máscara, traje, faixa e estrela).
+
+## Fase 4: provas (branch `fase-4-provas`, em andamento)
+
+- [x] P1 banco: provas, questões com peso, tentativas, respostas, saídas da aba e segunda chamada, com regras de acesso e horário conferidos no banco.
+- [x] P2 painel: aba Provas com a lista, montar e editar prova (turma, horário de abrir e fechar, duração, regra de saída da aba), questões das aulas ou criadas só para a prova, peso e ordem; questões travadas depois que algum aluno começa.
+- [ ] P3 aluno: fazer a prova com cronômetro, tela cheia, colar bloqueado e aviso de saída da aba (detecta e avisa, não impede).
+- [ ] P4 acompanhar ao vivo, segunda chamada, reconferência e publicar notas.
+- [ ] P5 relatório da prova com CSV.
 
 ## Ideias
 
