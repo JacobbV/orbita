@@ -18,7 +18,7 @@ test.describe.serial('Hangar e Ver como aluno', () => {
     const erros = registrarErros(page)
     await entrar(page, aluno)
     await page.goto('ponte')
-    await page.getByRole('link', { name: /Hangar/ }).click()
+    await page.getByRole('main').getByRole('link', { name: /Hangar/ }).click()
     await expect(page.getByRole('heading', { name: 'Monte o seu tripulante' })).toBeVisible()
 
     // Com 0 XP, o cabelo arrepiado (250 XP) fica trancado.
@@ -57,7 +57,7 @@ test.describe.serial('Hangar e Ver como aluno', () => {
     const erros = registrarErros(page)
     await entrar(page, professor)
     await page.goto('professor')
-    await page.getByRole('link', { name: /Hangar/ }).click()
+    await page.getByRole('main').getByRole('link', { name: /Hangar/ }).click()
     await expect(page.getByRole('heading', { name: 'Monte o seu boneco' })).toBeVisible()
     await page.getByRole('tab', { name: 'Acessórios' }).click()
     await page.getByRole('button', { name: 'Corpo e mãos' }).click()

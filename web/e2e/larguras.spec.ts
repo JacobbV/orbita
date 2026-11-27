@@ -169,7 +169,7 @@ const TELAS: Tela[] = [
     papel: 'professor',
     preparar: async (page) => {
       await page.getByRole('button', { name: 'Modo Ninja' }).click()
-      await page.getByRole('link', { name: /Hangar/ }).click()
+      await page.getByRole('main').getByRole('link', { name: /Hangar/ }).click()
       await expect(page.getByRole('heading', { name: 'Monte o seu ninja' })).toBeVisible()
     },
   },

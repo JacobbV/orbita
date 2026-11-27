@@ -36,7 +36,7 @@ test.describe.serial('Apelidos e Modo Ninja', () => {
     await expect(page.locator('.ponte-apelido')).toHaveText(`Apelido: ${escolhido}`)
     await expect(page.getByRole('region', { name: 'Seu apelido na nave' })).toHaveCount(0)
 
-    await page.getByRole('link', { name: /Hangar/ }).click()
+    await page.getByRole('main').getByRole('link', { name: /Hangar/ }).click()
     const noHangar = page.getByRole('region', { name: 'Seu apelido na nave' })
     await expect(noHangar).toContainText(escolhido)
     await noHangar.getByRole('button', { name: 'Sortear outro' }).click()
