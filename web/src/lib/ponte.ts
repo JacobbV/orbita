@@ -326,3 +326,65 @@ async function carregarDisciplinas(aprovados: Pedido[], tudoLiberado = false): P
 
   return montarPonte(aprovados, unidades, liberacoes, materiais, exercicios, entregas)
 }
+
+export interface AtividadeAberta {
+  exercicio: ExercicioDaPonte
+  aulaId: number
+  aulaTitulo: string
+  /** Ex.: "II.3" */
+  rotuloDaAula: string
+  disciplina: string
+  devolvida: boolean
+}
+
+/**
+ * Exercícios das aulas liberadas que o aluno ainda não entregou (ou que o
+ * professor devolveu para refazer). Entregues e corrigidos ficam de fora.
+ */
+export function atividadesAbertas(disciplinas: DisciplinaDaPonte[]): AtividadeAberta[] {
+  const lista: AtividadeAberta[] = []
+  for (const d of disciplinas) {
+    for (const u of d.unidades) {
+      for (const a of u.aulas) {
+        if (!a.liberada) continue
+        for (const e of a.exercicios) {
+          const estado = e.entrega?.estado
+          if (estado === 'entregue' || estado === 'corrigida') continue
+          lista.push({
+            exercicio: e,
+            aulaId: a.id,
+            aulaTitulo: a.titulo,
+            rotuloDaAula: `${numeroRomano(u.numero)}.${a.numero}`,
+            disciplina: d.oferta.disciplina.nome,
+            devolvida: estado === 'devolvida',
+          })
+        }
+      }
+    }
+  }
+  // Devolvidas primeiro: o professor está esperando.
+  return lista.sort((x, y) => Number(y.devolvida) - Number(x.devolvida))
+}
+
+/** A aula para "Continuar aula": a última aberta (se ainda liberada); senão a última liberada. */
+export function aulaParaContinuar(
+  disciplinas: DisciplinaDaPonte[],
+  ultimaAulaId: number | null,
+): { disciplina: DisciplinaDaPonte; unidade: UnidadeDaPonte; aula: AulaDaPonte; jaAberta: boolean } | null {
+  if (ultimaAulaId !== null) {
+    for (const d of disciplinas) {
+      for (const u of d.unidades) {
+        const aula = u.aulas.find((a) => a.id === ultimaAulaId && a.liberada)
+        if (aula) return { disciplina: d, unidade: u, aula, jaAberta: true }
+      }
+    }
+  }
+  let melhor: { disciplina: DisciplinaDaPonte; unidade: UnidadeDaPonte; aula: AulaDaPonte; jaAberta: boolean } | null = null
+  for (const d of disciplinas) {
+    const u = d.ultimaLiberada
+    if (u && (!melhor || (u.aula.liberadaEm ?? '') > (melhor.aula.liberadaEm ?? ''))) {
+      melhor = { disciplina: d, unidade: u.unidade, aula: u.aula, jaAberta: false }
+    }
+  }
+  return melhor
+}

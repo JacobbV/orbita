@@ -1,5 +1,5 @@
 import type { Pedido } from './api'
-import { montarPonte, numeroRomano, rotuloMaterial, situacaoNaPonte, type EntregaNaPonteDoBanco, type UnidadeDoBanco } from './ponte'
+import { atividadesAbertas, aulaParaContinuar, montarPonte, numeroRomano, rotuloMaterial, situacaoNaPonte, type EntregaNaPonteDoBanco, type UnidadeDoBanco } from './ponte'
 
 // Dados inventados; nenhum nome ou turma real de aluno.
 function pedidoAprovado(ofertaId: number, disciplinaId: number, nome: string): Pedido {
@@ -182,5 +182,62 @@ describe('situacaoNaPonte', () => {
     const [soma, media] = alg?.unidades[0]?.aulas[0]?.exercicios ?? []
     expect(soma?.entrega).toEqual({ estado: 'corrigida', nota: 9, comentario: null })
     expect(media?.entrega).toBeUndefined()
+  })
+})
+
+describe('atividades abertas e continuar aula', () => {
+  const exercicios = [
+    { id: 1, aula_id: 11, titulo: 'Olá, nave', dificuldade: 1, ordem: 1 },
+    { id: 2, aula_id: 11, titulo: 'Soma dupla', dificuldade: 2, ordem: 2 },
+    { id: 3, aula_id: 21, titulo: 'Verdadeiro ou falso', dificuldade: 1, ordem: 1 },
+    { id: 4, aula_id: 22, titulo: 'Aula ainda trancada', dificuldade: 1, ordem: 1 },
+  ]
+  const entrega = (exercicio_id: number, extra: Partial<EntregaNaPonteDoBanco> = {}): EntregaNaPonteDoBanco => ({
+    exercicio_id,
+    tentativa: 1,
+    nota: 10,
+    nota_professor: null,
+    comentario: null,
+    corrigida_em: null,
+    devolvida_em: null,
+    ...extra,
+  })
+  const disciplinas = montarPonte(
+    [pedidoAprovado(11, 1, 'Algoritmos')],
+    unidades,
+    [
+      { aula_id: 11, turma_disciplina_id: 11, liberado_em: '2026-11-02T10:00:00Z' },
+      { aula_id: 21, turma_disciplina_id: 11, liberado_em: '2026-11-05T10:00:00Z' },
+    ],
+    [],
+    exercicios,
+    [entrega(1), entrega(2, { devolvida_em: '2026-11-08T10:00:00Z' })],
+  )
+
+  it('lista só o que falta fazer, com as devolvidas primeiro', () => {
+    const abertas = atividadesAbertas(disciplinas)
+    expect(abertas.map((a) => a.exercicio.id)).toEqual([2, 3])
+    expect(abertas[0]).toMatchObject({ devolvida: true, rotuloDaAula: 'I.1', disciplina: 'Algoritmos' })
+    expect(abertas[1]).toMatchObject({ devolvida: false, rotuloDaAula: 'II.1' })
+  })
+
+  it('exercício de aula bloqueada não aparece, e corrigido sai da lista', () => {
+    const corrigidas = montarPonte(
+      [pedidoAprovado(11, 1, 'Algoritmos')],
+      unidades,
+      [{ aula_id: 11, turma_disciplina_id: 11, liberado_em: '2026-11-02T10:00:00Z' }],
+      [],
+      exercicios,
+      [entrega(1, { corrigida_em: '2026-11-09T10:00:00Z' })],
+    )
+    expect(atividadesAbertas(corrigidas).map((a) => a.exercicio.id)).toEqual([2])
+  })
+
+  it('continua da última aula aberta; sem ela, da última liberada', () => {
+    expect(aulaParaContinuar(disciplinas, 11)).toMatchObject({ jaAberta: true, aula: { id: 11 } })
+    expect(aulaParaContinuar(disciplinas, null)).toMatchObject({ jaAberta: false, aula: { id: 21 } })
+    // Aula aberta que não está mais liberada: cai na última liberada.
+    expect(aulaParaContinuar(disciplinas, 22)).toMatchObject({ jaAberta: false, aula: { id: 21 } })
+    expect(aulaParaContinuar([], 11)).toBeNull()
   })
 })

@@ -14,8 +14,17 @@ import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
 import { PreviaDoProfessor } from '../lib/previa'
 import { carregarMedalhas, ultimasGanhas, type MedalhaDoAluno } from '../lib/medalhas'
 import { saudacao } from '../lib/saudacao'
-import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
+  carregarEstudoRecente,
+  carregarProgresso,
+  porcentagemDaPatente,
+  registrarAberturaEmSilencio,
+  type EstudoRecente,
+  type Progresso,
+} from '../lib/progresso'
+import {
+  atividadesAbertas,
+  aulaParaContinuar,
   carregarPonte,
   NOME_NA_PONTE,
   numeroRomano,
@@ -35,6 +44,7 @@ export function Ponte() {
   const [dados, setDados] = useState<DadosDaPonte | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [progresso, setProgresso] = useState<Progresso | null>(null)
+  const [estudo, setEstudo] = useState<EstudoRecente | null>(null)
 
   useEffect(() => {
     let ativo = true
@@ -42,6 +52,12 @@ export function Ponte() {
     carregarProgresso().then(
       (p) => {
         if (ativo) setProgresso(p)
+      },
+      () => {},
+    )
+    carregarEstudoRecente().then(
+      (e) => {
+        if (ativo) setEstudo(e)
       },
       () => {},
     )
@@ -105,6 +121,8 @@ export function Ponte() {
 
       {!perfil?.apelido && <EscolherApelido />}
 
+      <ResumoDaPonte disciplinas={dados.disciplinas} estudo={estudo} />
+
       <ProfessorDaNave />
 
       <ProvasDaPonte />
@@ -113,6 +131,76 @@ export function Ponte() {
         <PainelDisciplina key={d.oferta.id} disciplina={d} />
       ))}
     </div>
+  )
+}
+
+/** Continuar aula, atividades abertas e dias seguidos de estudo. */
+function ResumoDaPonte({ disciplinas, estudo }: { disciplinas: DisciplinaDaPonte[]; estudo: EstudoRecente | null }) {
+  const continuar = aulaParaContinuar(disciplinas, estudo?.ultimaAulaId ?? null)
+  const abertas = atividadesAbertas(disciplinas)
+  const temAulaInterna = continuar?.aula.materiais.some((m) => m.url === null) ?? false
+
+  return (
+    <section className="ponte-resumo" aria-label="Resumo dos estudos">
+      {continuar && (
+        <div className="cartao ponte-continuar">
+          <p className="pixel ponte-destaque-selo">{continuar.jaAberta ? 'De onde você parou' : 'Próxima missão'}</p>
+          <p className="ponte-destaque-titulo">
+            Unidade {numeroRomano(continuar.unidade.numero)} · Aula {continuar.aula.numero} — {continuar.aula.titulo}
+          </p>
+          <p className="ponte-continuar-disciplina">{continuar.disciplina.oferta.disciplina.nome}</p>
+          {temAulaInterna ? (
+            <Link to={`/aula/${continuar.aula.id}`} className="botao botao-primario ponte-continuar-botao">
+              {continuar.jaAberta ? 'Continuar aula' : 'Começar aula'}
+            </Link>
+          ) : (
+            <Materiais aulaId={continuar.aula.id} materiais={continuar.aula.materiais} primario />
+          )}
+        </div>
+      )}
+
+      <div className="cartao ponte-abertas">
+        <h2 className="ponte-resumo-titulo">Atividades abertas</h2>
+        {abertas.length === 0 ? (
+          <p className="ponte-sem-material">Nenhuma atividade pendente. Bom trabalho, tripulante!</p>
+        ) : (
+          <ul className="ponte-abertas-lista" role="list">
+            {abertas.map((a) => (
+              <li key={a.exercicio.id}>
+                <Link to={`/exercicio/${a.exercicio.id}`} className="ponte-aberta">
+                  <span className="ponte-aberta-nome">{a.exercicio.titulo}</span>
+                  <span className="ponte-aberta-info">
+                    {a.devolvida && <strong className="ponte-exercicio-devolvida">Devolvida: refaça · </strong>}
+                    Aula {a.rotuloDaAula} · {a.disciplina}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {estudo && (
+        <div className="cartao ponte-sequencia">
+          <p className="ponte-sequencia-numero" aria-hidden="true">
+            {estudo.seguidos}
+          </p>
+          <div>
+            <p className="ponte-sequencia-titulo">
+              <span className="sr-only">{estudo.seguidos} </span>
+              {estudo.seguidos === 1 ? 'dia seguido estudando' : 'dias seguidos estudando'}
+            </p>
+            <p className="ponte-sequencia-dica">
+              {estudo.seguidos === 0
+                ? 'Abra uma aula hoje para começar a sua sequência.'
+                : estudo.estudouHoje
+                  ? 'Hoje já conta. A cada 5 dias seguidos rende 30 XP.'
+                  : 'Abra uma aula hoje para não perder a sequência.'}
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
   )
 }
 
