@@ -18,6 +18,7 @@ import { Ponte } from './pages/Ponte'
 import { Professor } from './pages/professor/Professor'
 import { VerComoAluno } from './pages/professor/VerComoAluno'
 import { XpDaTurma } from './pages/professor/XpDaTurma'
+import { Tripulacao } from './pages/professor/Tripulacao'
 import { RecuperarSenha } from './pages/RecuperarSenha'
 import { Slides } from './pages/Slides'
 
@@ -96,6 +97,14 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <XpDaTurma />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/tripulacao/:ofertaId"
+            element={
+              <RotaProtegida papel="professor">
+                <Tripulacao />
               </RotaProtegida>
             }
           />

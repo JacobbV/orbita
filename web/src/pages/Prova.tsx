@@ -6,6 +6,7 @@ import { saidaConfere } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import type { Executor, ResultadoDaExecucao } from '../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
+import { Terminal } from '../lab/Terminal'
 import { mensagemDeErro } from '../lib/erros'
 import {
   comecarProva,
@@ -31,6 +32,9 @@ import './Prova.css'
 type Fase = 'intro' | 'fazendo' | 'fim'
 type ResultadoTeste = { numero: number; tipo: 'visivel' | 'oculto'; certo: boolean; esperado: string | null; entrada: string; resultado: ResultadoDaExecucao }
 type Salva = { codigo: string; certos: number; total: number }
+/** O que o terminal mostra: o código que está rodando, as respostas já digitadas e a saída. */
+type SessaoDoTerminal = { codigo: string; respostas: string[]; resultado: ResultadoDaExecucao }
+const juntarRespostas = (respostas: string[]) => respostas.map((r) => `${r}\n`).join('')
 
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -399,10 +403,9 @@ function QuestoesDaProva({
   const [codigos, setCodigos] = useState<Record<number, string>>(() =>
     Object.fromEntries(questoes.map((q) => [q.questaoId, lerRascunhoDaQuestao(provaId, q.questaoId) ?? q.minhaResposta ?? q.codigoInicial])),
   )
-  const [entradas, setEntradas] = useState<Record<number, string>>({})
   const [ocupado, setOcupado] = useState<null | 'carregando' | 'rodando' | 'testando' | 'salvando'>(null)
   const [falha, setFalha] = useState<string | null>(null)
-  const [consoleSaida, setConsoleSaida] = useState<ResultadoDaExecucao | null>(null)
+  const [sessao, setSessao] = useState<SessaoDoTerminal | null>(null)
   const [resultados, setResultados] = useState<Record<number, ResultadoTeste[]>>({})
   const [erroAoSalvar, setErroAoSalvar] = useState<string | null>(null)
   const executores = useRef<Record<string, Executor>>({})
@@ -442,12 +445,24 @@ function QuestoesDaProva({
     }
   }
 
+  async function rodarNoTerminal(ex: Executor, codigoRodado: string, respostas: string[]) {
+    setOcupado('rodando')
+    const resultado = await ex.rodar(codigoRodado, juntarRespostas(respostas), true)
+    setSessao({ codigo: codigoRodado, respostas, resultado })
+    setOcupado(null)
+  }
+
   async function rodar() {
     const ex = await preparar()
     if (!ex) return
-    setOcupado('rodando')
-    setConsoleSaida(await ex.rodar(codigo, entradas[q!.questaoId] ?? visiveis[0]?.entrada ?? '', true))
-    setOcupado(null)
+    setSessao(null)
+    await rodarNoTerminal(ex, codigo, [])
+  }
+
+  async function responder(resposta: string) {
+    const ex = executores.current[q!.linguagem]
+    if (!ex || !sessao) return
+    await rodarNoTerminal(ex, sessao.codigo, [...sessao.respostas, resposta])
   }
 
   async function testarESalvar() {
@@ -487,7 +502,7 @@ function QuestoesDaProva({
             disabled={ocupado !== null}
             onClick={() => {
               setAtiva(i)
-              setConsoleSaida(null)
+              setSessao(null)
               setFalha(null)
               setErroAoSalvar(null)
             }}
@@ -549,19 +564,19 @@ function QuestoesDaProva({
           {ehHtml ? (
             <PreviaDaProva codigo={codigo} />
           ) : (
-            <>
-              <label className="exercicio-rotulo" htmlFor="prova-entrada">
-                Entrada para o Rodar (uma resposta por linha)
-              </label>
-              <textarea
-                id="prova-entrada"
-                className="exercicio-entrada"
-                rows={3}
-                value={entradas[q.questaoId] ?? visiveis[0]?.entrada ?? ''}
-                onChange={(e) => setEntradas((x) => ({ ...x, [q.questaoId]: e.target.value }))}
-                spellCheck={false}
-              />
-            </>
+            <Terminal
+              resultado={sessao?.resultado ?? null}
+              ocupado={ocupado === 'carregando' || ocupado === 'rodando'}
+              mensagemOcupado={
+                ocupado === 'carregando' && q.linguagem === 'python'
+                  ? 'Carregando o Python… Na primeira vez pode levar alguns segundos.'
+                  : ocupado === 'carregando'
+                    ? `Preparando o ${linguagem.nome}…`
+                    : 'Rodando o seu código…'
+              }
+              respostasDadas={sessao?.respostas.length ?? 0}
+              aoResponder={responder}
+            />
           )}
           <div className="exercicio-botoes">
             {!ehHtml && (
@@ -574,8 +589,6 @@ function QuestoesDaProva({
             </button>
           </div>
           <p className="exercicio-status" role="status">
-            {ocupado === 'carregando' && (q.linguagem === 'python' ? 'Carregando o Python… Na primeira vez pode levar alguns segundos.' : `Preparando o ${linguagem.nome}…`)}
-            {ocupado === 'rodando' && 'Rodando o seu código…'}
             {ocupado === 'testando' && 'Conferindo os testes…'}
             {ocupado === 'salvando' && 'Salvando a resposta…'}
           </p>
@@ -591,12 +604,6 @@ function QuestoesDaProva({
             </p>
           )}
           {mudouDepois && <p className="prova-salva prova-salva-velha">Você mudou o código depois de salvar. Só vale o que foi salvo.</p>}
-          {consoleSaida && (
-            <div className="exercicio-console">
-              <p className="exercicio-rotulo">Saída do seu programa</p>
-              <SaidaDoPrograma resultado={consoleSaida} />
-            </div>
-          )}
         </div>
       </section>
 

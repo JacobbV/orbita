@@ -48,6 +48,12 @@ insert into public.liberacoes (turma_disciplina_id, aula_id) values (pg_temp.ofe
 
 create temp table ex (nome text primary key, id bigint);
 grant all on ex to authenticated;
+
+-- Entrega única: para entregar de novo, o professor devolve. Ajudante que devolve as entregas abertas.
+create function pg_temp.devolver_abertas() returns void language sql security definer as $$
+  update public.entregas set devolvida_em = now() where devolvida_em is null;
+$$;
+grant execute on function pg_temp.devolver_abertas() to authenticated;
 with i as (insert into public.exercicios (aula_id, titulo, enunciado) values (pg_temp.aula('ALG', 2, 1), 'Medalha A', 'x') returning id)
 insert into ex select 'a', id from i;
 with i as (insert into public.exercicios (aula_id, titulo, enunciado) values (pg_temp.aula('ALG', 2, 1), 'Medalha B', 'x') returning id)
@@ -60,8 +66,11 @@ set local role authenticated;
 select public.salvar_avatar('{"cabelo": "cabelo-curto"}');
 select public.entregar((select id from ex where nome = 'a'), 'print(1)', 1);
 select public.entregar((select id from ex where nome = 'b'), 'print(0)', 0);
+select pg_temp.devolver_abertas();
 select public.entregar((select id from ex where nome = 'b'), 'print(0)', 0);
+select pg_temp.devolver_abertas();
 select public.entregar((select id from ex where nome = 'b'), 'print(0)', 0);
+select pg_temp.devolver_abertas();
 reset role;
 
 select ok(pg_temp.tem('estilista'), 'montar o boneco dá Estilista Espacial');

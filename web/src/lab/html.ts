@@ -74,9 +74,9 @@ export class ExecutorHtml implements Executor {
   async rodar(codigo: string, entrada = ''): Promise<ResultadoDaExecucao> {
     const { doc, fechar } = await abrirPagina(codigo)
     try {
-      return { saida: consultarPagina(doc, entrada), erro: null, tempoEsgotado: false, saidaGrande: false }
+      return { saida: consultarPagina(doc, entrada), erro: null, tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false }
     } catch (e) {
-      return { saida: '', erro: e instanceof Error ? e.message : String(e), tempoEsgotado: false, saidaGrande: false }
+      return { saida: '', erro: e instanceof Error ? e.message : String(e), tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false }
     } finally {
       fechar()
     }

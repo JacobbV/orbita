@@ -99,14 +99,14 @@ isOneToOne: false
                   ]
                 },"entregas": {
                   Row: {
-                    "aluno_id": string,"codigo": string,"conferida_em": string | null,"criado_em": string,"exercicio_id": number,"id": number,"nota": number,"situacao": string,"tentativa": number,"testes_certos": number,"testes_total": number
+                    "aluno_id": string,"codigo": string,"comentario": string | null,"conferida_em": string | null,"corrigida_em": string | null,"criado_em": string,"devolvida_em": string | null,"exercicio_id": number,"id": number,"nota": number,"nota_professor": number | null,"situacao": string,"tentativa": number,"testes_certos": number,"testes_total": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "aluno_id": string,"codigo": string,"conferida_em"?: string | null,"criado_em"?: string,"exercicio_id": number,"id"?: never,"nota": number,"situacao"?: string,"tentativa": number,"testes_certos": number,"testes_total": number
+                    "aluno_id": string,"codigo": string,"comentario"?: string | null,"conferida_em"?: string | null,"corrigida_em"?: string | null,"criado_em"?: string,"devolvida_em"?: string | null,"exercicio_id": number,"id"?: never,"nota": number,"nota_professor"?: number | null,"situacao"?: string,"tentativa": number,"testes_certos": number,"testes_total": number
                   }
                   Update: {
-                    "aluno_id"?: string,"codigo"?: string,"conferida_em"?: string | null,"criado_em"?: string,"exercicio_id"?: number,"id"?: never,"nota"?: number,"situacao"?: string,"tentativa"?: number,"testes_certos"?: number,"testes_total"?: number
+                    "aluno_id"?: string,"codigo"?: string,"comentario"?: string | null,"conferida_em"?: string | null,"corrigida_em"?: string | null,"criado_em"?: string,"devolvida_em"?: string | null,"exercicio_id"?: number,"id"?: never,"nota"?: number,"nota_professor"?: number | null,"situacao"?: string,"tentativa"?: number,"testes_certos"?: number,"testes_total"?: number
                   }
                   Relationships: [
                     {
@@ -626,6 +626,9 @@ isOneToOne: false
 "conferir_resposta":
 { Args: { "p_confere": boolean,"p_resposta_id": number }; Returns: undefined
                            },
+"corrigir_entrega":
+{ Args: { "p_comentario": string,"p_entrega_id": number,"p_nota": number }; Returns: undefined
+                           },
 "dar_xp":
 { Args: { "p_aluno_id": string,"p_descricao": string,"p_quantidade": number }; Returns: undefined
                            },
@@ -654,6 +657,9 @@ isOneToOne: false
                            },
 "definir_slides_da_aula":
 { Args: { "p_aula_id": number,"p_caminho": string,"p_titulo"?: string }; Returns: string
+                           },
+"devolver_entrega":
+{ Args: { "p_comentario": string,"p_entrega_id": number }; Returns: undefined
                            },
 "entregar":
 { Args: { "p_codigo": string,"p_exercicio_id": number,"p_testes_certos": number }; Returns: Json

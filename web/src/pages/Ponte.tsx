@@ -17,6 +17,7 @@ import { saudacao } from '../lib/saudacao'
 import { carregarProgresso, porcentagemDaPatente, registrarAberturaEmSilencio, type Progresso } from '../lib/progresso'
 import {
   carregarPonte,
+  NOME_NA_PONTE,
   numeroRomano,
   rotuloMaterial,
   type AulaDaPonte,
@@ -269,6 +270,14 @@ function Exercicios({ exercicios }: { exercicios: ExercicioDaPonte[] }) {
             <span>
               Exercício: {e.titulo}
               <span className="ponte-exercicio-xp"> · +{XP_POR_DIFICULDADE[e.dificuldade as 1 | 2 | 3] ?? 20} XP</span>
+              {e.entrega && (
+                <span className={`ponte-exercicio-situacao ponte-exercicio-${e.entrega.estado}`}>
+                  {' '}
+                  · {NOME_NA_PONTE[e.entrega.estado]}
+                  {e.entrega.estado === 'corrigida' &&
+                    `, nota ${e.entrega.nota.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`}
+                </span>
+              )}
             </span>
           </Link>
         </li>

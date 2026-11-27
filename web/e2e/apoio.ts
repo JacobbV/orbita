@@ -101,7 +101,6 @@ export async function entrar(page: Page, email: string): Promise<void> {
   await expect(page).not.toHaveURL(/\/entrar$/)
 }
 
-/** Guarda os erros de JavaScript da página para conferir no fim do teste. */
 /** Envia um arquivo de slides para a aula (como o painel faz) e devolve o id do material. */
 export async function enviarSlidesDeTeste(aulaId: number, html: string): Promise<number> {
   const { url, serviceKey } = supabaseLocal()
@@ -120,6 +119,24 @@ export async function enviarSlidesDeTeste(aulaId: number, html: string): Promise
   return material?.id ?? 0
 }
 
+/** Digita, uma por uma, as respostas que o input() pede no terminal do exercício. */
+export async function responderNoTerminal(page: Page, respostas: string[]): Promise<void> {
+  for (const [i, resposta] of respostas.entries()) {
+    const campo = page.locator(`.terminal-campo[data-resposta="${i + 1}"]`)
+    await campo.waitFor({ state: 'visible', timeout: 60_000 })
+    await campo.fill(resposta)
+    await campo.press('Enter')
+  }
+}
+
+/** Entrega pelo botão, confirmando a pergunta "Deseja realmente entregar?". */
+export async function entregarConfirmando(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Entregar', exact: true }).click()
+  await expect(page.getByRole('alertdialog')).toContainText('Deseja realmente entregar?')
+  await page.getByRole('button', { name: 'Sim, entregar' }).click()
+}
+
+/** Guarda os erros de JavaScript da página para conferir no fim do teste. */
 export function registrarErros(page: Page): string[] {
   const erros: string[] = []
   page.on('pageerror', (e) => erros.push(e.message))

@@ -37,6 +37,12 @@ grant execute on function pg_temp.oferta(text, text), pg_temp.aula(text, int, in
   pg_temp.id(text) to anon, authenticated;
 grant select, insert on ids to authenticated;
 
+-- Entrega única: para entregar de novo, o professor devolve. Ajudante que devolve as entregas abertas.
+create function pg_temp.devolver_abertas() returns void language sql security definer as $$
+  update public.entregas set devolvida_em = now() where devolvida_em is null;
+$$;
+grant execute on function pg_temp.devolver_abertas() to authenticated;
+
 delete from public.liberacoes where turma_disciplina_id in (pg_temp.oferta('1º INFO M', 'ALG'), pg_temp.oferta('1º INFO V', 'ALG'));
 
 select pg_temp.criar_conta('a7000000-0000-0000-0000-00000000000f', 'docente.lab@academico.ifpb.edu.br');
@@ -108,10 +114,13 @@ select throws_ok($$ insert into public.exercicios (aula_id, titulo, enunciado) v
 -- ---------------------------------------------------------------------------
 select is(public.entregar(pg_temp.id('soma'), 'print(1)', 1) ->> 'xp', '0', 'acertou metade: sem XP');
 select is((select nota from public.entregas where tentativa = 1), 5.0, 'nota proporcional aos testes certos');
+select pg_temp.devolver_abertas();
 select is(public.entregar(pg_temp.id('soma'), 'a, b = map(int, input().split())' || E'\n' || 'print(a + b)', 2) ->> 'xp', '20',
   'acertou tudo: +20 XP na hora');
 select is((public.meu_progresso() ->> 'xp')::int, 20, 'XP a confirmar já conta no progresso');
+select pg_temp.devolver_abertas();
 select is(public.entregar(pg_temp.id('soma'), 'print(3)', 2) ->> 'xp', '0', 'o mesmo exercício não dá XP duas vezes');
+select pg_temp.devolver_abertas();
 select throws_ok($$ select public.entregar(pg_temp.id('soma'), 'print(3)', 3) $$,
   '22023', 'Resultado dos testes inválido.', 'não dá para dizer que acertou mais testes do que existem');
 select throws_ok($$ select public.entregar(pg_temp.id('bloqueado'), 'print(3)', 0) $$,
@@ -140,6 +149,7 @@ reset role;
 select pg_temp.entrar('a7000000-0000-0000-0000-0000000000a1');
 set local role authenticated;
 select is((public.meu_progresso() ->> 'xp')::int, 0, 'XP retirado sai do progresso');
+select pg_temp.devolver_abertas();
 select is(public.entregar(pg_temp.id('soma'), 'a, b = map(int, input().split())' || E'\n' || 'print(a + b)', 2) ->> 'xp', '20',
   'depois de corrigir, a nova entrega dá XP de novo');
 reset role;

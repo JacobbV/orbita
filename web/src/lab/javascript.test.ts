@@ -3,7 +3,7 @@ import { rodarJavaScript } from './javascript'
 describe('rodarJavaScript', () => {
   it('console.log escreve a saída e input() lê a entrada', () => {
     const r = rodarJavaScript('const a = Number(input())\nconst b = Number(input())\nconsole.log(a + b)', '2\n3', false)
-    expect(r).toEqual({ saida: '5\n', erro: null, saidaGrande: false })
+    expect(r).toEqual({ saida: '5\n', erro: null, saidaGrande: false, precisaDeEntrada: false })
   })
 
   it('prompt() também lê; no Rodar a pergunta aparece como no terminal', () => {
@@ -30,5 +30,27 @@ describe('rodarJavaScript', () => {
     const r = rodarJavaScript('for (let i = 0; i < 10000; i++) console.log("linha comprida")', '', false)
     expect(r.saidaGrande).toBe(true)
     expect(r.saida.length).toBe(20_000)
+  })
+})
+
+describe('rodarJavaScript no terminal', () => {
+  it('sem resposta para o input(), para e avisa que precisa de entrada', () => {
+    const r = rodarJavaScript('const n = prompt("Número: ")\nconsole.log(n * 2)', '', true)
+    expect(r).toEqual({ saida: 'Número: ', erro: null, saidaGrande: false, precisaDeEntrada: true })
+  })
+
+  it('com a resposta, termina o programa', () => {
+    const r = rodarJavaScript('const n = prompt("Número: ")\nconsole.log(n * 2)', '21\n', true)
+    expect(r.precisaDeEntrada).toBe(false)
+    expect(r.saida).toBe('Número: 21\n42\n')
+  })
+
+  it('resposta vazia vale como resposta', () => {
+    const r = rodarJavaScript('const n = prompt("Nome: ")\nconsole.log("[" + n + "]")', '\n', true)
+    expect(r.saida).toBe('Nome: \n[]\n')
+  })
+
+  it('nos testes (sem terminal), faltar entrada continua sendo erro', () => {
+    expect(rodarJavaScript('input()', '', false)).toMatchObject({ precisaDeEntrada: false, erro: expect.stringMatching(/a entrada acabou/) })
   })
 })

@@ -28,11 +28,14 @@ function mensagemDoErro(e: unknown): string {
   return numero > 0 ? `${e.name} na linha ${numero}: ${e.message}` : `${e.name}: ${e.message}`
 }
 
+/** Sinal interno: no terminal, o programa pediu uma resposta que ainda não foi digitada. */
+const PRECISA_DE_ENTRADA = Symbol('precisa de entrada')
+
 export function rodarJavaScript(
   codigo: string,
   entrada: string,
   mostrarPerguntas: boolean,
-): { saida: string; erro: string | null; saidaGrande: boolean } {
+): { saida: string; erro: string | null; saidaGrande: boolean; precisaDeEntrada: boolean } {
   let saida = ''
   let saidaGrande = false
   const escrever = (texto: string) => {
@@ -49,13 +52,17 @@ export function rodarJavaScript(
   const ler = (pergunta?: unknown) => {
     if (mostrarPerguntas && pergunta !== undefined) escrever(formatar(pergunta))
     const linha = linhas.shift()
-    if (linha === undefined) throw new Error('a entrada acabou (input() sem mais linhas)')
+    if (linha === undefined) {
+      if (mostrarPerguntas) throw PRECISA_DE_ENTRADA
+      throw new Error('a entrada acabou (input() sem mais linhas)')
+    }
     if (mostrarPerguntas) escrever(`${linha}\n`)
     return linha
   }
   const consoleDoAluno = { log, info: log, warn: log, error: log, debug: log }
 
   let erro: string | null = null
+  let precisaDeEntrada = false
   try {
     // "use strict" fica na primeira linha do corpo; o cabeçalho do Function ocupa 2.
     const programa = new Function('console', 'input', 'prompt', 'alert', `"use strict";\n${codigo}`) as (
@@ -63,7 +70,8 @@ export function rodarJavaScript(
     ) => void
     programa(consoleDoAluno, ler, ler, log)
   } catch (e) {
-    erro = mensagemDoErro(e)
+    if (e === PRECISA_DE_ENTRADA) precisaDeEntrada = true
+    else erro = mensagemDoErro(e)
   }
-  return { saida, erro, saidaGrande }
+  return { saida, erro, saidaGrande, precisaDeEntrada }
 }

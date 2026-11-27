@@ -25,6 +25,40 @@ export interface ExercicioDaPonte {
   id: number
   titulo: string
   dificuldade: number
+  /** Situação da entrega do próprio aluno (nada = ainda não entregou). */
+  entrega?: SituacaoNaPonte
+}
+
+/** Entrega do aluno como o banco devolve (só as do próprio aluno). */
+export interface EntregaNaPonteDoBanco {
+  exercicio_id: number
+  tentativa: number
+  nota: number
+  nota_professor: number | null
+  comentario: string | null
+  corrigida_em: string | null
+  devolvida_em: string | null
+}
+
+export interface SituacaoNaPonte {
+  estado: 'entregue' | 'corrigida' | 'devolvida'
+  /** Nota que vale (a do professor, se ele ajustou). */
+  nota: number
+  comentario: string | null
+}
+
+export const NOME_NA_PONTE: Record<SituacaoNaPonte['estado'], string> = {
+  entregue: 'entregue',
+  corrigida: 'corrigida',
+  devolvida: 'devolvida: refaça e entregue de novo',
+}
+
+/** Situação do exercício pela entrega mais nova do aluno. */
+export function situacaoNaPonte(entregas: EntregaNaPonteDoBanco[]): SituacaoNaPonte | undefined {
+  if (entregas.length === 0) return undefined
+  const e = entregas.reduce((a, b) => (b.tentativa > a.tentativa ? b : a))
+  const estado = e.devolvida_em ? 'devolvida' : e.corrigida_em ? 'corrigida' : 'entregue'
+  return { estado, nota: Number(e.nota_professor ?? e.nota), comentario: e.comentario }
 }
 
 export interface ExercicioDoBanco extends ExercicioDaPonte {
@@ -110,11 +144,13 @@ export function montarPonte(
   liberacoes: LiberacaoDoBanco[],
   materiais: MaterialDoBanco[],
   exercicios: ExercicioDoBanco[] = [],
+  entregas: EntregaNaPonteDoBanco[] = [],
 ): DisciplinaDaPonte[] {
   const exerciciosPorAula = new Map<number, ExercicioDaPonte[]>()
   for (const e of [...exercicios].sort((a, b) => a.ordem - b.ordem || a.id - b.id)) {
     const lista = exerciciosPorAula.get(e.aula_id) ?? []
-    lista.push({ id: e.id, titulo: e.titulo, dificuldade: e.dificuldade })
+    const entrega = situacaoNaPonte(entregas.filter((x) => x.exercicio_id === e.id))
+    lista.push({ id: e.id, titulo: e.titulo, dificuldade: e.dificuldade, ...(entrega ? { entrega } : {}) })
     exerciciosPorAula.set(e.aula_id, lista)
   }
 
@@ -258,6 +294,7 @@ async function carregarDisciplinas(aprovados: Pedido[], tudoLiberado = false): P
 
   let materiais: MaterialDoBanco[] = []
   let exercicios: ExercicioDoBanco[] = []
+  let entregas: EntregaNaPonteDoBanco[] = []
   const aulasLiberadas = [...new Set(liberacoes.map((l) => l.aula_id))]
   if (aulasLiberadas.length > 0) {
     const [materiaisRes, exerciciosRes] = await Promise.all([
@@ -271,7 +308,18 @@ async function carregarDisciplinas(aprovados: Pedido[], tudoLiberado = false): P
     materiais = materiaisRes.data as MaterialDoBanco[]
     // Exercícios são um extra: se a consulta falhar, a ponte abre sem eles.
     if (!exerciciosRes.error) exercicios = exerciciosRes.data.filter((e): e is ExercicioDoBanco => e.aula_id !== null)
+    // Entregas do próprio aluno (a RLS só devolve as dele). No Modo Ninja o professor não entrega nada.
+    if (!tudoLiberado && exercicios.length > 0) {
+      const entregasRes = await supabase()
+        .from('entregas')
+        .select('exercicio_id, tentativa, nota, nota_professor, comentario, corrigida_em, devolvida_em')
+        .in(
+          'exercicio_id',
+          exercicios.map((e) => e.id),
+        )
+      if (!entregasRes.error) entregas = entregasRes.data
+    }
   }
 
-  return montarPonte(aprovados, unidades, liberacoes, materiais, exercicios)
+  return montarPonte(aprovados, unidades, liberacoes, materiais, exercicios, entregas)
 }

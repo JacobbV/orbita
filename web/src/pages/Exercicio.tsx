@@ -7,14 +7,17 @@ import { saidaConfere, type TesteDoAluno } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import { TEMPO_LIMITE_MS, type Executor, type ResultadoDaExecucao } from '../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
+import { Terminal } from '../lab/Terminal'
 import { mensagemDeErro } from '../lib/erros'
 import { anunciarConquista, lerConquista } from '../lib/progresso'
 import {
   carregarExercicio,
+  entregaEmAberto,
   entregar,
   ExercicioIndisponivel,
   minhasEntregas,
   NOME_DA_SITUACAO,
+  notaQueVale,
   type EntregaDoAluno,
   guardarRascunho,
   lerRascunho,
@@ -26,24 +29,28 @@ import { numeroRomano } from '../lib/ponte'
 import { useModoNinja } from '../ninja/ModoNinja'
 import './Exercicio.css'
 
-type Console = { titulo: string; resultado: ResultadoDaExecucao }
 type ResultadoTeste = { teste: TesteDoAluno; numero: number; certo: boolean; resultado: ResultadoDaExecucao }
+/** O que o terminal mostra: o código que está rodando, as respostas já digitadas e a saída. */
+type SessaoDoTerminal = { codigo: string; respostas: string[]; resultado: ResultadoDaExecucao }
 
-/** Um exercício do laboratório: enunciado, editor, Rodar (ou prévia) e Testar, tudo no navegador. */
+/** As respostas viram uma linha cada; o \n no fim de todas mantém as respostas vazias. */
+const juntarRespostas = (respostas: string[]) => respostas.map((r) => `${r}\n`).join('')
+
+/** Um exercício do laboratório: enunciado, editor, terminal (Rodar) e Entregar, tudo no navegador. */
 export function Exercicio() {
   const { id } = useParams()
   const { perfil } = useAuth()
   const [dados, setDados] = useState<{ exercicio: ExercicioDados; testes: TesteDoAluno[] } | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [codigo, setCodigo] = useState('')
-  const [entrada, setEntrada] = useState('')
   const [ocupado, setOcupado] = useState<null | 'carregando' | 'rodando' | 'testando'>(null)
   const [falhaAoCarregar, setFalhaAoCarregar] = useState<string | null>(null)
-  const [consoleSaida, setConsoleSaida] = useState<Console | null>(null)
+  const [sessao, setSessao] = useState<SessaoDoTerminal | null>(null)
   const [resultados, setResultados] = useState<ResultadoTeste[] | null>(null)
   // Código que gerou os resultados: só ele pode ser entregue.
   const [codigoTestado, setCodigoTestado] = useState<string | null>(null)
   const [entregas, setEntregas] = useState<EntregaDoAluno[]>([])
+  const [confirmando, setConfirmando] = useState(false)
   const [entregando, setEntregando] = useState(false)
   const [avisoEntrega, setAvisoEntrega] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const executor = useRef<Executor | null>(null)
@@ -58,8 +65,6 @@ export function Exercicio() {
         if (!ativo) return
         setDados(d)
         setCodigo(lerRascunho(d.exercicio.id) ?? d.exercicio.codigoInicial)
-        const primeiro = d.testes.find((t) => t.tipo === 'visivel')
-        if (primeiro) setEntrada(primeiro.entrada)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(e instanceof ExercicioIndisponivel ? e.message : mensagemDeErro(e))
@@ -124,44 +129,78 @@ export function Exercicio() {
     }
   }
 
-  async function rodar() {
-    const py = await prepararExecutor()
-    if (!py) return
-    setOcupado('rodando')
-    const resultado = await py.rodar(codigo, entrada, true)
-    setConsoleSaida({ titulo: 'Saída do seu programa', resultado })
-    setOcupado(null)
-  }
-
-  async function testar() {
-    const py = await prepararExecutor()
-    if (!py) return
+  /** Roda os testes (visíveis e ocultos) e guarda o resultado junto com o código testado. */
+  async function conferirTestes(py: Executor, codigoParaTestar: string): Promise<ResultadoTeste[]> {
     setOcupado('testando')
     const lista: ResultadoTeste[] = []
     for (const [i, teste] of testes.entries()) {
-      const resultado = await py.rodar(codigo, teste.entrada, false)
+      const resultado = await py.rodar(codigoParaTestar, teste.entrada, false)
       const certo = !resultado.erro && !resultado.tempoEsgotado && (await saidaConfere(teste, resultado.saida))
       lista.push({ teste, numero: i + 1, certo, resultado })
     }
     setResultados(lista)
-    setCodigoTestado(codigo)
+    setCodigoTestado(codigoParaTestar)
     setAvisoEntrega(null)
+    return lista
+  }
+
+  /** Roda o programa no terminal com as respostas já digitadas; terminou, confere os testes. */
+  async function rodarNoTerminal(py: Executor, codigoRodado: string, respostas: string[]) {
+    setOcupado('rodando')
+    const resultado = await py.rodar(codigoRodado, juntarRespostas(respostas), true)
+    setSessao({ codigo: codigoRodado, respostas, resultado })
+    if (resultado.precisaDeEntrada) {
+      setOcupado(null)
+      return
+    }
+    // Deu erro ou travou: os testes também falhariam (e cada laço infinito custa 5 segundos). Corrija e rode de novo.
+    if (testes.length > 0 && !resultado.erro && !resultado.tempoEsgotado) await conferirTestes(py, codigoRodado)
     setOcupado(null)
   }
 
+  async function rodar() {
+    const py = await prepararExecutor()
+    if (!py) return
+    if (ehHtml) {
+      await conferirTestes(py, codigo)
+      setOcupado(null)
+      return
+    }
+    setResultados(null)
+    setCodigoTestado(null)
+    await rodarNoTerminal(py, codigo, [])
+  }
+
+  async function responder(resposta: string) {
+    const py = executor.current
+    if (!py || !sessao) return
+    await rodarNoTerminal(py, sessao.codigo, [...sessao.respostas, resposta])
+  }
+
   async function enviarEntrega() {
-    if (!resultados || codigoTestado === null || !perfil) return
+    if (!perfil) return
+    setConfirmando(false)
     setEntregando(true)
     setAvisoEntrega(null)
     try {
-      const acertos = resultados.filter((r) => r.certo).length
-      const { tentativa, conquista } = await entregar(exercicio.id, codigoTestado, acertos)
+      let lista = resultados
+      let codigoEntregue = codigoTestado
+      if (!lista || codigoEntregue !== codigo) {
+        // O código mudou depois do último Rodar (ou nunca rodou): confere agora, com o código que vai ser entregue.
+        const py = await prepararExecutor()
+        if (!py) return
+        lista = await conferirTestes(py, codigo)
+        codigoEntregue = codigo
+        setOcupado(null)
+      }
+      const acertos = lista.filter((r) => r.certo).length
+      const { tentativa, conquista } = await entregar(exercicio.id, codigoEntregue ?? codigo, acertos)
       const c = lerConquista(conquista)
       anunciarConquista(c)
       const xpTexto = c.xp > 0 ? ` +${c.xp} XP, a confirmar pelo professor.` : ''
       setAvisoEntrega({
         tipo: 'sucesso',
-        texto: `Entrega ${tentativa} enviada: ${acertos} de ${resultados.length} testes certos.${xpTexto}`,
+        texto: `Entrega ${tentativa} enviada: ${acertos} de ${lista.length} testes certos.${xpTexto}`,
       })
       setEntregas(await minhasEntregas(exercicio.id, perfil.id).catch(() => entregas))
     } catch (e) {
@@ -173,6 +212,16 @@ export function Exercicio() {
 
   const certos = resultados?.filter((r) => r.certo).length ?? 0
   const xp = XP_POR_DIFICULDADE[exercicio.dificuldade]
+  const jaEntregou = entregaEmAberto(entregas)
+  const devolvida = entregas[0]?.devolvidaEm ? entregas[0] : null
+  const mensagemOcupado =
+    ocupado === 'carregando'
+      ? exercicio.linguagem === 'python'
+        ? 'Carregando o Python… Na primeira vez pode levar alguns segundos.'
+        : `Preparando o ${linguagem.nome}…`
+      : ocupado === 'testando'
+        ? 'Conferindo os testes…'
+        : 'Rodando o seu código…'
 
   return (
     <div className="exercicio container">
@@ -214,6 +263,12 @@ export function Exercicio() {
         )}
       </header>
 
+      {devolvida && ehAluno && (
+        <Aviso tipo="info" titulo="O professor devolveu a sua entrega para você refazer">
+          {devolvida.comentario ?? 'Mude o código e entregue de novo quando estiver pronto.'}
+        </Aviso>
+      )}
+
       <section className="exercicio-bancada" aria-label="Seu código">
         <div className="exercicio-editor">
           <div className="exercicio-editor-barra">
@@ -236,53 +291,35 @@ export function Exercicio() {
         </div>
 
         <div className="exercicio-lateral">
+          <div className="exercicio-botoes">
+            <button type="button" className="botao botao-primario" onClick={rodar} disabled={ocupado !== null}>
+              ▶ Rodar
+            </button>
+          </div>
           {ehHtml ? (
             <PreviaDaPagina codigo={codigo} />
           ) : (
-            <>
-              <label className="exercicio-rotulo" htmlFor="exercicio-entrada">
-                Entrada para o Rodar (uma resposta do {exercicio.linguagem === 'python' ? 'input()' : 'input() ou prompt()'} por
-                linha)
-              </label>
-              <textarea
-                id="exercicio-entrada"
-                className="exercicio-entrada"
-                rows={3}
-                value={entrada}
-                onChange={(e) => setEntrada(e.target.value)}
-                spellCheck={false}
-              />
-            </>
+            <Terminal
+              resultado={sessao?.resultado ?? null}
+              ocupado={ocupado === 'carregando' || ocupado === 'rodando'}
+              mensagemOcupado={mensagemOcupado}
+              respostasDadas={sessao?.respostas.length ?? 0}
+              aoResponder={responder}
+            />
           )}
-          <div className="exercicio-botoes">
-            {!ehHtml && (
-              <button type="button" className="botao" onClick={rodar} disabled={ocupado !== null}>
-                ▶ Rodar
-              </button>
-            )}
-            <button type="button" className="botao botao-primario" onClick={testar} disabled={ocupado !== null || testes.length === 0}>
-              ✓ Testar
-            </button>
-          </div>
           <p className="exercicio-status" role="status">
-            {ocupado === 'carregando' &&
-              (exercicio.linguagem === 'python'
-                ? 'Carregando o Python… Na primeira vez pode levar alguns segundos.'
-                : `Preparando o ${linguagem.nome}…`)}
-            {ocupado === 'rodando' && 'Rodando o seu código…'}
             {ocupado === 'testando' && 'Conferindo os testes…'}
+            {ocupado === null && ehHtml && !resultados && 'Clique em Rodar para conferir a sua página.'}
+            {ocupado === null &&
+              !ehHtml &&
+              !resultados &&
+              (sessao?.resultado.erro || sessao?.resultado.tempoEsgotado) &&
+              'Corrija o erro e rode de novo para conferir os testes.'}
           </p>
           {falhaAoCarregar && (
             <Aviso tipo="erro" titulo={`${linguagem.nome} indisponível`}>
               {falhaAoCarregar}
             </Aviso>
-          )}
-
-          {consoleSaida && (
-            <div className="exercicio-console">
-              <p className="exercicio-rotulo">{consoleSaida.titulo}</p>
-              <SaidaDoPrograma resultado={consoleSaida.resultado} />
-            </div>
           )}
         </div>
       </section>
@@ -306,27 +343,52 @@ export function Exercicio() {
               </li>
             ))}
           </ol>
-          {ehAluno && (
-            <div className="exercicio-entregar">
-              {codigoTestado === codigo ? (
-                <p>
-                  Entregar guarda este código e o resultado dos testes para o professor.
-                  {certos === resultados.length && ` Acertando tudo, você ganha +${xp} XP na hora, a confirmar pelo professor.`}
-                </p>
-              ) : (
-                <p>Você mudou o código depois de testar. Clique em Testar de novo para poder entregar.</p>
-              )}
+        </section>
+      )}
+
+      {ehAluno && (
+        <section className="cartao exercicio-entregar" aria-labelledby="exercicio-entregar-titulo">
+          <h2 id="exercicio-entregar-titulo">Entregar</h2>
+          {jaEntregou ? (
+            <p>Você já entregou este exercício. Só o professor pode devolver para você refazer.</p>
+          ) : confirmando ? (
+            <div className="exercicio-confirmar" role="alertdialog" aria-labelledby="exercicio-confirmar-titulo">
+              <p id="exercicio-confirmar-titulo" className="exercicio-confirmar-titulo">
+                Deseja realmente entregar?
+              </p>
+              <p>
+                Depois de entregue, não dá para desfazer nem mudar. O professor recebe o código que está no editor agora e o
+                resultado dos testes.
+                {certos === resultados?.length && resultados.length > 0 && codigoTestado === codigo
+                  ? ` Acertando tudo, você ganha +${xp} XP na hora, a confirmar pelo professor.`
+                  : ''}
+              </p>
+              <div className="exercicio-botoes">
+                <button type="button" className="botao botao-primario" onClick={enviarEntrega}>
+                  Sim, entregar
+                </button>
+                <button type="button" className="botao" onClick={() => setConfirmando(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p>
+                Rode o seu código antes para ver se os testes passam. Entregar guarda o código que está no editor e o
+                resultado dos testes para o professor, e só vale uma vez.
+              </p>
               <button
                 type="button"
                 className="botao botao-primario"
-                onClick={enviarEntrega}
-                disabled={entregando || ocupado !== null || codigoTestado !== codigo}
+                onClick={() => setConfirmando(true)}
+                disabled={entregando || ocupado !== null || testes.length === 0}
               >
                 {entregando ? 'Entregando…' : 'Entregar'}
               </button>
-              {avisoEntrega && <Aviso tipo={avisoEntrega.tipo}>{avisoEntrega.texto}</Aviso>}
-            </div>
+            </>
           )}
+          {avisoEntrega && <Aviso tipo={avisoEntrega.tipo}>{avisoEntrega.texto}</Aviso>}
         </section>
       )}
 
@@ -350,6 +412,21 @@ function SuasEntregas({ entregas }: { entregas: EntregaDoAluno[] }) {
             </span>
             <span className="exercicio-entrega-situacao">{NOME_DA_SITUACAO[e.situacao]}</span>
             <span className="exercicio-entrega-data">{formatoData.format(new Date(e.criadoEm))}</span>
+            {(e.notaProfessor !== null || e.comentario || e.devolvidaEm) && (
+              <div className="exercicio-entrega-correcao">
+                {e.notaProfessor !== null && (
+                  <p>
+                    <strong>Nota do professor:</strong> {notaQueVale(e).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                  </p>
+                )}
+                {e.comentario && (
+                  <p>
+                    <strong>Comentário do professor:</strong> {e.comentario}
+                  </p>
+                )}
+                {e.devolvidaEm && <p className="exercicio-entrega-devolvida">Devolvida para você refazer.</p>}
+              </div>
+            )}
           </li>
         ))}
       </ol>

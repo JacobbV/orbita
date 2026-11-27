@@ -1,5 +1,5 @@
 import type { Pedido } from './api'
-import { montarPonte, numeroRomano, rotuloMaterial, type UnidadeDoBanco } from './ponte'
+import { montarPonte, numeroRomano, rotuloMaterial, situacaoNaPonte, type EntregaNaPonteDoBanco, type UnidadeDoBanco } from './ponte'
 
 // Dados inventados; nenhum nome ou turma real de aluno.
 function pedidoAprovado(ofertaId: number, disciplinaId: number, nome: string): Pedido {
@@ -126,5 +126,55 @@ describe('numeroRomano e rotuloMaterial', () => {
     expect(rotuloMaterial({ tipo: 'link', titulo: 'Apostila' })).toBe('Apostila')
     expect(rotuloMaterial({ tipo: 'slide', titulo: ' ' })).toBe('Abrir slides')
     expect(rotuloMaterial({ tipo: 'outro', titulo: '' })).toBe('Abrir material')
+  })
+})
+
+describe('situacaoNaPonte', () => {
+  const e = (extra: Partial<EntregaNaPonteDoBanco>) => ({
+    exercicio_id: 1,
+    tentativa: 1,
+    nota: 5,
+    nota_professor: null,
+    comentario: null,
+    corrigida_em: null,
+    devolvida_em: null,
+    ...extra,
+  })
+
+  it('sem entrega, nada aparece', () => {
+    expect(situacaoNaPonte([])).toBeUndefined()
+  })
+
+  it('entregue, corrigida (com a nota do professor) e devolvida', () => {
+    expect(situacaoNaPonte([e({})])).toEqual({ estado: 'entregue', nota: 5, comentario: null })
+    expect(situacaoNaPonte([e({ corrigida_em: 'x', nota_professor: 8, comentario: 'Bom' })])).toEqual({
+      estado: 'corrigida',
+      nota: 8,
+      comentario: 'Bom',
+    })
+    expect(situacaoNaPonte([e({ corrigida_em: 'x', devolvida_em: 'y' })])?.estado).toBe('devolvida')
+  })
+
+  it('vale a entrega mais nova: depois de refazer, volta a "entregue"', () => {
+    const velha = e({ tentativa: 1, devolvida_em: 'y', corrigida_em: 'y' })
+    const nova = e({ tentativa: 2 })
+    expect(situacaoNaPonte([velha, nova])?.estado).toBe('entregue')
+  })
+
+  it('a ponte mostra a situação de cada exercício, só nos que o aluno entregou', () => {
+    const [alg] = montarPonte(
+      [pedidoAprovado(11, 1, 'Algoritmos')],
+      unidades,
+      [{ aula_id: 11, turma_disciplina_id: 11, liberado_em: '2026-11-02T10:00:00Z' }],
+      [],
+      [
+        { id: 7, aula_id: 11, titulo: 'Soma', dificuldade: 1, ordem: 1 },
+        { id: 8, aula_id: 11, titulo: 'Média', dificuldade: 2, ordem: 2 },
+      ],
+      [e({ exercicio_id: 7, corrigida_em: 'x', nota_professor: 9 })],
+    )
+    const [soma, media] = alg?.unidades[0]?.aulas[0]?.exercicios ?? []
+    expect(soma?.entrega).toEqual({ estado: 'corrigida', nota: 9, comentario: null })
+    expect(media?.entrega).toBeUndefined()
   })
 })

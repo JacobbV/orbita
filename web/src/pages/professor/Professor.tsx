@@ -3,6 +3,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { BonecoDoHangar } from '../../components/BonecoDoHangar'
 import { saudacao } from '../../lib/saudacao'
 import { Aulas } from './Aulas'
+import { Entregas } from './Entregas'
 import { Pedidos } from './Pedidos'
 import { Provas } from './Provas'
 import { Turmas } from './Turmas'
@@ -12,6 +13,7 @@ const ABAS = [
   { id: 'pedidos', rotulo: 'Pedidos' },
   { id: 'aulas', rotulo: 'Aulas' },
   { id: 'turmas', rotulo: 'Turmas' },
+  { id: 'entregas', rotulo: 'Entregas' },
   { id: 'provas', rotulo: 'Provas' },
 ] as const
 
@@ -50,6 +52,7 @@ export function Professor() {
       {aba === 'pedidos' && <Pedidos />}
       {aba === 'aulas' && <Aulas />}
       {aba === 'turmas' && <Turmas />}
+      {aba === 'entregas' && <Entregas />}
       {aba === 'provas' && <Provas />}
     </div>
   )
