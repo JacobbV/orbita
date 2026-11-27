@@ -82,7 +82,7 @@ PRs #8, #9 e #10 no ar em 22/11.
 - [x] P1 banco: provas, questões com peso, tentativas, respostas, saídas da aba e segunda chamada, com regras de acesso e horário conferidos no banco.
 - [x] P2 painel: aba Provas com a lista, montar e editar prova (turma, horário de abrir e fechar, duração, regra de saída da aba), questões das aulas ou criadas só para a prova, peso e ordem; questões travadas depois que algum aluno começa.
 - [x] P3 aluno: lista de provas na ponte; tela da prova com cronômetro, tela cheia, colar desligado no editor, registro de saída da aba (detecta e avisa, não impede), salvar resposta por questão, entrega com confirmação e encerramento por tempo ou por saídas.
-- [ ] P4 acompanhar ao vivo, segunda chamada, reconferência e publicar notas.
+- [x] P4 acompanhar a prova (atualiza sozinho): quem está fazendo, entregou ou não começou, saídas da aba com o tempo fora, código de cada resposta, segunda chamada por aluno, reconferência no navegador do professor com os testes secretos e publicação das notas (só depois de reconferir e sem ninguém fazendo).
 - [ ] P5 relatório da prova com CSV.
 
 ## Ideias

@@ -3,6 +3,10 @@ import {
   doCampoDeData,
   duracaoEmTexto,
   estadoDaProvaDoAluno,
+  estadoDoAluno,
+  podePublicar,
+  resumoDaProva,
+  type SituacaoDoAluno,
   momentoDaProva,
   nomeDasSaidas,
   paraCampoDeData,
@@ -104,5 +108,44 @@ describe('estadoDaProvaDoAluno', () => {
     expect(estadoDaProvaDoAluno(comecou, t('2026-12-01T09:00:00Z'))).toBe('em_andamento')
     expect(estadoDaProvaDoAluno(comecou, t('2026-12-01T09:31:00Z'))).toBe('entregue')
     expect(estadoDaProvaDoAluno({ ...comecou, entregueEm: '2026-12-01T08:45:00Z' }, t('2026-12-01T08:50:00Z'))).toBe('entregue')
+  })
+})
+
+describe('acompanhar a prova (professor)', () => {
+  const base: SituacaoDoAluno = {
+    alunoId: 'a',
+    nome: 'Aluno Fictício',
+    apelido: null,
+    tentativaId: null,
+    comecouEm: null,
+    terminaEm: null,
+    entregueEm: null,
+    encerradaPor: null,
+    saidas: 0,
+    respondidas: 0,
+    aConfirmar: 0,
+    nota: null,
+    segundaChamada: false,
+  }
+  const agora = Date.parse('2026-12-01T09:00:00Z')
+  const fazendo = { ...base, tentativaId: 1, comecouEm: '2026-12-01T08:40:00Z', terminaEm: '2026-12-01T09:10:00Z' }
+  const entregue = { ...base, tentativaId: 2, comecouEm: '2026-12-01T08:00:00Z', terminaEm: '2026-12-01T08:30:00Z', entregueEm: '2026-12-01T08:20:00Z', aConfirmar: 2 }
+
+  it('estado do aluno', () => {
+    expect(estadoDoAluno(base, agora)).toBe('nao_comecou')
+    expect(estadoDoAluno(fazendo, agora)).toBe('fazendo')
+    expect(estadoDoAluno(entregue, agora)).toBe('entregue')
+    // Passou do tempo e o banco ainda não marcou: já conta como entregue.
+    expect(estadoDoAluno({ ...fazendo, terminaEm: '2026-12-01T08:59:00Z' }, agora)).toBe('entregue')
+  })
+
+  it('resumo conta cada grupo e soma o que falta confirmar', () => {
+    expect(resumoDaProva([base, fazendo, entregue], agora)).toEqual({ total: 3, naoComecaram: 1, fazendo: 1, entregaram: 1, aConfirmar: 2 })
+  })
+
+  it('só publica sem ninguém fazendo e com tudo reconferido', () => {
+    expect(podePublicar(resumoDaProva([fazendo], agora)).pode).toBe(false)
+    expect(podePublicar(resumoDaProva([entregue], agora)).motivo).toMatch(/Reconfira antes: 2 respostas/)
+    expect(podePublicar(resumoDaProva([base, { ...entregue, aConfirmar: 0 }], agora))).toEqual({ pode: true, motivo: null })
   })
 })

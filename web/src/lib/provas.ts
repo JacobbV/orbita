@@ -127,6 +127,8 @@ export async function listarProvas(): Promise<ProvaDoPainel[]> {
 }
 
 export interface QuestaoDoPainel {
+  /** Id da questão dentro da prova (só em carregarProva). */
+  questaoId?: number
   exercicioId: number
   peso: number
   titulo: string
@@ -173,15 +175,15 @@ function converterQuestao(e: ExercicioDoBanco, peso: number): QuestaoDoPainel {
 export async function carregarProva(id: number): Promise<ProvaParaEditar | null> {
   const { data, error } = await supabase()
     .from('provas')
-    .select(`${CAMPOS_PROVA}, questoes:prova_questoes(peso, ordem, exercicio:exercicios!inner(${CAMPOS_EXERCICIO}))`)
+    .select(`${CAMPOS_PROVA}, questoes:prova_questoes(id, peso, ordem, exercicio:exercicios!inner(${CAMPOS_EXERCICIO}))`)
     .eq('id', id)
     .maybeSingle()
   if (error) throw error
   if (!data) return null
-  const bruto = data as unknown as ProvaDoBanco & { questoes: { peso: number; ordem: number; exercicio: ExercicioDoBanco }[] }
+  const bruto = data as unknown as ProvaDoBanco & { questoes: { id: number; peso: number; ordem: number; exercicio: ExercicioDoBanco }[] }
   return {
     ...converterProva(bruto),
-    listaDeQuestoes: [...bruto.questoes].sort((a, b) => a.ordem - b.ordem).map((q) => converterQuestao(q.exercicio, Number(q.peso))),
+    listaDeQuestoes: [...bruto.questoes].sort((a, b) => a.ordem - b.ordem).map((q) => ({ ...converterQuestao(q.exercicio, Number(q.peso)), questaoId: q.id })),
   }
 }
 
@@ -389,4 +391,181 @@ export function guardarRascunhoDaQuestao(provaId: number, questaoId: number, cod
   } catch {
     // Sem armazenamento: segue sem rascunho.
   }
+}
+
+// ---------------------------------------------------------------------------
+// Professor: acompanhar, reconferir e publicar
+// ---------------------------------------------------------------------------
+
+export interface SituacaoDoAluno {
+  alunoId: string
+  nome: string
+  apelido: string | null
+  tentativaId: number | null
+  comecouEm: string | null
+  terminaEm: string | null
+  entregueEm: string | null
+  encerradaPor: 'aluno' | 'tempo' | 'saidas' | null
+  saidas: number
+  respondidas: number
+  aConfirmar: number
+  /** De 0 a 10; provisória enquanto houver resposta a confirmar. */
+  nota: number | null
+  segundaChamada: boolean
+}
+
+export type EstadoDoAlunoNaProva = 'nao_comecou' | 'fazendo' | 'entregue'
+
+export function estadoDoAluno(a: SituacaoDoAluno, agora = Date.now()): EstadoDoAlunoNaProva {
+  if (!a.comecouEm) return 'nao_comecou'
+  if (a.entregueEm) return 'entregue'
+  return a.terminaEm && new Date(a.terminaEm).getTime() > agora ? 'fazendo' : 'entregue'
+}
+
+export interface ResumoDaProva {
+  total: number
+  naoComecaram: number
+  fazendo: number
+  entregaram: number
+  aConfirmar: number
+}
+
+export function resumoDaProva(alunos: SituacaoDoAluno[], agora = Date.now()): ResumoDaProva {
+  const estados = alunos.map((a) => estadoDoAluno(a, agora))
+  return {
+    total: alunos.length,
+    naoComecaram: estados.filter((e) => e === 'nao_comecou').length,
+    fazendo: estados.filter((e) => e === 'fazendo').length,
+    entregaram: estados.filter((e) => e === 'entregue').length,
+    aConfirmar: alunos.reduce((soma, a) => soma + a.aConfirmar, 0),
+  }
+}
+
+/** As notas só podem ser publicadas quando ninguém está fazendo e tudo foi reconferido. */
+export function podePublicar(r: ResumoDaProva): { pode: boolean; motivo: string | null } {
+  if (r.fazendo > 0) return { pode: false, motivo: `Ainda ${r.fazendo === 1 ? 'tem 1 aluno fazendo' : `têm ${r.fazendo} alunos fazendo`} a prova.` }
+  if (r.aConfirmar > 0) {
+    return { pode: false, motivo: `Reconfira antes: ${r.aConfirmar} ${r.aConfirmar === 1 ? 'resposta ainda está' : 'respostas ainda estão'} a confirmar.` }
+  }
+  return { pode: true, motivo: null }
+}
+
+export async function situacaoDaProva(id: number): Promise<SituacaoDoAluno[]> {
+  const { data, error } = await supabase().rpc('situacao_da_prova', { p_prova_id: id })
+  if (error) throw error
+  return (data ?? []).map((a) => ({
+    alunoId: a.aluno_id,
+    nome: a.nome,
+    apelido: a.apelido ?? null,
+    tentativaId: a.tentativa_id ?? null,
+    comecouEm: a.comecou_em ?? null,
+    terminaEm: a.termina_em ?? null,
+    entregueEm: a.entregue_em ?? null,
+    encerradaPor: (a.encerrada_por ?? null) as SituacaoDoAluno['encerradaPor'],
+    saidas: a.saidas ?? 0,
+    respondidas: a.respondidas ?? 0,
+    aConfirmar: a.a_confirmar ?? 0,
+    nota: a.nota === null || a.nota === undefined ? null : Number(a.nota),
+    segundaChamada: a.segunda_chamada ?? false,
+  }))
+}
+
+export interface SaidaDaProva {
+  saiuEm: string
+  voltouEm: string | null
+}
+
+export async function saidasDaTentativa(tentativaId: number): Promise<SaidaDaProva[]> {
+  const { data, error } = await supabase().from('prova_saidas').select('saiu_em, voltou_em').eq('tentativa_id', tentativaId).order('saiu_em')
+  if (error) throw error
+  return data.map((s) => ({ saiuEm: s.saiu_em, voltouEm: s.voltou_em }))
+}
+
+export type SituacaoDaResposta = 'a_confirmar' | 'confirmada' | 'nao_confere'
+
+export const NOME_DA_SITUACAO_DA_RESPOSTA: Record<SituacaoDaResposta, string> = {
+  a_confirmar: 'A confirmar',
+  confirmada: 'Confere',
+  nao_confere: 'Não confere',
+}
+
+export interface RespostaDoAluno {
+  id: number
+  questaoId: number
+  codigo: string
+  testesCertos: number
+  testesTotal: number
+  nota: number
+  respostas: number
+  situacao: SituacaoDaResposta
+  respondidaEm: string
+}
+
+export async function respostasDaTentativa(tentativaId: number): Promise<RespostaDoAluno[]> {
+  const { data, error } = await supabase()
+    .from('prova_respostas')
+    .select('id, questao_id, codigo, testes_certos, testes_total, nota, respostas, situacao, respondida_em')
+    .eq('tentativa_id', tentativaId)
+  if (error) throw error
+  return data.map((r) => ({
+    id: r.id,
+    questaoId: r.questao_id,
+    codigo: r.codigo,
+    testesCertos: r.testes_certos,
+    testesTotal: r.testes_total,
+    nota: Number(r.nota),
+    respostas: r.respostas,
+    situacao: r.situacao as SituacaoDaResposta,
+    respondidaEm: r.respondida_em,
+  }))
+}
+
+export interface RespostaParaReconferir {
+  id: number
+  questaoId: number
+  aluno: string
+  codigo: string
+  testesCertos: number
+  testesTotal: number
+}
+
+/** Respostas a confirmar de quem já entregou (o que está sendo feito ainda pode mudar). */
+export async function respostasParaReconferir(provaId: number): Promise<RespostaParaReconferir[]> {
+  const { data, error } = await supabase()
+    .from('prova_respostas')
+    .select('id, questao_id, codigo, testes_certos, testes_total, tentativa:prova_tentativas!inner(prova_id, entregue_em, aluno:perfis!inner(nome))')
+    .eq('situacao', 'a_confirmar')
+    .eq('tentativa.prova_id', provaId)
+    .not('tentativa.entregue_em', 'is', null)
+    .order('respondida_em')
+  if (error) throw error
+  return data.map((r) => ({
+    id: r.id,
+    questaoId: r.questao_id,
+    aluno: r.tentativa.aluno.nome,
+    codigo: r.codigo,
+    testesCertos: r.testes_certos,
+    testesTotal: r.testes_total,
+  }))
+}
+
+export async function conferirResposta(id: number, confere: boolean): Promise<void> {
+  const { error } = await supabase().rpc('conferir_resposta', { p_resposta_id: id, p_confere: confere })
+  if (error) throw error
+}
+
+export async function publicarNotas(provaId: number, publicar: boolean): Promise<void> {
+  const { error } = await supabase().rpc('publicar_notas', { p_prova_id: provaId, p_publicar: publicar })
+  if (error) throw error
+}
+
+/** Dá outro horário a um aluno. Apaga a tentativa dele, se houver. */
+export async function liberarSegundaChamada(provaId: number, alunoId: string, abreEm: string, fechaEm: string): Promise<void> {
+  const { error } = await supabase().rpc('liberar_segunda_chamada', {
+    p_prova_id: provaId,
+    p_aluno_id: alunoId,
+    p_abre_em: abreEm,
+    p_fecha_em: fechaEm,
+  })
+  if (error) throw error
 }
