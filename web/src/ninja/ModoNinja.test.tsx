@@ -65,14 +65,15 @@ describe('Modo Ninja', () => {
   it('Hangar do ninja mostra as peças do ninja e todas as outras, sem cadeado', async () => {
     abrirNinja('/hangar')
     expect(await screen.findByRole('heading', { name: 'Monte o seu ninja' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('tab', { name: 'Acessório' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Acessórios' }))
     expect(screen.getByRole('button', { name: /Faixa ninja/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: /Capacete espacial/ })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Corpo e mãos' }))
     expect(screen.getByRole('button', { name: /Caneca de café/ })).toBeEnabled()
     await userEvent.click(screen.getByRole('button', { name: /Estrela ninja/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Salvar ninja' }))
     expect(await screen.findByText('Ninja salvo!')).toBeInTheDocument()
-    expect(falso.ninjaSalvo).toEqual([expect.objectContaining({ acessorio: 'acessorio-estrela-ninja' })])
+    expect(falso.ninjaSalvo).toEqual([expect.objectContaining({ 'acessorio-corpo': 'acessorio-estrela-ninja' })])
     // O ninja não sorteia apelido: o apelido é do professor.
     expect(screen.queryByRole('region', { name: /apelido/i })).toBeNull()
   })

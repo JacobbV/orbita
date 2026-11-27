@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { PECAS, type Camada, type Escolhas, type Peca } from '../arte/avatar'
+import {
+  CABELO_COR_LIVRE,
+  CAMADAS_OPCIONAIS,
+  COR_LIVRE,
+  PECAS,
+  corValida,
+  recorteDaCamada,
+  type Camada,
+  type Escolhas,
+  type Peca,
+} from '../arte/avatar'
 import { useAuth } from '../auth/AuthContext'
 import { EscolherApelido } from '../components/Apelido'
 import { Aviso } from '../components/Aviso'
@@ -12,15 +22,76 @@ import { carregarProgresso } from '../lib/progresso'
 import { useModoNinja } from '../ninja/ModoNinja'
 import './Hangar.css'
 
-const ABAS: { camada: Camada; rotulo: string }[] = [
-  { camada: 'corpo', rotulo: 'Corpo' },
-  { camada: 'pele', rotulo: 'Pele' },
-  { camada: 'rosto', rotulo: 'Rosto' },
-  { camada: 'cabelo', rotulo: 'Cabelo' },
-  { camada: 'cor-do-cabelo', rotulo: 'Cor do cabelo' },
-  { camada: 'roupa', rotulo: 'Roupa' },
-  { camada: 'acessorio', rotulo: 'Acessório' },
+interface Grupo {
+  camada: Camada
+  titulo: string
+  /** Mostra bolinhas de cor em vez de quadradinhos com a peça. */
+  bolinhas?: boolean
+}
+
+interface Aba {
+  id: string
+  rotulo: string
+  grupos: Grupo[]
+  /** Os grupos viram botões (um por vez) em vez de ficarem um embaixo do outro. */
+  submenu?: boolean
+}
+
+const ABAS: Aba[] = [
+  {
+    id: 'corpo',
+    rotulo: 'Corpo',
+    grupos: [
+      { camada: 'base', titulo: 'Base' },
+      { camada: 'altura', titulo: 'Altura' },
+      { camada: 'corpo', titulo: 'Tipo de corpo' },
+    ],
+  },
+  { id: 'pele', rotulo: 'Pele', grupos: [{ camada: 'pele', titulo: 'Tom de pele', bolinhas: true }] },
+  {
+    id: 'rosto',
+    rotulo: 'Rosto',
+    grupos: [
+      { camada: 'rosto', titulo: 'Expressão' },
+      { camada: 'barba', titulo: 'Barba' },
+    ],
+  },
+  {
+    id: 'cabelo',
+    rotulo: 'Cabelo',
+    grupos: [
+      { camada: 'cabelo', titulo: 'Estilo' },
+      { camada: 'cor-do-cabelo', titulo: 'Cor', bolinhas: true },
+    ],
+  },
+  {
+    id: 'roupa',
+    rotulo: 'Roupa',
+    submenu: true,
+    grupos: [
+      { camada: 'roupa', titulo: 'Parte de cima' },
+      { camada: 'parte-de-baixo', titulo: 'Parte de baixo' },
+      { camada: 'pes', titulo: 'Pés' },
+    ],
+  },
+  {
+    id: 'acessorios',
+    rotulo: 'Acessórios',
+    submenu: true,
+    grupos: [
+      { camada: 'acessorio-cabeca', titulo: 'Cabeça' },
+      { camada: 'acessorio-rosto', titulo: 'Rosto' },
+      { camada: 'acessorio-corpo', titulo: 'Corpo e mãos' },
+    ],
+  },
 ]
+
+/** Cor de fundo da bolinha: a cor da pele, a do cabelo ou o degradê do cabelo. */
+function fundoDaBolinha(p: Peca): string {
+  const c = p.cores ?? {}
+  if (c.c2) return `linear-gradient(180deg, ${c.c} 0 50%, ${c.c2} 50% 100%)`
+  return c.p ?? c.c ?? 'transparent'
+}
 
 /** Hangar: o aluno (ou o professor) monta o boneco com as peças liberadas. */
 export function Hangar() {
@@ -30,7 +101,8 @@ export function Hangar() {
   const [salvo, setSalvo] = useState<Escolhas | null>(null)
   const [escolhas, setEscolhas] = useState<Escolhas | null>(null)
   const [xp, setXp] = useState(0)
-  const [aba, setAba] = useState<Camada>('corpo')
+  const [aba, setAba] = useState('corpo')
+  const [sub, setSub] = useState<Record<string, number>>({})
   const [erro, setErro] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
@@ -68,18 +140,28 @@ export function Hangar() {
   if (!escolhas || !salvo) return <Carregando />
 
   // O ninja usa qualquer peça; aluno e professor, só as do seu papel.
-  const pecasDaAba = PECAS.filter((p) => p.camada === aba && (ninja || p.para === 'todos' || p.para === papel))
+  const pode = (p: Peca) => ninja || p.para === 'todos' || p.para === papel
+  const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0]!
+  const grupos = abaAtual.submenu ? [abaAtual.grupos[sub[aba] ?? 0] ?? abaAtual.grupos[0]!] : abaAtual.grupos
   const mudou = JSON.stringify(escolhas) !== JSON.stringify(salvo)
   const voltarPara = ninja ? '/ninja' : papel === 'professor' ? '/professor' : '/ponte'
 
-  function escolher(peca: Peca | null) {
+  function escolher(camada: Camada, peca: Peca | null) {
     setMensagem(null)
     setEscolhas((atual) => {
       const novo: Escolhas = { ...atual }
-      if (peca) novo[aba] = peca.id
-      else delete novo[aba]
+      if (peca) novo[camada] = peca.id
+      else delete novo[camada]
+      if (camada === 'cor-do-cabelo' && peca?.id !== CABELO_COR_LIVRE) delete novo[COR_LIVRE]
       return novo
     })
+  }
+
+  function escolherCorLivre(cor: string) {
+    const valor = cor.toLowerCase()
+    if (!corValida(valor)) return
+    setMensagem(null)
+    setEscolhas((atual) => ({ ...atual, 'cor-do-cabelo': CABELO_COR_LIVRE, [COR_LIVRE]: valor }))
   }
 
   async function salvar() {
@@ -136,36 +218,90 @@ export function Hangar() {
           <div className="hangar-abas" role="tablist" aria-label="Partes do boneco">
             {ABAS.map((a) => (
               <button
-                key={a.camada}
+                key={a.id}
                 type="button"
                 role="tab"
-                aria-selected={a.camada === aba}
-                className={`hangar-aba${a.camada === aba ? ' hangar-aba-atual' : ''}`}
-                onClick={() => setAba(a.camada)}
+                aria-selected={a.id === aba}
+                className={`hangar-aba${a.id === aba ? ' hangar-aba-atual' : ''}`}
+                onClick={() => setAba(a.id)}
               >
                 {a.rotulo}
               </button>
             ))}
           </div>
-          <div className="hangar-grade" role="tabpanel" aria-label={ABAS.find((a) => a.camada === aba)?.rotulo}>
-            {aba === 'acessorio' && (
-              <OpcaoPeca
-                nome="Nenhum"
-                escolhida={!escolhas.acessorio}
-                aoEscolher={() => escolher(null)}
-                previa={{ ...escolhas, acessorio: undefined }}
-              />
+          <div className="hangar-painel" role="tabpanel" aria-label={abaAtual.rotulo}>
+            {abaAtual.submenu && (
+              <div className="hangar-submenu" role="group" aria-label={`Grupos de ${abaAtual.rotulo.toLowerCase()}`}>
+                {abaAtual.grupos.map((g, i) => {
+                  const atual = (sub[aba] ?? 0) === i
+                  return (
+                    <button
+                      key={g.camada}
+                      type="button"
+                      aria-pressed={atual}
+                      className={`hangar-sub${atual ? ' hangar-sub-atual' : ''}`}
+                      onClick={() => setSub((s) => ({ ...s, [aba]: i }))}
+                    >
+                      {g.titulo}
+                    </button>
+                  )
+                })}
+              </div>
             )}
-            {pecasDaAba.map((p) => (
-              <OpcaoPeca
-                key={p.id}
-                nome={p.nome}
-                escolhida={escolhas[aba] === p.id}
-                trancada={p.xpMinimo > xp ? p.xpMinimo : null}
-                aoEscolher={() => escolher(p)}
-                previa={{ ...escolhas, [aba]: p.id }}
-              />
-            ))}
+            {grupos.map((g) => {
+              const pecas = PECAS.filter((p) => p.camada === g.camada && pode(p))
+              const opcional = CAMADAS_OPCIONAIS.includes(g.camada)
+              return (
+                <div key={g.camada} className="hangar-grupo">
+                  <h2 className="hangar-grupo-titulo">{g.titulo}</h2>
+                  {g.bolinhas ? (
+                    <div className="hangar-bolinhas">
+                      {pecas.map((p) =>
+                        p.id === CABELO_COR_LIVRE ? (
+                          <CorLivre
+                            key={p.id}
+                            cor={corValida(escolhas[COR_LIVRE]) ? escolhas[COR_LIVRE] : '#6b4027'}
+                            escolhida={escolhas['cor-do-cabelo'] === p.id}
+                            aoEscolher={escolherCorLivre}
+                          />
+                        ) : (
+                          <Bolinha
+                            key={p.id}
+                            peca={p}
+                            escolhida={escolhas[g.camada] === p.id}
+                            trancada={p.xpMinimo > xp ? p.xpMinimo : null}
+                            aoEscolher={() => escolher(g.camada, p)}
+                          />
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <div className="hangar-grade">
+                      {opcional && (
+                        <OpcaoPeca
+                          nome="Nenhum"
+                          escolhida={!escolhas[g.camada]}
+                          aoEscolher={() => escolher(g.camada, null)}
+                          previa={{ ...escolhas, [g.camada]: undefined }}
+                          camada={g.camada}
+                        />
+                      )}
+                      {pecas.map((p) => (
+                        <OpcaoPeca
+                          key={p.id}
+                          nome={p.nome}
+                          escolhida={escolhas[g.camada] === p.id}
+                          trancada={p.xpMinimo > xp ? p.xpMinimo : null}
+                          aoEscolher={() => escolher(g.camada, p)}
+                          previa={{ ...escolhas, [g.camada]: p.id }}
+                          camada={g.camada}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </section>
       </div>
@@ -183,14 +319,18 @@ function OpcaoPeca({
   trancada = null,
   aoEscolher,
   previa,
+  camada,
 }: {
   nome: string
   escolhida: boolean
   trancada?: number | null
   aoEscolher: () => void
-  previa: Partial<Record<Camada, string | undefined>>
+  previa: Partial<Record<string, string | undefined>>
+  camada: Camada
 }) {
   const limpa: Escolhas = Object.fromEntries(Object.entries(previa).filter(([, v]) => v)) as Escolhas
+  // O quadradinho mostra só a parte que muda: a cabeça, o tronco, as pernas ou os pés.
+  const recorte = recorteDaCamada(camada, limpa)
   return (
     <button
       type="button"
@@ -199,9 +339,53 @@ function OpcaoPeca({
       disabled={trancada !== null}
       onClick={aoEscolher}
     >
-      <Avatar escolhas={limpa} tamanho={72} rotulo="" />
+      <span className="hangar-opcao-desenho">
+        <Avatar escolhas={limpa} tamanho={recorte ? 72 : 56} rotulo="" recorte={recorte} />
+      </span>
       <span className="hangar-opcao-nome">{nome}</span>
       {trancada !== null && <span className="hangar-opcao-cadeado">🔒 {trancada} XP</span>}
     </button>
+  )
+}
+
+function Bolinha({
+  peca,
+  escolhida,
+  trancada,
+  aoEscolher,
+}: {
+  peca: Peca
+  escolhida: boolean
+  trancada: number | null
+  aoEscolher: () => void
+}) {
+  const nome = trancada !== null ? `${peca.nome} (abre com ${trancada} XP)` : peca.nome
+  return (
+    <button
+      type="button"
+      className={`hangar-bolinha${escolhida ? ' hangar-bolinha-escolhida' : ''}`}
+      style={{ background: fundoDaBolinha(peca) }}
+      aria-pressed={escolhida}
+      aria-label={nome}
+      title={nome}
+      disabled={trancada !== null}
+      onClick={aoEscolher}
+    >
+      {trancada !== null && (
+        <span className="hangar-bolinha-cadeado" aria-hidden="true">
+          🔒
+        </span>
+      )}
+    </button>
+  )
+}
+
+/** "Escolher minha cor": abre o seletor de cor do aparelho. */
+function CorLivre({ cor, escolhida, aoEscolher }: { cor: string; escolhida: boolean; aoEscolher: (cor: string) => void }) {
+  return (
+    <label className={`hangar-cor-livre${escolhida ? ' hangar-bolinha-escolhida' : ''}`}>
+      <input type="color" value={cor} onChange={(e) => aoEscolher(e.target.value)} />
+      <span>Escolher minha cor</span>
+    </label>
   )
 }

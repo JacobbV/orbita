@@ -183,6 +183,25 @@ const TELAS: Tela[] = [
     },
   },
   {
+    nome: 'Hangar novo: cores do cabelo',
+    caminho: 'hangar',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await page.getByRole('tab', { name: 'Cabelo', exact: true }).click()
+      await expect(page.getByLabel('Escolher minha cor')).toBeVisible()
+    },
+  },
+  {
+    nome: 'Hangar novo: acessórios de rosto',
+    caminho: 'hangar',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await page.getByRole('tab', { name: 'Acessórios' }).click()
+      await page.getByRole('button', { name: 'Rosto' }).click()
+      await expect(page.getByRole('button', { name: /Óculos escuros/ })).toBeVisible()
+    },
+  },
+  {
     nome: 'Painel: entregas com código aberto',
     caminho: 'professor?aba=entregas',
     papel: 'professor',
