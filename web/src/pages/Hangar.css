@@ -284,10 +284,13 @@
 
 /* No celular, o boneco fica preso no topo enquanto a lista de peças rola. */
 @media (max-width: 839px) {
-  .hangar-previa {
+  .hangar .hangar-previa {
     position: sticky;
     top: calc(var(--altura-topo) + 8px);
     z-index: 2;
+    /* fundo sólido: as peças passam por baixo enquanto a lista rola */
+    background: var(--casco);
+    box-shadow: 0 8px 18px rgba(11, 14, 31, 0.65);
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
