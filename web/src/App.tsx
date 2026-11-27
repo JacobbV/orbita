@@ -24,6 +24,7 @@ import { Slides } from './pages/Slides'
 // O laboratório (editor e Python) só baixa quando alguém abre um exercício.
 const Exercicio = lazy(() => import('./pages/Exercicio').then((m) => ({ default: m.Exercicio })))
 const RelatorioDaTurma = lazy(() => import('./pages/professor/Relatorio').then((m) => ({ default: m.Relatorio })))
+const Prova = lazy(() => import('./pages/Prova').then((m) => ({ default: m.Prova })))
 const EditarProva = lazy(() => import('./pages/professor/EditarProva').then((m) => ({ default: m.EditarProva })))
 const ExerciciosDaAula = lazy(() => import('./pages/professor/Exercicios').then((m) => ({ default: m.Exercicios })))
 
@@ -149,6 +150,16 @@ export function App() {
               <RotaProtegida>
                 <Suspense fallback={<Carregando />}>
                   <Exercicio />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="prova/:provaId"
+            element={
+              <RotaProtegida>
+                <Suspense fallback={<Carregando />}>
+                  <Prova />
                 </Suspense>
               </RotaProtegida>
             }

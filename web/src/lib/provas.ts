@@ -1,3 +1,4 @@
+import type { TesteDoAluno } from '../lab/correcao'
 import type { Linguagem } from '../lab/linguagens'
 import type { TesteDoProfessor, TipoDeTeste } from './exercicios'
 import type { OfertaDoPainel } from './professor'
@@ -251,3 +252,141 @@ export async function removerProva(id: number): Promise<void> {
   if (error) throw error
 }
 
+// ---------------------------------------------------------------------------
+// Aluno: ver as provas, fazer e entregar
+// ---------------------------------------------------------------------------
+
+export interface ProvaDoAluno {
+  id: number
+  titulo: string
+  instrucoes: string
+  /** Horário do aluno (já considera a segunda chamada). */
+  abreEm: string
+  fechaEm: string
+  duracaoMin: number
+  saidasParaEncerrar: number | null
+  questoes: number
+  comecouEm: string | null
+  terminaEm: string | null
+  entregueEm: string | null
+  encerradaPor: 'aluno' | 'tempo' | 'saidas' | null
+  saidas: number
+  /** Só vem depois que o professor publica as notas. */
+  nota: number | null
+}
+
+export type EstadoDaProvaDoAluno = 'antes' | 'aberta' | 'em_andamento' | 'entregue' | 'perdida'
+
+export function estadoDaProvaDoAluno(p: ProvaDoAluno, agora = Date.now()): EstadoDaProvaDoAluno {
+  if (p.entregueEm) return 'entregue'
+  if (p.comecouEm && p.terminaEm && new Date(p.terminaEm).getTime() > agora) return 'em_andamento'
+  const momento = momentoDaProva(p, agora)
+  if (p.comecouEm) return 'entregue'
+  if (momento === 'antes') return 'antes'
+  if (momento === 'aberta') return 'aberta'
+  return 'perdida'
+}
+
+export async function minhasProvas(): Promise<ProvaDoAluno[]> {
+  const { data, error } = await supabase().rpc('minhas_provas')
+  if (error) throw error
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    titulo: p.titulo,
+    instrucoes: p.instrucoes,
+    abreEm: p.abre_em,
+    fechaEm: p.fecha_em,
+    duracaoMin: p.duracao_min,
+    saidasParaEncerrar: p.saidas_para_encerrar ?? null,
+    questoes: p.questoes,
+    comecouEm: p.comecou_em ?? null,
+    terminaEm: p.termina_em ?? null,
+    entregueEm: p.entregue_em ?? null,
+    encerradaPor: (p.encerrada_por ?? null) as ProvaDoAluno['encerradaPor'],
+    saidas: p.saidas ?? 0,
+    nota: p.nota === null || p.nota === undefined ? null : Number(p.nota),
+  }))
+}
+
+/** Começa (ou retoma) a prova. Devolve quando o tempo acaba. */
+export async function comecarProva(id: number): Promise<string> {
+  const { data, error } = await supabase().rpc('comecar_prova', { p_prova_id: id })
+  if (error) throw error
+  return data
+}
+
+export interface QuestaoDaProva {
+  questaoId: number
+  titulo: string
+  enunciado: string
+  linguagem: Linguagem
+  codigoInicial: string
+  peso: number
+  /** Visíveis completos; ocultos só com a impressão digital. Secretos nunca chegam. */
+  testes: TesteDoAluno[]
+  minhaResposta: string | null
+}
+
+export async function questoesDaProva(id: number): Promise<QuestaoDaProva[]> {
+  const { data, error } = await supabase().rpc('questoes_da_prova', { p_prova_id: id })
+  if (error) throw error
+  return (data ?? []).map((q) => ({
+    questaoId: q.questao_id,
+    titulo: q.titulo,
+    enunciado: q.enunciado,
+    linguagem: q.linguagem as Linguagem,
+    codigoInicial: q.codigo_inicial,
+    peso: Number(q.peso),
+    testes: (q.testes as unknown as TesteDoAluno[]) ?? [],
+    minhaResposta: q.minha_resposta ?? null,
+  }))
+}
+
+/** Guarda a resposta da questão (vale a última). */
+export async function responderQuestao(questaoId: number, codigo: string, testesCertos: number): Promise<void> {
+  const { error } = await supabase().rpc('responder_questao', {
+    p_questao_id: questaoId,
+    p_codigo: codigo,
+    p_testes_certos: testesCertos,
+  })
+  if (error) throw error
+}
+
+export interface ResultadoDaSaida {
+  saidas: number
+  encerrada: boolean
+  limite: number | null
+}
+
+export async function registrarSaida(id: number): Promise<ResultadoDaSaida> {
+  const { data, error } = await supabase().rpc('registrar_saida_da_prova', { p_prova_id: id })
+  if (error) throw error
+  return data as unknown as ResultadoDaSaida
+}
+
+export async function registrarVolta(id: number): Promise<void> {
+  const { error } = await supabase().rpc('registrar_volta_da_prova', { p_prova_id: id })
+  if (error) throw error
+}
+
+export async function entregarProva(id: number): Promise<void> {
+  const { error } = await supabase().rpc('entregar_prova', { p_prova_id: id })
+  if (error) throw error
+}
+
+/** Rascunho do código da questão no próprio navegador. */
+export function lerRascunhoDaQuestao(provaId: number, questaoId: number): string | null {
+  try {
+    return localStorage.getItem(`orbita:prova:${provaId}:${questaoId}`)
+  } catch {
+    return null
+  }
+}
+
+export function guardarRascunhoDaQuestao(provaId: number, questaoId: number, codigo: string) {
+  try {
+    localStorage.setItem(`orbita:prova:${provaId}:${questaoId}`, codigo)
+  } catch {
+    // Sem armazenamento: segue sem rascunho.
+  }
+}

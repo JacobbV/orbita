@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { doCampoDeData, duracaoEmTexto, momentoDaProva, nomeDasSaidas, paraCampoDeData, validarProva, type DadosDaProva } from './provas'
+import {
+  doCampoDeData,
+  duracaoEmTexto,
+  estadoDaProvaDoAluno,
+  momentoDaProva,
+  nomeDasSaidas,
+  paraCampoDeData,
+  validarProva,
+  type DadosDaProva,
+  type ProvaDoAluno,
+} from './provas'
 
 const base: DadosDaProva = {
   ofertaId: 3,
@@ -61,5 +71,38 @@ describe('validarProva', () => {
   it('limite de 30 questões', () => {
     const muitas = Array.from({ length: 31 }, (_, i) => ({ exercicioId: i + 1, peso: '1' }))
     expect(validarProva({ ...base, questoes: muitas }).questoes).toBe('Use até 30 questões.')
+  })
+})
+
+describe('estadoDaProvaDoAluno', () => {
+  const base: ProvaDoAluno = {
+    id: 1,
+    titulo: 'Prova',
+    instrucoes: '',
+    abreEm: '2026-12-01T08:00:00Z',
+    fechaEm: '2026-12-01T10:00:00Z',
+    duracaoMin: 60,
+    saidasParaEncerrar: null,
+    questoes: 2,
+    comecouEm: null,
+    terminaEm: null,
+    entregueEm: null,
+    encerradaPor: null,
+    saidas: 0,
+    nota: null,
+  }
+  const t = (iso: string) => Date.parse(iso)
+
+  it('antes, aberta e perdida (sem ter começado)', () => {
+    expect(estadoDaProvaDoAluno(base, t('2026-12-01T07:00:00Z'))).toBe('antes')
+    expect(estadoDaProvaDoAluno(base, t('2026-12-01T09:00:00Z'))).toBe('aberta')
+    expect(estadoDaProvaDoAluno(base, t('2026-12-01T11:00:00Z'))).toBe('perdida')
+  })
+
+  it('em andamento enquanto o tempo dele não acabou; depois, entregue', () => {
+    const comecou = { ...base, comecouEm: '2026-12-01T08:30:00Z', terminaEm: '2026-12-01T09:30:00Z' }
+    expect(estadoDaProvaDoAluno(comecou, t('2026-12-01T09:00:00Z'))).toBe('em_andamento')
+    expect(estadoDaProvaDoAluno(comecou, t('2026-12-01T09:31:00Z'))).toBe('entregue')
+    expect(estadoDaProvaDoAluno({ ...comecou, entregueEm: '2026-12-01T08:45:00Z' }, t('2026-12-01T08:50:00Z'))).toBe('entregue')
   })
 })

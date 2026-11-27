@@ -1,0 +1,133 @@
+/* Prova do aluno (Fase 4) */
+.prova {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 24px 48px;
+}
+
+.prova-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.prova-selo {
+  color: var(--estrela);
+  font-size: 0.65rem;
+}
+
+.prova-meta {
+  color: var(--texto-suave);
+}
+
+.prova-regras {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prova-fim {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prova-barra {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 20px;
+}
+
+.prova-barra h1 {
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.prova-relogio {
+  margin: 0;
+  font-family: var(--fonte-codigo);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ciano-claro);
+}
+
+.prova-relogio-pouco {
+  color: var(--estrela);
+}
+
+.prova-relogio-fim {
+  color: var(--erro, #ff7b7b);
+}
+
+.prova-questoes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prova-abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.prova-aba {
+  padding: 8px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.prova-aba-salva {
+  border-color: var(--sucesso);
+}
+
+.prova-aba-ativa {
+  background: var(--ciano);
+  border-color: var(--ciano);
+  color: #06101f;
+  font-weight: 700;
+}
+
+.prova-aba:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prova-salva {
+  margin: 0;
+  color: var(--sucesso);
+  font-weight: 600;
+}
+
+.prova-salva-velha {
+  color: var(--estrela);
+}
+
+.prova-entregar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 20px;
+}
+
+.prova-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
