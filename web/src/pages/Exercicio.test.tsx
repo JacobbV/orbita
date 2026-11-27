@@ -9,6 +9,7 @@ const falso = vi.hoisted(() => ({
   codigosRodados: [] as string[],
   entradasDoTerminal: [] as string[],
   pedeNumero: false,
+  comErro: false,
   entregues: [] as { exercicioId: number; codigo: string; certos: number }[],
   linguagem: 'python' as 'python' | 'javascript' | 'html',
   /** Entregas que o banco devolve para a tela (da mais nova para a mais antiga). */
@@ -76,6 +77,9 @@ vi.mock('../lab/executor', async (original) => ({
     async rodar(codigo: string, entrada: string, mostrar = false) {
       falso.codigosRodados.push(codigo)
       falso.entradasDoTerminal.push(entrada)
+      if (mostrar && falso.comErro) {
+        return { saida: '', erro: "NameError: name 'y' is not defined", tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false }
+      }
       if (mostrar && falso.pedeNumero) {
         // Programa que pergunta um número: espera a resposta e depois mostra o dobro.
         const [resposta] = entrada.split('\n')
@@ -112,6 +116,7 @@ beforeEach(() => {
   falso.codigosRodados = []
   falso.entradasDoTerminal = []
   falso.pedeNumero = false
+  falso.comErro = false
   falso.jaEntregues = []
   falso.entregues = []
   falso.linguagem = 'python'
@@ -173,6 +178,17 @@ describe('Exercício do laboratório', () => {
     expect(await within(terminal).findByText(/Dobro: 42/)).toBeInTheDocument()
     expect(within(terminal).queryByLabelText('Resposta para o input()')).toBeNull()
     expect(falso.entradasDoTerminal.filter((e) => e !== '1\n2' && e !== '5\n5')).toEqual(['', '21\n'])
+  })
+
+  it('programa com erro mostra o erro no terminal e não roda os testes', async () => {
+    falso.comErro = true
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    const terminal = await screen.findByRole('region', { name: 'Terminal' })
+    expect(await within(terminal).findByText("NameError: name 'y' is not defined")).toBeInTheDocument()
+    expect(screen.getByText('Corrija o erro e rode de novo para conferir os testes.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /testes certos/ })).toBeNull()
+    expect(falso.entradasDoTerminal).toEqual([''])
   })
 
   it('resposta vazia também conta como uma resposta', async () => {

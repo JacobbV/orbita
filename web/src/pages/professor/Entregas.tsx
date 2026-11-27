@@ -122,7 +122,11 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
   return (
     <div className="entregas-arvore">
       {porAula.map(({ exercicio: primeiro, exercicios }) => (
-        <details key={primeiro.aulaId} className="cartao entregas-aula" open={porAula.length <= 3}>
+        <details
+          key={primeiro.aulaId}
+          className="cartao entregas-aula"
+          open={porAula.length <= 3 || exercicios.some((ex) => dados.entregas.some((e) => e.exercicioId === ex.id))}
+        >
           <summary>
             <span className="pixel entregas-aula-selo">
               U{numeroRomano(primeiro.unidade)} · A{primeiro.aula}

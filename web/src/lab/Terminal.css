@@ -2,7 +2,7 @@
 .terminal {
   display: flex;
   flex-direction: column;
-  min-height: 14rem;
+  min-height: 18rem;
   border: 1px solid var(--borda);
   border-radius: var(--raio);
   background: #05070f;

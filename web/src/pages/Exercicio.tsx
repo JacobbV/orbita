@@ -153,7 +153,8 @@ export function Exercicio() {
       setOcupado(null)
       return
     }
-    if (testes.length > 0) await conferirTestes(py, codigoRodado)
+    // Deu erro ou travou: os testes também falhariam (e cada laço infinito custa 5 segundos). Corrija e rode de novo.
+    if (testes.length > 0 && !resultado.erro && !resultado.tempoEsgotado) await conferirTestes(py, codigoRodado)
     setOcupado(null)
   }
 
@@ -302,12 +303,18 @@ export function Exercicio() {
               resultado={sessao?.resultado ?? null}
               ocupado={ocupado === 'carregando' || ocupado === 'rodando'}
               mensagemOcupado={mensagemOcupado}
+              respostasDadas={sessao?.respostas.length ?? 0}
               aoResponder={responder}
             />
           )}
           <p className="exercicio-status" role="status">
             {ocupado === 'testando' && 'Conferindo os testes…'}
             {ocupado === null && ehHtml && !resultados && 'Clique em Rodar para conferir a sua página.'}
+            {ocupado === null &&
+              !ehHtml &&
+              !resultados &&
+              (sessao?.resultado.erro || sessao?.resultado.tempoEsgotado) &&
+              'Corrija o erro e rode de novo para conferir os testes.'}
           </p>
           {falhaAoCarregar && (
             <Aviso tipo="erro" titulo={`${linguagem.nome} indisponível`}>

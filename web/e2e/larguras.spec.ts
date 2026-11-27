@@ -23,6 +23,8 @@ let slidesId = 0
 let ofertaAlgM = 0
 /** Aula I.1 de Algoritmos, para a tela de exercícios do painel. */
 let aulaI1 = 0
+/** Exercício de Soma na aula I.1, com uma entrega já corrigida. */
+let exercicioLarguras = 0
 
 interface Tela {
   nome: string
@@ -170,6 +172,38 @@ const TELAS: Tela[] = [
     },
   },
   {
+    nome: 'Painel: entregas com código aberto',
+    caminho: 'professor?aba=entregas',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: /1º INFO M · .* · ALG/ }).click()
+      await page.getByRole('button', { name: /^Abrir a entrega de / }).first().click()
+      await expect(page.getByRole('button', { name: 'Devolver para refazer' })).toBeVisible()
+      await page.getByRole('button', { name: 'Devolver para refazer' }).click()
+    },
+  },
+  {
+    nome: 'Painel: tripulação com perfil aberto',
+    get caminho() {
+      return `professor/tripulacao/${ofertaAlgM}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByRole('button', { name: /^Perfil de / }).first().click()
+      await expect(page.getByText('Últimas entregas')).toBeVisible()
+    },
+  },
+  {
+    nome: 'Exercício com terminal e entrega corrigida',
+    get caminho() {
+      return `exercicio/${exercicioLarguras}`
+    },
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByText('Nota do professor: 6,5')).toBeVisible()
+    },
+  },
+  {
     nome: 'Painel: exercícios com formulário aberto',
     get caminho() {
       return `professor/exercicios/${aulaI1}`
@@ -226,6 +260,42 @@ test.beforeAll(async ({ browser }) => {
     body: JSON.stringify({ turma_disciplina_id: algM, aula_id: aula }),
   })
   aulaI1 = aula ?? 0
+
+  // Um exercício com uma entrega do aluno, para as telas de exercício, entregas e tripulação.
+  const TITULO_EXERCICIO = 'Soma de dois números para as larguras'
+  await rest(`exercicios?aula_id=eq.${aulaI1}&titulo=eq.${encodeURIComponent(TITULO_EXERCICIO)}`, { method: 'DELETE' })
+  const [exercicio] = await rest<Array<{ id: number }>>('exercicios', {
+    method: 'POST',
+    body: JSON.stringify({
+      aula_id: aulaI1,
+      titulo: TITULO_EXERCICIO,
+      enunciado: 'Leia dois números inteiros, um por linha, e mostre a soma deles na tela.',
+      codigo_inicial: 'a = int(input())\n',
+    }),
+  })
+  exercicioLarguras = exercicio?.id ?? 0
+  await rest('testes', {
+    method: 'POST',
+    body: JSON.stringify([
+      { exercicio_id: exercicioLarguras, tipo: 'visivel', entrada: '1\n2', saida_esperada: '3', ordem: 1 },
+      { exercicio_id: exercicioLarguras, tipo: 'oculto', entrada: '5\n5', saida_esperada: '10', ordem: 2 },
+    ]),
+  })
+  await rest('entregas', {
+    method: 'POST',
+    body: JSON.stringify({
+      exercicio_id: exercicioLarguras,
+      aluno_id: id,
+      codigo: 'a = int(input())\nb = int(input())\nprint(a + b)  # uma linha de código bem comprida para conferir a quebra no painel do professor',
+      testes_certos: 1,
+      testes_total: 2,
+      nota: 5,
+      tentativa: 1,
+      comentario: 'Faltou testar com números negativos.',
+      nota_professor: 6.5,
+      corrigida_em: new Date().toISOString(),
+    }),
+  })
 
   slidesId = await enviarSlidesDeTeste(
     aula ?? 0,

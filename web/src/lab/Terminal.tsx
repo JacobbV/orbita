@@ -8,12 +8,14 @@ interface Props {
   /** Está rodando agora (ou carregando a linguagem). */
   ocupado: boolean
   mensagemOcupado?: string
+  /** Quantas respostas já foram digitadas (o campo da próxima leva esse número + 1). */
+  respostasDadas?: number
   /** O programa parou e espera a próxima resposta do input(). */
   aoResponder: (resposta: string) => void
 }
 
 /** Terminal do exercício: mostra a saída do programa e pede as respostas do input() na hora, como o CMD. */
-export function Terminal({ resultado, ocupado, mensagemOcupado, aoResponder }: Props) {
+export function Terminal({ resultado, ocupado, mensagemOcupado, respostasDadas = 0, aoResponder }: Props) {
   const [digitado, setDigitado] = useState('')
   const campo = useRef<HTMLInputElement>(null)
   const esperando = resultado?.precisaDeEntrada === true && !ocupado
@@ -47,6 +49,7 @@ export function Terminal({ resultado, ocupado, mensagemOcupado, aoResponder }: P
             <input
               ref={campo}
               id="terminal-resposta"
+              data-resposta={respostasDadas + 1}
               className="terminal-campo"
               value={digitado}
               onChange={(e) => setDigitado(e.target.value)}

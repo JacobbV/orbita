@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, criarProfessor, emailDeTeste, entrar, entregarConfirmando, oferta, registrarErros, responderNoTerminal, rest } from './apoio.ts'
 
 // O professor cria um exercício pelo painel (com as saídas preenchidas pela
 // solução, rodando o Python de verdade) e o aluno resolve. Dados inventados.
@@ -77,9 +77,10 @@ test.describe.serial('Exercícios criados no painel', () => {
     await page.getByRole('link', { name: new RegExp(`Exercício: ${TITULO}`) }).click()
     await expect(page.getByRole('heading', { name: TITULO })).toBeVisible()
     await escrever(page, 'Editor de código Python', 'n = int(input())\nprint(n * 2)')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await page.getByRole('button', { name: '▶ Rodar' }).click()
+    await responderNoTerminal(page, ['3'])
     await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible({ timeout: 60_000 })
-    await page.getByRole('button', { name: 'Entregar' }).click()
+    await entregarConfirmando(page)
     await expect(page.getByText('Entrega 1 enviada: 2 de 2 testes certos. +35 XP, a confirmar pelo professor.')).toBeVisible()
     await expect(page.getByRole('region', { name: 'Suas entregas' })).toContainText('a confirmar pelo professor')
     expect(erros).toEqual([])
@@ -91,9 +92,10 @@ test.describe.serial('Exercícios criados no painel', () => {
     await page.goto('ponte')
     await page.getByRole('link', { name: new RegExp(`Exercício: ${TITULO}`) }).click()
     await escrever(page, 'Editor de código Python', 'n = int(input())\nprint(n * 2 if n != 0 else 1)')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await page.getByRole('button', { name: '▶ Rodar' }).click()
+    await responderNoTerminal(page, ['3'])
     await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible({ timeout: 60_000 })
-    await page.getByRole('button', { name: 'Entregar' }).click()
+    await entregarConfirmando(page)
     await expect(page.getByText(/Entrega 1 enviada: 2 de 2 testes certos/)).toBeVisible()
     expect(erros).toEqual([])
   })
