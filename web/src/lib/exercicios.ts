@@ -246,3 +246,98 @@ export const NOVO_EXERCICIO: DadosDoExercicio = {
     { tipo: 'oculto', entrada: '', saidaEsperada: '' },
   ],
 }
+
+// ---------------------------------------------------------------------------
+// Visão geral dos exercícios (aba Exercícios do painel)
+// ---------------------------------------------------------------------------
+
+export interface ExercicioDaVisao {
+  id: number
+  titulo: string
+  dificuldade: number
+  linguagem: Linguagem
+  entregas: number
+  aConfirmar: number
+}
+
+export interface AulaDaVisao {
+  id: number
+  numero: number
+  titulo: string
+  exercicios: ExercicioDaVisao[]
+}
+
+export interface UnidadeDaVisao {
+  id: number
+  numero: number
+  titulo: string
+  aulas: AulaDaVisao[]
+}
+
+export interface DisciplinaDaVisao {
+  id: number
+  sigla: string
+  nome: string
+  unidades: UnidadeDaVisao[]
+}
+
+/** Todas as disciplinas com unidades, aulas e os exercícios de cada aula. */
+export async function listarVisaoDosExercicios(): Promise<DisciplinaDaVisao[]> {
+  const { data, error } = await supabase()
+    .from('unidades')
+    .select(
+      'id, numero, titulo, disciplina:disciplinas!inner(id, sigla, nome, ordem), aulas(id, numero, titulo, exercicios(id, titulo, dificuldade, linguagem, ordem, entregas(situacao)))',
+    )
+  if (error) throw error
+  const porDisciplina = new Map<number, DisciplinaDaVisao & { ordem: number }>()
+  for (const u of data) {
+    const d = porDisciplina.get(u.disciplina.id) ?? {
+      id: u.disciplina.id,
+      sigla: u.disciplina.sigla,
+      nome: u.disciplina.nome,
+      ordem: u.disciplina.ordem,
+      unidades: [],
+    }
+    d.unidades.push({
+      id: u.id,
+      numero: u.numero,
+      titulo: u.titulo,
+      aulas: [...u.aulas]
+        .sort((a, b) => a.numero - b.numero)
+        .map((a) => ({
+          id: a.id,
+          numero: a.numero,
+          titulo: a.titulo,
+          exercicios: [...a.exercicios]
+            .sort((x, y) => x.ordem - y.ordem || x.id - y.id)
+            .map((e) => ({
+              id: e.id,
+              titulo: e.titulo,
+              dificuldade: e.dificuldade,
+              linguagem: e.linguagem as Linguagem,
+              entregas: e.entregas.length,
+              aConfirmar: e.entregas.filter((x) => x.situacao === 'a_confirmar').length,
+            })),
+        })),
+    })
+    porDisciplina.set(d.id, d)
+  }
+  return [...porDisciplina.values()]
+    .sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, 'pt-BR'))
+    .map(({ ordem: _ordem, ...d }) => ({ ...d, unidades: [...d.unidades].sort((a, b) => a.numero - b.numero) }))
+}
+
+/** Total de exercícios e de entregas esperando reconferência, para o resumo da disciplina. */
+export function resumoDaVisao(d: Pick<DisciplinaDaVisao, 'unidades'>): { exercicios: number; aConfirmar: number } {
+  let exercicios = 0
+  let aConfirmar = 0
+  for (const u of d.unidades) {
+    for (const a of u.aulas) {
+      for (const e of a.exercicios) {
+        exercicios += 1
+        aConfirmar += e.aConfirmar
+      }
+    }
+  }
+  return { exercicios, aConfirmar }
+}

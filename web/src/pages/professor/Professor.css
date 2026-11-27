@@ -78,11 +78,12 @@
 
   .painel-abas {
     align-self: flex-start;
+    max-width: 100%;
   }
 
   .painel-aba {
     flex: 0 0 auto;
-    min-width: 8rem;
+    min-width: 7rem;
   }
 }
 
@@ -1028,4 +1029,45 @@ h3.painel-unidade-nome {
   .painel-unidade-seta::after {
     transition: none;
   }
+}
+
+/* Alerta de prova na entrada do painel */
+.painel-alerta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-color: var(--estrela);
+}
+
+.painel-alerta-aberta {
+  border-color: var(--plasma);
+}
+
+.painel-alerta-proxima {
+  border-color: var(--borda);
+}
+
+.painel-alerta-selo {
+  margin: 0 0 4px;
+  color: var(--estrela);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+
+.painel-alerta-aberta .painel-alerta-selo {
+  color: var(--plasma);
+}
+
+.painel-alerta-titulo {
+  margin: 0;
+  font-weight: 600;
+}
+
+.painel-alerta-info {
+  margin: 2px 0 0;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
 }

@@ -124,6 +124,29 @@ async function abrirTurma() {
 }
 
 describe('Aba Entregas', () => {
+  it('filtra por situação: falta corrigir, corrigidas e sem entrega', async () => {
+    const u = userEvent.setup()
+    const exercicio = await abrirTurma()
+    const filtros = screen.getByRole('group', { name: 'Mostrar por situação' })
+    expect(within(filtros).getByRole('button', { name: 'Todas (3)' })).toBeInTheDocument()
+    expect(within(filtros).getByRole('button', { name: 'Falta corrigir (1)' })).toBeInTheDocument()
+
+    await u.click(within(filtros).getByRole('button', { name: 'Falta corrigir (1)' }))
+    expect(within(exercicio).getByText('Andrômeda Vega')).toBeInTheDocument()
+    expect(within(exercicio).queryByText('Sírius Altair')).toBeNull()
+    expect(within(exercicio).queryByText('Lira Boreal')).toBeNull()
+
+    await u.click(within(filtros).getByRole('button', { name: 'Corrigidas (1)' }))
+    expect(within(exercicio).getByText('Sírius Altair')).toBeInTheDocument()
+    expect(within(exercicio).queryByText('Andrômeda Vega')).toBeNull()
+
+    await u.click(within(filtros).getByRole('button', { name: 'Devolvidas (0)' }))
+    expect(screen.getByText('Nenhuma entrega nesta situação.')).toBeInTheDocument()
+
+    await u.click(within(filtros).getByRole('button', { name: 'Sem entrega (1)' }))
+    expect(within(screen.getByRole('region', { name: 'Exercício Média da turma' })).getByText('Lira Boreal')).toBeInTheDocument()
+  })
+
   it('organiza por aula e exercício, com o status de cada aluno', async () => {
     const exercicio = await abrirTurma()
     expect(screen.getByText('Listas')).toBeInTheDocument()

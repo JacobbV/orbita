@@ -1,4 +1,4 @@
-import { lerNota, notaFinal, statusDoAluno } from './entregas'
+import { combinaComFiltro, contarPorSituacao, lerNota, notaFinal, statusDoAluno } from './entregas'
 
 const base = { tentativa: 1, devolvidaEm: null, corrigidaEm: null }
 
@@ -49,5 +49,33 @@ describe('lerNota', () => {
 
   it('recusa nota fora de 0 a 10 ou que não é número', () => {
     for (const ruim of ['10,1', '11', '-1', 'abc', '7,55', '1,2,3']) expect(lerNota(ruim)).toEqual({ ok: false })
+  })
+})
+
+describe('filtro das entregas por situação', () => {
+  const dados = {
+    alunos: [
+      { alunoId: 'a1', nome: 'Ana Fictícia' },
+      { alunoId: 'a2', nome: 'Bia Fictícia' },
+      { alunoId: 'a3', nome: 'Caio Fictício' },
+      { alunoId: 'a4', nome: 'Duda Fictícia' },
+    ],
+    exercicios: [{ id: 1 }, { id: 2 }],
+    entregas: [
+      { exercicioId: 1, alunoId: 'a1', tentativa: 1, devolvidaEm: null, corrigidaEm: null },
+      { exercicioId: 1, alunoId: 'a2', tentativa: 1, devolvidaEm: null, corrigidaEm: '2026-11-09T10:00:00Z' },
+      { exercicioId: 1, alunoId: 'a3', tentativa: 1, devolvidaEm: '2026-11-10T10:00:00Z', corrigidaEm: null },
+      { exercicioId: 2, alunoId: 'a1', tentativa: 1, devolvidaEm: null, corrigidaEm: null },
+    ],
+  } as unknown as Parameters<typeof contarPorSituacao>[0]
+
+  it('conta cada par aluno + exercício na sua situação', () => {
+    expect(contarPorSituacao(dados)).toEqual({ todas: 8, entregue: 2, corrigida: 1, devolvida: 1, sem_entrega: 4 })
+  })
+
+  it('"todas" deixa tudo passar e os outros só a própria situação', () => {
+    expect(combinaComFiltro('corrigida', 'todas')).toBe(true)
+    expect(combinaComFiltro('corrigida', 'corrigida')).toBe(true)
+    expect(combinaComFiltro('entregue', 'corrigida')).toBe(false)
   })
 })

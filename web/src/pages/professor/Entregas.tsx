@@ -7,8 +7,11 @@ import { criarExecutor, LINGUAGENS } from '../../lab/linguagens'
 import { rotuloTurma } from '../../lib/api'
 import {
   carregarEntregas,
+  combinaComFiltro,
+  contarPorSituacao,
   corrigirEntrega,
   devolverEntrega,
+  FILTROS_DE_ENTREGAS,
   lerNota,
   NOME_DO_STATUS,
   notaFinal,
@@ -17,6 +20,7 @@ import {
   type DadosDasEntregas,
   type EntregaDoProfessor,
   type ExercicioDasEntregas,
+  type FiltroDeEntregas,
 } from '../../lib/entregas'
 import { mensagemDeErro } from '../../lib/erros'
 import { carregarAulaComExercicios, regraDe } from '../../lib/exercicios'
@@ -87,6 +91,7 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
   const [erro, setErro] = useState<string | null>(null)
   const [versao, setVersao] = useState(0)
   const [aberta, setAberta] = useState<Aberta | null>(null)
+  const [filtro, setFiltro] = useState<FiltroDeEntregas>('todas')
 
   useEffect(() => {
     let ativo = true
@@ -112,20 +117,47 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
     return [...grupos.values()]
   }, [dados])
 
+  const contagem = useMemo(() => (dados ? contarPorSituacao(dados) : null), [dados])
+
   if (erro) return <Aviso tipo="erro">{erro}</Aviso>
-  if (!dados) return <Carregando />
+  if (!dados || !contagem) return <Carregando />
   if (dados.alunos.length === 0) return <p className="cartao painel-vazio">Nenhum aluno aprovado nesta turma ainda.</p>
   if (dados.exercicios.length === 0) {
     return <p className="cartao painel-vazio">Nenhum exercício nas aulas liberadas para esta turma ainda.</p>
   }
 
+  const aulasVisiveis = porAula.filter(({ exercicios }) =>
+    exercicios.some((ex) =>
+      dados.alunos.some((a) =>
+        combinaComFiltro(
+          statusDoAluno(dados.entregas.filter((e) => e.exercicioId === ex.id && e.alunoId === a.alunoId)),
+          filtro,
+        ),
+      ),
+    ),
+  )
+
   return (
     <div className="entregas-arvore">
-      {porAula.map(({ exercicio: primeiro, exercicios }) => (
+      <div className="entregas-filtros" role="group" aria-label="Mostrar por situação">
+        {FILTROS_DE_ENTREGAS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={`botao botao-compacto${f.id === filtro ? ' botao-primario' : ''}`}
+            aria-pressed={f.id === filtro}
+            onClick={() => setFiltro(f.id)}
+          >
+            {f.rotulo} ({contagem[f.id]})
+          </button>
+        ))}
+      </div>
+      {aulasVisiveis.length === 0 && <p className="cartao painel-vazio">Nenhuma entrega nesta situação.</p>}
+      {aulasVisiveis.map(({ exercicio: primeiro, exercicios }) => (
         <details
           key={primeiro.aulaId}
           className="cartao entregas-aula"
-          open={porAula.length <= 3 || exercicios.some((ex) => dados.entregas.some((e) => e.exercicioId === ex.id))}
+          open={filtro !== 'todas' || porAula.length <= 3 || exercicios.some((ex) => dados.entregas.some((e) => e.exercicioId === ex.id))}
         >
           <summary>
             <span className="pixel entregas-aula-selo">
@@ -138,6 +170,7 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
               key={ex.id}
               exercicio={ex}
               dados={dados}
+              filtro={filtro}
               aberta={aberta?.exercicioId === ex.id ? aberta.alunoId : null}
               aoAbrir={(alunoId) => setAberta(alunoId === null ? null : { exercicioId: ex.id, alunoId })}
               aoMudar={() => setVersao((v) => v + 1)}
@@ -152,12 +185,14 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
 function ExercicioComAlunos({
   exercicio,
   dados,
+  filtro,
   aberta,
   aoAbrir,
   aoMudar,
 }: {
   exercicio: ExercicioDasEntregas
   dados: DadosDasEntregas
+  filtro: FiltroDeEntregas
   aberta: string | null
   aoAbrir: (alunoId: string | null) => void
   aoMudar: () => void
@@ -168,7 +203,9 @@ function ExercicioComAlunos({
   })
   const entregaram = linhas.filter((l) => l.status !== 'sem_entrega').length
   const faltaCorrigir = linhas.filter((l) => l.status === 'entregue').length
-  const aberto = linhas.find((l) => l.aluno.alunoId === aberta)
+  const visiveis = linhas.filter((l) => combinaComFiltro(l.status, filtro))
+  const aberto = visiveis.find((l) => l.aluno.alunoId === aberta)
+  if (visiveis.length === 0) return null
 
   return (
     <section className="entregas-exercicio" aria-label={`Exercício ${exercicio.titulo}`}>
@@ -178,7 +215,7 @@ function ExercicioComAlunos({
         {faltaCorrigir > 0 && ` · ${faltaCorrigir} ${faltaCorrigir === 1 ? 'falta corrigir' : 'faltam corrigir'}`}
       </p>
       <ul className="entregas-alunos" role="list">
-        {linhas.map(({ aluno, entregas, status }) => {
+        {visiveis.map(({ aluno, entregas, status }) => {
           const ultima = entregas[0]
           return (
             <li key={aluno.alunoId} className={`entregas-aluno entregas-status-${status}`}>
