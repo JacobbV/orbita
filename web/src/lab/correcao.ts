@@ -1,6 +1,6 @@
 // Correção dos testes no navegador. As regras são as mesmas do banco
 // (privado.normalizar_saida e privado.forma_conferida, migration
-// 20261127000500): o que o site calcula aqui tem de dar o mesmo resultado lá,
+// 20261128000200): o que o site calcula aqui tem de dar o mesmo resultado lá,
 // porque os testes ocultos chegam ao aluno só como impressão digital.
 //
 // Três jeitos de conferir, escolhidos pelo professor em cada exercício:
