@@ -136,10 +136,10 @@ const PERFIS: Record<Base, Record<Fisico, Perfil>> = {
     gordinho: { ombro: 8, peito: 9, cintura: 10, quadril: 9, braco: 4, perna: 16, pescoco: 3 },
   },
   feminina: {
-    magro: { ombro: 6, peito: 6, cintura: 5, quadril: 7, braco: 2, perna: 18, pescoco: 2 },
-    medio: { ombro: 7, peito: 7, cintura: 6, quadril: 8, braco: 3, perna: 17, pescoco: 2 },
-    forte: { ombro: 8, peito: 8, cintura: 7, quadril: 9, braco: 4, perna: 17, pescoco: 2 },
-    gordinho: { ombro: 8, peito: 9, cintura: 10, quadril: 10, braco: 3, perna: 16, pescoco: 2 },
+    magro: { ombro: 6, peito: 6, cintura: 4, quadril: 7, braco: 2, perna: 18, pescoco: 2 },
+    medio: { ombro: 7, peito: 7, cintura: 5, quadril: 8, braco: 3, perna: 17, pescoco: 2 },
+    forte: { ombro: 8, peito: 8, cintura: 6, quadril: 9, braco: 4, perna: 17, pescoco: 2 },
+    gordinho: { ombro: 8, peito: 9, cintura: 9, quadril: 10, braco: 3, perna: 16, pescoco: 2 },
   },
 }
 
@@ -170,7 +170,11 @@ export function geometria(escolhas: Escolhas): Geo {
   for (let i = 0; i < n; i++) {
     let meia = i < 2 ? perfil.ombro : i >= n - 3 ? perfil.quadril : i < peitoAte ? perfil.peito : perfil.cintura
     // feminino: ombro arredondado na primeira linha
-    if (i === 0 && base === 'feminina') meia -= 1
+    if (base === 'feminina') {
+      if (i === 0) meia -= 1
+      // cintura afinando aos poucos: a primeira e a última linha ficam no meio do caminho
+      if (i >= peitoAte && i < n - 3 && (i === peitoAte || i === n - 4) && perfil.cintura < perfil.peito) meia += 1
+    }
     linhas.push([24 - meia, 23 + meia])
   }
   // Os braços descem rentes ao ombro e ao peito; barriga e quadril podem encostar neles.
@@ -266,11 +270,17 @@ function desenharCorpo(g: Geo): Ret[] {
   const d = g.dy
   const pd = 47 - g.perna
   const larguraPerna = 22 - g.perna + 1
+  // Feminino: queixo afilado; masculino: o rosto arredondado de sempre.
+  const cabeca: Ret[] = g.base === 'feminina'
+    ? [
+        [18, 8 + d, 12, 1, 'p'], [17, 9 + d, 14, 10, 'p'], [18, 19 + d, 12, 1, 'p'], [19, 20 + d, 10, 1, 'p'],
+        [21, 21 + d, 6, 1, 'ps'], [18, 19 + d, 1, 1, 'ps'], [29, 19 + d, 1, 1, 'ps'], [19, 20 + d, 2, 1, 'ps'], [27, 20 + d, 2, 1, 'ps'],
+      ]
+    : [[18, 8 + d, 12, 1, 'p'], [17, 9 + d, 14, 12, 'p'], [18, 21 + d, 12, 1, 'p'], [17, 20 + d, 14, 1, 'ps']]
   return [
-    // cabeça arredondada e orelhas
-    [18, 8 + d, 12, 1, 'p'], [17, 9 + d, 14, 12, 'p'], [18, 21 + d, 12, 1, 'p'],
+    // cabeça e orelhas
+    ...cabeca,
     [16, 14 + d, 1, 3, 'p'], [31, 14 + d, 1, 3, 'p'],
-    [17, 20 + d, 14, 1, 'ps'],
     // pescoço
     [24 - g.pescoco, 22 + d, g.pescoco * 2, 2, 'ps'],
     // tronco (camiseta lisa por baixo da roupa)
@@ -1141,10 +1151,32 @@ export function montarPixels(escolhas: Escolhas): (string | null)[][] {
       }
     }
   }
+  /** Escurece (ou clareia) o que já está pintado nesses pixels. */
+  const sombrear = (pontos: [number, number][], quanto: number) => {
+    for (const [x, y] of pontos) {
+      const i = (y + FOLGA) * LADO + x
+      const atual = grade[i]
+      if (atual) grade[i] = quanto > 0 ? escurecer(atual, quanto) : misturar(atual, '#ffffff', -quanto)
+    }
+  }
+  const pixel = (x: number, y: number) => grade[(y + FOLGA) * LADO + x]
   pintar(desenharCorpo(g))
   for (const camada of ORDEM) {
     const p = peca(escolhas[camada])
     if (p?.camada === camada && p.desenho) pintar(p.desenho(g), NA_CABECA.has(camada) ? g.dy : 0)
+    if (g.base !== 'feminina') continue
+    if (camada === 'rosto') {
+      // Cílios no canto de fora de cada olho aberto.
+      const d = g.dy
+      if (pixel(20, 14 + d) === BRANCO && pixel(21, 15 + d) === OLHO) grade[(13 + d + FOLGA) * LADO + 19] = OLHO
+      if (pixel(26, 14 + d) === BRANCO && pixel(27, 15 + d) === OLHO) grade[(13 + d + FOLGA) * LADO + 28] = OLHO
+    }
+    if (camada === 'roupa' && p) {
+      // Leve marcação do peito: sombra embaixo e um brilho em cima, na cor da roupa.
+      const y = T(g, 4)
+      sombrear([[19, y], [20, y], [21, y], [22, y], [25, y], [26, y], [27, y], [28, y], [23, y - 1], [24, y - 1]], 0.16)
+      sombrear([[20, y - 2], [21, y - 2], [26, y - 2], [27, y - 2]], -0.12)
+    }
   }
   // contorno: pixel vazio encostado (em cruz) em um pixel pintado
   const contorno: number[] = []
