@@ -54,6 +54,9 @@ export function MenuDoPerfil({ perfil, onSair }: Props) {
           <Link to="/hangar" role="menuitem" onClick={() => setAberto(false)}>
             Meu boneco
           </Link>
+          <Link to="/medalhas" role="menuitem" onClick={() => setAberto(false)}>
+            Minhas medalhas
+          </Link>
           {perfil?.papel === 'aluno' && (
             <Link to="/aguardando" role="menuitem" onClick={() => setAberto(false)}>
               Meus pedidos de acesso

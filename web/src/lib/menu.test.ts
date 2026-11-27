@@ -11,8 +11,8 @@ describe('menu do sistema', () => {
     }
   })
 
-  it('aluno vê Ponte, Hangar e Medalhas', () => {
-    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Hangar', 'Medalhas'])
+  it('aluno vê Ponte, Mapa, Hangar e Medalhas', () => {
+    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas'])
   })
 
   it('professor vê o Painel e, no Modo Ninja, a ponte ninja', () => {

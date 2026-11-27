@@ -112,3 +112,10 @@
     gap: 6px;
   }
 }
+
+/* Com 4 menus, em telas até 420px o item secundário sai do topo (fica no menu da conta). */
+@media (max-width: 419px) {
+  .topo-nav-sistema .topo-nav-secundario {
+    display: none;
+  }
+}
