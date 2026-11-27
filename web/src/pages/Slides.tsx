@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams, type To } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
+import { PalcoDeSlides } from '../components/PalcoDeSlides'
 import { mensagemDeErro } from '../lib/erros'
 import { registrarAberturaEmSilencio } from '../lib/progresso'
 import { carregarSlides, SlidesIndisponiveis, type SlidesDaAula } from '../lib/slides'
@@ -21,9 +22,6 @@ export function Slides() {
   const [slides, setSlides] = useState<SlidesDaAula | null>(null)
   const ehAluno = perfil?.papel === 'aluno'
   const [erro, setErro] = useState<string | null>(null)
-  const [telaCheia, setTelaCheia] = useState(false)
-  const palco = useRef<HTMLDivElement>(null)
-  const moldura = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
     let ativo = true
@@ -42,23 +40,6 @@ export function Slides() {
     }
   }, [id, ehAluno])
 
-  useEffect(() => {
-    const aoMudar = () => setTelaCheia(document.fullscreenElement === palco.current)
-    document.addEventListener('fullscreenchange', aoMudar)
-    return () => document.removeEventListener('fullscreenchange', aoMudar)
-  }, [])
-
-  // Na página do Órbita em volta do slide: sem botão direito no palco e sem
-  // Ctrl+S / Ctrl+P (salvar ou imprimir a página levaria o slide junto).
-  useEffect(() => {
-    const aoTeclar = (e: KeyboardEvent) => {
-      const tecla = e.key.toLowerCase()
-      if ((e.ctrlKey || e.metaKey) && (tecla === 's' || tecla === 'p' || tecla === 'u')) e.preventDefault()
-    }
-    document.addEventListener('keydown', aoTeclar)
-    return () => document.removeEventListener('keydown', aoTeclar)
-  }, [])
-
   const ehProfessor = perfil?.papel === 'professor'
   const ninja = useModoNinja().ativo
   // "Ver como aluno": o professor vê a marca-d'água como o aluno veria (com um nome de exemplo).
@@ -76,12 +57,6 @@ export function Slides() {
     if (!veioDoSite || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return
     e.preventDefault()
     void navigate(-1)
-  }
-
-  async function alternarTelaCheia() {
-    if (document.fullscreenElement) await document.exitFullscreen()
-    else await palco.current?.requestFullscreen?.()
-    moldura.current?.focus()
   }
 
   if (erro) {
@@ -108,31 +83,13 @@ export function Slides() {
           <p className="pixel slides-onde">{slides.onde}</p>
           <h1>{slides.titulo}</h1>
         </div>
-        <button type="button" className="botao botao-primario slides-tela-cheia" onClick={alternarTelaCheia}>
-          {telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
-        </button>
       </div>
-      <div ref={palco} className="slides-palco" onContextMenu={(e) => e.preventDefault()} onDragStart={(e) => e.preventDefault()}>
-        <iframe
-          ref={moldura}
-          className="slides-moldura"
-          title={`Slides: ${slides.titulo}`}
-          srcDoc={slides.html}
-          sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
-          allow="fullscreen"
-          referrerPolicy="no-referrer"
-          onLoad={() => moldura.current?.focus()}
-        />
-        {marca ? (
-          // Marca-d'água com o nome do aluno: uma cópia ou foto da tela mostra de quem veio.
-          <div className="slides-marca" aria-hidden="true" data-testid="marca-dagua">
-            {Array.from({ length: 80 }, (_, i) => (
-              <span key={i}>{marca}</span>
-            ))}
-          </div>
-        ) : null}
-      </div>
-      <p className="slides-dica">Clique no slide e use as setas do teclado, ou deslize o dedo, para avançar e voltar. No celular, toque em Tela cheia e deite o aparelho.</p>
+      <PalcoDeSlides
+        html={slides.html}
+        titulo={`Slides: ${slides.titulo}`}
+        marca={marca}
+        dica="Clique no slide e use as setas do teclado, ou deslize o dedo, para avançar e voltar. No celular, toque em Tela cheia e deite o aparelho."
+      />
     </div>
   )
 }

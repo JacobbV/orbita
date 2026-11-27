@@ -6,7 +6,7 @@ import { supabase } from './supabase'
 // aulas e o que está liberado para a turma. O banco (RLS) só entrega os links
 // das aulas liberadas; aqui a montagem apenas organiza o que chegou.
 
-/** Link externo (abre em outra aba) ou slides HTML do Órbita (tela própria, /slides/:id). */
+/** Link externo (abre em outra aba) ou a página da aula do Órbita (/aula/:id: slides, apostila e áudio). */
 export type Material =
   | { id: number; tipo: 'slide'; titulo: string; url: null }
   | { id: number; tipo: string; titulo: string; url: string }
@@ -126,14 +126,14 @@ function linkSeguro(url: string | null): url is string {
 
 const ROTULO_TIPO: Record<string, string> = {
   link: 'Abrir aula',
-  slide: 'Abrir slides',
+  slide: 'Abrir a aula',
   pdf: 'Abrir PDF',
   audio: 'Ouvir áudio',
   video: 'Ver vídeo',
 }
 
 export function rotuloMaterial(m: Pick<Material, 'tipo' | 'titulo'>): string {
-  if (m.tipo === 'slide') return 'Abrir slides'
+  if (m.tipo === 'slide') return 'Abrir a aula'
   return m.titulo.trim() || ROTULO_TIPO[m.tipo] || 'Abrir material'
 }
 
@@ -157,8 +157,11 @@ export function montarPonte(
   const materiaisPorAula = new Map<number, Material[]>()
   for (const m of [...materiais].sort((a, b) => a.ordem - b.ordem || a.id - b.id)) {
     let material: Material
-    if (m.tipo === 'slide' && m.caminho_storage) material = { id: m.id, tipo: 'slide', titulo: m.titulo, url: null }
-    else if (m.tipo !== 'slide' && linkSeguro(m.url)) material = { id: m.id, tipo: m.tipo, titulo: m.titulo, url: m.url }
+    if (['slide', 'apostila', 'audio'].includes(m.tipo) && m.caminho_storage) {
+      // Slides, apostila e áudio abrem juntos na página da aula: um só botão por aula.
+      if ((materiaisPorAula.get(m.aula_id) ?? []).some((x) => x.url === null)) continue
+      material = { id: m.id, tipo: 'slide', titulo: m.titulo, url: null }
+    } else if (!['slide', 'apostila', 'audio'].includes(m.tipo) && linkSeguro(m.url)) material = { id: m.id, tipo: m.tipo, titulo: m.titulo, url: m.url }
     else continue
     const lista = materiaisPorAula.get(m.aula_id) ?? []
     lista.push(material)

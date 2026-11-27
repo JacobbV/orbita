@@ -1,10 +1,14 @@
 import {
   agruparPorOferta,
   lerNomeDoSlide,
+  lerTopicos,
   montarEstrutura,
   planejarEnvioEmLote,
   siglaDoNome,
   soArquivosHtml,
+  tipoDoArquivo,
+  validarArquivoDeMaterial,
+  validarTopicos,
   validarArquivoDeSlides,
   validarAnoLetivo,
   validarLink,
@@ -93,6 +97,50 @@ describe('montarEstrutura', () => {
   })
 })
 
+describe('apostila, áudio e tópicos', () => {
+  const arquivo = (name: string, size = 1000) => ({ name, size }) as File
+
+  it('o nome diz o tipo do arquivo', () => {
+    expect(tipoDoArquivo('ALG_U4_A2.html')).toBe('slide')
+    expect(tipoDoArquivo('ALG_U4_A2_apostila.html')).toBe('apostila')
+    expect(tipoDoArquivo('ALG_U4_A2_audio.mp3')).toBe('audio')
+    expect(tipoDoArquivo('ALG_U4_A2.MP3')).toBe('audio')
+  })
+
+  it('apostila é .html e áudio é .mp3, ambos até 10 MB', () => {
+    expect(validarArquivoDeMaterial('apostila', arquivo('a.html'))).toBeNull()
+    expect(validarArquivoDeMaterial('audio', arquivo('a.mp3'))).toBeNull()
+    expect(validarArquivoDeMaterial('audio', arquivo('a.wav'))).toBe('Escolha um arquivo .mp3.')
+    expect(validarArquivoDeMaterial('audio', arquivo('a.mp3', 0))).toBe('O arquivo está vazio.')
+    expect(validarArquivoDeMaterial('audio', arquivo('a.mp3', 11 * 1024 * 1024))).toContain('passa de 10 MB')
+  })
+
+  it('o envio em lote separa slides, apostila e áudio da mesma aula', () => {
+    const itens = planejarEnvioEmLote(
+      [arquivo('DAW_U1_A1.html'), arquivo('DAW_U1_A1_apostila.html'), arquivo('DAW_U1_A1_audio.mp3'), arquivo('DAW_U1_A1_audio (1).mp3')],
+      unidades,
+      'WEB',
+    )
+    expect(itens.map((i) => [i.arquivo.name, i.tipo, i.aula?.rotulo ?? null])).toEqual([
+      ['DAW_U1_A1_apostila.html', 'apostila', 'I.1'],
+      ['DAW_U1_A1_audio (1).mp3', 'audio', 'I.1'],
+      ['DAW_U1_A1_audio.mp3', 'audio', null],
+      ['DAW_U1_A1.html', 'slide', 'I.1'],
+    ])
+  })
+
+  it('a pasta escolhida deixa passar .html e .mp3', () => {
+    expect(soArquivosHtml([arquivo('a.html'), arquivo('b.mp3'), arquivo('c.png')]).map((a) => a.name)).toEqual(['a.html', 'b.mp3'])
+  })
+
+  it('um tópico por linha, sem linhas vazias, até 5 de 120 letras', () => {
+    expect(lerTopicos(' Variáveis \n\n  Tipos \n')).toEqual(['Variáveis', 'Tipos'])
+    expect(validarTopicos(['a', 'b'])).toBeNull()
+    expect(validarTopicos(['a', 'b', 'c', 'd', 'e', 'f'])).toBe('Use no máximo 5 tópicos.')
+    expect(validarTopicos(['x'.repeat(121)])).toBe('Cada tópico pode ter até 120 letras.')
+  })
+})
+
 describe('slides HTML', () => {
   const arquivo = (name: string, size = 1000) => ({ name, size }) as File
 
@@ -133,7 +181,7 @@ describe('slides HTML', () => {
       ['DAW_U1_A2.html', null, 'Outro arquivo já vai para essa aula.'],
       ['DAW_U2_A1.html', null, 'Esta disciplina não tem essa aula.'],
     ])
-    expect(itens.find((i) => i.aula?.rotulo === 'I.2')?.aula?.temSlides).toBe(true)
+    expect(itens.find((i) => i.aula?.rotulo === 'I.2')?.aula?.substitui).toBe(true)
   })
 
   it('lê a disciplina do começo do nome (DAW é Web)', () => {

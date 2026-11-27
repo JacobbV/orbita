@@ -1,0 +1,126 @@
+/* Página de uma aula */
+
+.aula {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-block: 16px 40px;
+}
+
+.aula-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.aula-voltar {
+  flex-shrink: 0;
+}
+
+.aula > .aula-voltar {
+  align-self: flex-start;
+}
+
+.aula-nome {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.aula-onde {
+  color: var(--ciano);
+}
+
+.aula-nome h1 {
+  margin-top: 6px;
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* Celular: slides, depois os cartões. Computador: cartões na lateral. */
+.aula-principal {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 960px) {
+  .aula-principal {
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr);
+    align-items: start;
+  }
+}
+
+.aula-slides {
+  min-width: 0;
+}
+
+.aula-lateral {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.aula-cartao,
+.aula-audio {
+  padding: 16px 20px;
+}
+
+.aula-cartao h2,
+.aula-apostila h2,
+.aula-audio h2 {
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.aula-topicos {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.aula-exercicios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.aula-exercicio {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.aula-exercicio-xp {
+  color: var(--estrela);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.aula-vazio,
+.aula-vazio-texto {
+  color: var(--texto-suave);
+}
+
+.aula-vazio {
+  padding: 20px;
+}
+
+.aula-apostila {
+  min-width: 0;
+}
+
+.aula-player {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.aula-audio .botao {
+  margin-top: 8px;
+}

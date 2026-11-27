@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "aulas": {
                   Row: {
-                    "criado_em": string,"id": number,"numero": number,"publica": boolean,"titulo": string,"unidade_id": number
+                    "criado_em": string,"id": number,"numero": number,"publica": boolean,"titulo": string,"topicos": string[],"unidade_id": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "criado_em"?: string,"id"?: never,"numero": number,"publica"?: boolean,"titulo": string,"unidade_id": number
+                    "criado_em"?: string,"id"?: never,"numero": number,"publica"?: boolean,"titulo": string,"topicos"?: string[],"unidade_id": number
                   }
                   Update: {
-                    "criado_em"?: string,"id"?: never,"numero"?: number,"publica"?: boolean,"titulo"?: string,"unidade_id"?: number
+                    "criado_em"?: string,"id"?: never,"numero"?: number,"publica"?: boolean,"titulo"?: string,"topicos"?: string[],"unidade_id"?: number
                   }
                   Relationships: [
                     {
@@ -654,6 +654,18 @@ isOneToOne: false
       } },
 "definir_link_da_aula":
 { Args: { "p_aula_id": number,"p_titulo"?: string,"p_url": string }; Returns: undefined
+                           },
+"definir_topicos_da_aula":
+{ Args: { "p_aula_id": number,"p_topicos": string[] }; Returns: undefined
+                           },
+"definir_material_da_aula":
+{ Args: { "p_aula_id": number,"p_tipo": string,"p_caminho": string,"p_titulo"?: string }; Returns: string
+                           },
+"remover_material_da_aula":
+{ Args: { "p_aula_id": number,"p_tipo": string }; Returns: string
+                           },
+"registrar_audio_ouvido":
+{ Args: { "p_aula_id": number }; Returns: Json
                            },
 "definir_slides_da_aula":
 { Args: { "p_aula_id": number,"p_caminho": string,"p_titulo"?: string }; Returns: string

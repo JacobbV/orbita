@@ -119,6 +119,23 @@ export async function enviarSlidesDeTeste(aulaId: number, html: string): Promise
   return material?.id ?? 0
 }
 
+/** Envia a apostila (HTML) para a aula e registra o material, como o painel faz. */
+export async function enviarApostilaDeTeste(aulaId: number, html: string): Promise<void> {
+  const { url, serviceKey } = supabaseLocal()
+  const caminho = `aulas/${aulaId}/apostila-e2e.html`
+  const resposta = await fetch(`${url}/storage/v1/object/materiais/${caminho}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'text/html', 'x-upsert': 'true' },
+    body: html,
+  })
+  if (!resposta.ok) throw new Error(`Storage: ${resposta.status} ${await resposta.text()}`)
+  await rest(`materiais?aula_id=eq.${aulaId}&tipo=eq.apostila`, { method: 'DELETE' })
+  await rest('materiais', {
+    method: 'POST',
+    body: JSON.stringify({ aula_id: aulaId, tipo: 'apostila', titulo: 'Apostila da aula', caminho_storage: caminho, ordem: 0 }),
+  })
+}
+
 /** Digita, uma por uma, as respostas que o input() pede no terminal do exercício. */
 export async function responderNoTerminal(page: Page, respostas: string[]): Promise<void> {
   for (const [i, resposta] of respostas.entries()) {

@@ -178,6 +178,11 @@ export interface AulaDoPainel {
   link: { titulo: string; url: string } | null
   /** Slides HTML enviados para a aula (arquivo no armazenamento privado). */
   slides: { id: number; caminho: string } | null
+  /** Apostila em HTML e áudio .mp3 da aula (também no armazenamento privado). */
+  apostila: { id: number; caminho: string } | null
+  audio: { id: number; caminho: string } | null
+  /** Tópicos do cartão "Nesta aula" (até 5). */
+  topicos: string[]
   /** Quantos exercícios do laboratório a aula tem. */
   exercicios: number
 }
@@ -190,7 +195,7 @@ export interface UnidadeDoPainel {
 }
 
 export interface EstruturaDoBanco {
-  unidades: Array<{ id: number; numero: number; titulo: string; aulas: Array<{ id: number; numero: number; titulo: string; exercicios?: Array<{ count: number }> }> }>
+  unidades: Array<{ id: number; numero: number; titulo: string; aulas: Array<{ id: number; numero: number; titulo: string; topicos?: string[]; exercicios?: Array<{ count: number }> }> }>
   liberadas: number[]
   links: Array<{ id: number; aula_id: number; titulo: string; url: string | null; tipo: string; caminho_storage: string | null }>
 }
@@ -199,7 +204,11 @@ export function montarEstrutura({ unidades, liberadas, links }: EstruturaDoBanco
   const liberadasSet = new Set(liberadas)
   const linkPorAula = new Map<number, { titulo: string; url: string }>()
   const slidesPorAula = new Map<number, { id: number; caminho: string }>()
+  const apostilaPorAula = new Map<number, { id: number; caminho: string }>()
+  const audioPorAula = new Map<number, { id: number; caminho: string }>()
   for (const l of links) {
+    if (l.tipo === 'apostila' && l.caminho_storage) apostilaPorAula.set(l.aula_id, { id: l.id, caminho: l.caminho_storage })
+    if (l.tipo === 'audio' && l.caminho_storage) audioPorAula.set(l.aula_id, { id: l.id, caminho: l.caminho_storage })
     if (l.tipo === 'link' && l.url) linkPorAula.set(l.aula_id, { titulo: l.titulo, url: l.url })
     if (l.tipo === 'slide' && l.caminho_storage) slidesPorAula.set(l.aula_id, { id: l.id, caminho: l.caminho_storage })
   }
@@ -218,6 +227,9 @@ export function montarEstrutura({ unidades, liberadas, links }: EstruturaDoBanco
           liberada: liberadasSet.has(a.id),
           link: linkPorAula.get(a.id) ?? null,
           slides: slidesPorAula.get(a.id) ?? null,
+          apostila: apostilaPorAula.get(a.id) ?? null,
+          audio: audioPorAula.get(a.id) ?? null,
+          topicos: a.topicos ?? [],
           exercicios: a.exercicios?.[0]?.count ?? 0,
         })),
     }))
@@ -227,7 +239,7 @@ export async function carregarEstrutura(oferta: Oferta): Promise<UnidadeDoPainel
   const [unidadesRes, liberacoesRes] = await Promise.all([
     supabase()
       .from('unidades')
-      .select('id, numero, titulo, aulas(id, numero, titulo, exercicios(count))')
+      .select('id, numero, titulo, aulas(id, numero, titulo, topicos, exercicios(count))')
       .eq('disciplina_id', oferta.disciplina.id),
     supabase().from('liberacoes').select('aula_id').eq('turma_disciplina_id', oferta.id),
   ])
@@ -360,6 +372,68 @@ export async function removerSlides(aulaId: number): Promise<void> {
   await apagarArquivos([caminho])
 }
 
+export type TipoDeArquivo = 'slide' | 'apostila' | 'audio'
+
+export const NOME_DO_ARQUIVO: Record<TipoDeArquivo, string> = { slide: 'slides', apostila: 'apostila', audio: 'áudio' }
+
+/** Envia a apostila (.html) ou o áudio (.mp3) da aula; enviar outro substitui. */
+export async function enviarMaterial(aulaId: number, tipo: 'apostila' | 'audio', arquivo: File): Promise<void> {
+  const problema = validarArquivoDeMaterial(tipo, arquivo)
+  if (problema) throw new Error(problema)
+  const extensao = tipo === 'audio' ? 'mp3' : 'html'
+  const caminho = `aulas/${aulaId}/${tipo}-${Date.now()}.${extensao}`
+  const armazenamento = supabase().storage.from(BUCKET_MATERIAIS)
+  const { error: erroEnvio } = await armazenamento.upload(caminho, arquivo, {
+    contentType: tipo === 'audio' ? 'audio/mpeg' : 'text/html',
+    upsert: false,
+  })
+  if (erroEnvio) throw erroEnvio
+  const { data: anterior, error } = await supabase().rpc('definir_material_da_aula', {
+    p_aula_id: aulaId,
+    p_tipo: tipo,
+    p_caminho: caminho,
+    p_titulo: tipo === 'audio' ? 'Áudio da aula' : 'Apostila da aula',
+  })
+  if (error) {
+    await armazenamento.remove([caminho])
+    throw error
+  }
+  await apagarArquivos([anterior])
+}
+
+export async function removerMaterial(aulaId: number, tipo: 'apostila' | 'audio'): Promise<void> {
+  const { data: caminho, error } = await supabase().rpc('remover_material_da_aula', { p_aula_id: aulaId, p_tipo: tipo })
+  if (error) throw error
+  await apagarArquivos([caminho])
+}
+
+/** Um tópico por linha; linhas vazias saem. O banco confere de novo (até 5, 120 letras). */
+export function lerTopicos(texto: string): string[] {
+  return texto
+    .split('\n')
+    .map((t) => t.trim())
+    .filter(Boolean)
+}
+
+export function validarTopicos(topicos: string[]): string | null {
+  if (topicos.length > 5) return 'Use no máximo 5 tópicos.'
+  if (topicos.some((t) => t.length > 120)) return 'Cada tópico pode ter até 120 letras.'
+  return null
+}
+
+export async function salvarTopicos(aulaId: number, topicos: string[]): Promise<void> {
+  const { error } = await supabase().rpc('definir_topicos_da_aula', { p_aula_id: aulaId, p_topicos: topicos })
+  if (error) throw error
+}
+
+export function validarArquivoDeMaterial(tipo: 'apostila' | 'audio', arquivo: Pick<File, 'name' | 'size'>): string | null {
+  if (tipo === 'apostila') return validarArquivoDeSlides(arquivo)
+  if (!/\.mp3$/i.test(arquivo.name)) return 'Escolha um arquivo .mp3.'
+  if (arquivo.size === 0) return 'O arquivo está vazio.'
+  if (arquivo.size > TAMANHO_MAXIMO_SLIDES) return 'O áudio passa de 10 MB. Comprima em qualidade de voz.'
+  return null
+}
+
 export function validarArquivoDeSlides(arquivo: Pick<File, 'name' | 'size'>): string | null {
   if (!/\.html?$/i.test(arquivo.name)) return 'Escolha um arquivo .html.'
   if (arquivo.size === 0) return 'O arquivo está vazio.'
@@ -387,37 +461,50 @@ export function siglaDoNome(nome: string): { escrita: string; sigla: string } | 
 
 /** Só os .html de uma pasta escolhida inteira (deixa de fora imagens e outros arquivos). */
 export function soArquivosHtml(arquivos: File[]): File[] {
-  return arquivos.filter((a) => /\.html?$/i.test(a.name))
+  return arquivos.filter((a) => /\.(html?|mp3)$/i.test(a.name))
+}
+
+/** O que o arquivo é pelo nome: .mp3 é áudio; "apostila" no nome é a apostila; o resto são slides. */
+export function tipoDoArquivo(nome: string): TipoDeArquivo {
+  if (/\.mp3$/i.test(nome)) return 'audio'
+  if (/apostila/i.test(nome)) return 'apostila'
+  return 'slide'
 }
 
 export interface ItemDoEnvio {
   arquivo: File
-  aula: { id: number; rotulo: string; titulo: string; temSlides: boolean } | null
+  tipo: TipoDeArquivo
+  /** `substitui`: a aula já tem um arquivo desse tipo. */
+  aula: { id: number; rotulo: string; titulo: string; substitui: boolean } | null
   problema: string | null
 }
 
 /** Casa cada arquivo com a aula da disciplina pelo nome (unidade e aula). */
 export function planejarEnvioEmLote(arquivos: File[], unidades: UnidadeDoPainel[], sigla?: string): ItemDoEnvio[] {
-  const usadas = new Set<number>()
+  const usadas = new Set<string>()
   const itens = [...arquivos]
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true }))
     .map((arquivo): ItemDoEnvio => {
-      const problemaArquivo = validarArquivoDeSlides(arquivo)
-      if (problemaArquivo) return { arquivo, aula: null, problema: problemaArquivo }
+      const tipo = tipoDoArquivo(arquivo.name)
+      const problemaArquivo = tipo === 'slide' ? validarArquivoDeSlides(arquivo) : validarArquivoDeMaterial(tipo, arquivo)
+      if (problemaArquivo) return { arquivo, tipo, aula: null, problema: problemaArquivo }
       const doNome = siglaDoNome(arquivo.name)
       if (sigla && doNome && doNome.sigla !== sigla) {
-        return { arquivo, aula: null, problema: `Arquivo de outra disciplina (${doNome.escrita}). Troque a disciplina no topo.` }
+        return { arquivo, tipo, aula: null, problema: `Arquivo de outra disciplina (${doNome.escrita}). Troque a disciplina no topo.` }
       }
       const nome = lerNomeDoSlide(arquivo.name)
-      if (!nome) return { arquivo, aula: null, problema: 'O nome não diz a unidade e a aula (ex.: ALG_U1_A2).' }
+      if (!nome) return { arquivo, tipo, aula: null, problema: 'O nome não diz a unidade e a aula (ex.: ALG_U1_A2).' }
       const unidade = unidades.find((u) => u.numero === nome.unidade)
       const aula = unidade?.aulas.find((a) => a.numero === nome.aula)
-      if (!unidade || !aula) return { arquivo, aula: null, problema: 'Esta disciplina não tem essa aula.' }
-      if (usadas.has(aula.id)) return { arquivo, aula: null, problema: 'Outro arquivo já vai para essa aula.' }
-      usadas.add(aula.id)
+      if (!unidade || !aula) return { arquivo, tipo, aula: null, problema: 'Esta disciplina não tem essa aula.' }
+      const chave = `${tipo}:${aula.id}`
+      if (usadas.has(chave)) return { arquivo, tipo, aula: null, problema: 'Outro arquivo já vai para essa aula.' }
+      usadas.add(chave)
+      const existente = tipo === 'slide' ? aula.slides : tipo === 'apostila' ? aula.apostila : aula.audio
       return {
         arquivo,
-        aula: { id: aula.id, rotulo: `${numeroRomano(unidade.numero)}.${aula.numero}`, titulo: aula.titulo, temSlides: Boolean(aula.slides) },
+        tipo,
+        aula: { id: aula.id, rotulo: `${numeroRomano(unidade.numero)}.${aula.numero}`, titulo: aula.titulo, substitui: Boolean(existente) },
         problema: null,
       }
     })

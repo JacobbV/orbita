@@ -234,7 +234,7 @@ function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; ma
       {materiais.map((m) => (
         <li key={m.id}>
           {m.url === null ? (
-            <Link to={`/slides/${m.id}${previa ? '?comoAluno=1' : ''}`} className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}>
+            <Link to={`/aula/${aulaId}${previa ? '?comoAluno=1' : ''}`} className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}>
               {rotuloMaterial(m)}
             </Link>
           ) : (
