@@ -1,16 +1,21 @@
-import { PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, PECAS, type Camada, type Escolhas } from '../arte/avatar'
+import { CAMADAS, COR_LIVRE, PADRAO_ALUNO, PADRAO_NINJA, PADRAO_PROFESSOR, corValida, peca, type Escolhas } from '../arte/avatar'
 import { supabase } from './supabase'
 
-const CAMADAS: Camada[] = ['corpo', 'pele', 'rosto', 'cabelo', 'cor-do-cabelo', 'roupa', 'acessorio']
-
-/** Fica só o que é peça conhecida da camada certa (o banco confere de novo ao salvar). */
+/**
+ * Fica só o que é peça conhecida da camada certa (o banco confere de novo ao salvar).
+ * O acessório no formato antigo ("acessorio") vai para o grupo novo dele.
+ */
 export function limparEscolhas(valor: unknown): Escolhas {
   const saida: Escolhas = {}
   if (!valor || typeof valor !== 'object') return saida
+  const v = valor as Record<string, unknown>
+  const antigo = typeof v.acessorio === 'string' ? peca(v.acessorio) : undefined
+  if (antigo?.camada.startsWith('acessorio-')) saida[antigo.camada] = antigo.id
   for (const camada of CAMADAS) {
-    const id = (valor as Record<string, unknown>)[camada]
-    if (typeof id === 'string' && PECAS.some((p) => p.id === id && p.camada === camada)) saida[camada] = id
+    const id = v[camada]
+    if (typeof id === 'string' && peca(id)?.camada === camada) saida[camada] = id
   }
+  if (corValida(v[COR_LIVRE])) saida[COR_LIVRE] = v[COR_LIVRE]
   return saida
 }
 

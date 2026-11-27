@@ -147,7 +147,7 @@ const PERFIS: Record<Base, Record<Fisico, Perfil>> = {
 const ESTATURAS: Record<Estatura, { linhas: number; dy: number }> = {
   baixa: { linhas: 12, dy: 4 },
   media: { linhas: 14, dy: 0 },
-  alta: { linhas: 16, dy: -4 },
+  alta: { linhas: 15, dy: -3 },
 }
 
 const FISICO_DO_CORPO: Record<string, Fisico> = {
@@ -466,7 +466,7 @@ function desenharCabelo(id: string): Ret[] {
       // Laterais raspadas e a crista alta no meio, com três pontas.
       return [
         ...RASPADO,
-        [20, 4, 8, 7, 'c'], [20, 1, 2, 3, 'c'], [23, -1, 2, 5, 'c'], [26, 1, 2, 3, 'c'],
+        [20, 4, 8, 7, 'c'], [20, 1, 2, 3, 'c'], [23, 0, 2, 4, 'c'], [26, 1, 2, 3, 'c'],
         [22, 2, 1, 2, 'c'], [25, 2, 1, 2, 'c'],
         [22, 5, 1, 5, 'cs'], [25, 5, 1, 5, 'cs'], [20, 10, 8, 1, 'cs'],
       ]
