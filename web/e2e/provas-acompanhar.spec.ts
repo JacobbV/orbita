@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
 
@@ -145,6 +146,12 @@ test.describe.serial('Acompanhar a prova', () => {
     await expect(page.getByText('Notas publicadas. Cada aluno vê só a própria nota.')).toBeVisible()
     const [p] = await rest<Array<{ notas_publicadas_em: string | null }>>(`provas?select=notas_publicadas_em&id=eq.${provaId}`)
     expect(p?.notas_publicadas_em).not.toBeNull()
+
+    const [arquivo] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Baixar planilha (CSV)' }).click()])
+    expect(arquivo.suggestedFilename()).toMatch(/^prova-ALG-1-INFO-V-.*\.csv$/)
+    const csv = readFileSync(await arquivo.path(), 'utf8')
+    expect(csv).toContain(`${NOMES.entregou};;Entregue;O aluno entregou;1;Não;10,0;0;10,0`)
+    expect(csv).toContain(`${NOMES.parado};;Não começou;;;Sim`)
   })
 
   test('o aluno vê a própria nota depois da publicação', async ({ page }) => {

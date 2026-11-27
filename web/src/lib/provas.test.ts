@@ -5,6 +5,7 @@ import {
   estadoDaProvaDoAluno,
   estadoDoAluno,
   podePublicar,
+  provaEmCsv,
   resumoDaProva,
   type SituacaoDoAluno,
   momentoDaProva,
@@ -147,5 +148,41 @@ describe('acompanhar a prova (professor)', () => {
     expect(podePublicar(resumoDaProva([fazendo], agora)).pode).toBe(false)
     expect(podePublicar(resumoDaProva([entregue], agora)).motivo).toMatch(/Reconfira antes: 2 respostas/)
     expect(podePublicar(resumoDaProva([base, { ...entregue, aConfirmar: 0 }], agora))).toEqual({ pode: true, motivo: null })
+  })
+})
+
+describe('provaEmCsv', () => {
+  const prova = { titulo: 'Prova', listaDeQuestoes: [{ questaoId: 10, titulo: 'Dobro; de "n"', peso: 2.5 }, { questaoId: 11, titulo: 'Soma', peso: 1 }] }
+  const aluno = (parte: Partial<SituacaoDoAluno>): SituacaoDoAluno => ({
+    alunoId: 'a',
+    nome: 'Aluno Fictício',
+    apelido: 'Cometa Veloz',
+    tentativaId: null,
+    comecouEm: null,
+    terminaEm: null,
+    entregueEm: null,
+    encerradaPor: null,
+    saidas: 0,
+    respondidas: 0,
+    aConfirmar: 0,
+    nota: null,
+    segundaChamada: false,
+    ...parte,
+  })
+
+  it('monta cabeçalho com peso, nota por questão com vírgula e zero para o que não confere', () => {
+    const entregou = aluno({ tentativaId: 5, comecouEm: '2026-12-01T08:00:00Z', entregueEm: '2026-12-01T08:30:00Z', encerradaPor: 'tempo', saidas: 2, nota: 6.5 })
+    const csv = provaEmCsv(prova, [entregou], [
+      { tentativaId: 5, questaoId: 10, nota: 10, situacao: 'confirmada' },
+      { tentativaId: 5, questaoId: 11, nota: 8, situacao: 'nao_confere' },
+    ])
+    const [cabecalho, linha] = csv.replace('\uFEFF', '').trim().split('\r\n')
+    expect(cabecalho).toBe('Aluno;Apelido;Situação;Como terminou;Saídas da aba;Segunda chamada;"Q1: Dobro; de ""n"" (peso 2,5)";Q2: Soma (peso 1,0);Respostas a confirmar;Nota final')
+    expect(linha).toBe('Aluno Fictício;Cometa Veloz;Entregue;Acabou o tempo;2;Não;10,0;0,0;0;6,5')
+  })
+
+  it('quem não começou fica com as notas em branco', () => {
+    const csv = provaEmCsv(prova, [aluno({})], [])
+    expect(csv.trim().split('\r\n')[1]).toBe('Aluno Fictício;Cometa Veloz;Não começou;;;Não;;;;')
   })
 })

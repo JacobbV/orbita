@@ -20,6 +20,8 @@ import {
   nomeDasSaidas,
   paraCampoDeData,
   podePublicar,
+  provaEmCsv,
+  respostasDaProva,
   publicarNotas,
   respostasDaTentativa,
   respostasParaReconferir,
@@ -114,6 +116,25 @@ export function AcompanharProva() {
   const publicavel = podePublicar(resumo)
   const publicada = prova.notasPublicadasEm !== null
 
+  async function baixarPlanilha() {
+    setOcupado(true)
+    setRecado(null)
+    try {
+      const [lista, respostas] = await Promise.all([situacaoDaProva(id), respostasDaProva(id)])
+      const arquivo = new Blob([provaEmCsv(prova!, lista, respostas)], { type: 'text/csv;charset=utf-8' })
+      const url = URL.createObjectURL(arquivo)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `prova-${prova!.oferta.disciplina.sigla}-${prova!.oferta.turma.nome}-${prova!.titulo}.csv`.replace(/[^\w.-]+/g, '-')
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setRecado(mensagemDeErro(e))
+    } finally {
+      setOcupado(false)
+    }
+  }
+
   async function publicar(publicar: boolean) {
     setOcupado(true)
     setRecado(null)
@@ -142,6 +163,9 @@ export function AcompanharProva() {
           </p>
         </div>
         <div className="painel-botoes">
+          <button type="button" className="botao" disabled={ocupado} onClick={baixarPlanilha}>
+            Baixar planilha (CSV)
+          </button>
           <Link to={`/professor/prova/${prova.id}`} className="botao">
             Editar a prova
           </Link>

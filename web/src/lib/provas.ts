@@ -569,3 +569,70 @@ export async function liberarSegundaChamada(provaId: number, alunoId: string, ab
   })
   if (error) throw error
 }
+
+export interface RespostaDaPlanilha {
+  tentativaId: number
+  questaoId: number
+  nota: number
+  situacao: SituacaoDaResposta
+}
+
+/** Nota e situação de todas as respostas da prova (para a planilha). */
+export async function respostasDaProva(provaId: number): Promise<RespostaDaPlanilha[]> {
+  const { data, error } = await supabase()
+    .from('prova_respostas')
+    .select('tentativa_id, questao_id, nota, situacao, tentativa:prova_tentativas!inner(prova_id)')
+    .eq('tentativa.prova_id', provaId)
+  if (error) throw error
+  return data.map((r) => ({
+    tentativaId: r.tentativa_id,
+    questaoId: r.questao_id,
+    nota: Number(r.nota),
+    situacao: r.situacao as SituacaoDaResposta,
+  }))
+}
+
+const NOME_DO_ESTADO: Record<EstadoDoAlunoNaProva, string> = { nao_comecou: 'Não começou', fazendo: 'Fazendo', entregue: 'Entregue' }
+const NOME_DO_FIM = { aluno: 'O aluno entregou', tempo: 'Acabou o tempo', saidas: 'Encerrada por saídas da aba' } as const
+
+const numeroBr = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+
+/** Planilha da prova para abrir no Excel ou no Google Planilhas (ponto e vírgula, vírgula decimal). */
+export function provaEmCsv(
+  prova: { titulo: string; listaDeQuestoes: Pick<QuestaoDoPainel, 'questaoId' | 'titulo' | 'peso'>[] },
+  alunos: SituacaoDoAluno[],
+  respostas: RespostaDaPlanilha[],
+  agora = Date.now(),
+): string {
+  const campo = (t: string) => (/[;"\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t)
+  const cabecalho = [
+    'Aluno',
+    'Apelido',
+    'Situação',
+    'Como terminou',
+    'Saídas da aba',
+    'Segunda chamada',
+    ...prova.listaDeQuestoes.map((q, i) => `Q${i + 1}: ${q.titulo} (peso ${numeroBr(q.peso)})`),
+    'Respostas a confirmar',
+    'Nota final',
+  ]
+  const linhas = alunos.map((a) => {
+    const estado = estadoDoAluno(a, agora)
+    return [
+      a.nome,
+      a.apelido ?? '',
+      NOME_DO_ESTADO[estado],
+      a.encerradaPor ? NOME_DO_FIM[a.encerradaPor] : '',
+      a.comecouEm ? String(a.saidas) : '',
+      a.segundaChamada ? 'Sim' : 'Não',
+      ...prova.listaDeQuestoes.map((q) => {
+        const r = respostas.find((x) => x.tentativaId === a.tentativaId && x.questaoId === q.questaoId)
+        if (!r) return a.comecouEm ? numeroBr(0) : ''
+        return numeroBr(r.situacao === 'nao_confere' ? 0 : r.nota)
+      }),
+      a.comecouEm ? String(a.aConfirmar) : '',
+      a.nota === null ? '' : numeroBr(a.nota),
+    ]
+  })
+  return `\uFEFF${[cabecalho, ...linhas].map((l) => l.map(campo).join(';')).join('\r\n')}\r\n`
+}
