@@ -27,8 +27,46 @@
   min-width: 0;
 }
 
+.aula {
+  --cor-unidade: var(--ciano);
+}
+
 .aula-onde {
-  color: var(--ciano);
+  color: var(--cor-unidade);
+}
+
+.aula-nome h1 {
+  padding-left: 12px;
+  border-left: 4px solid var(--cor-unidade);
+}
+
+/* Menu das partes da aula */
+.aula-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aula-menu-item {
+  min-height: var(--alvo-toque);
+  padding: 8px 16px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--texto);
+  background: var(--casco);
+  border: 1px solid var(--cor-unidade);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.aula-menu-item:hover,
+.aula-menu-item:focus-visible {
+  background: color-mix(in srgb, var(--cor-unidade) 22%, var(--casco));
+}
+
+.aula-cartao,
+.aula-audio {
+  border-top: 3px solid var(--cor-unidade);
 }
 
 .aula-nome h1 {

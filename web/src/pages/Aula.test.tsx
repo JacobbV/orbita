@@ -9,6 +9,16 @@ const falso = vi.hoisted(() => ({
   aberturas: [] as number[],
   audios: [] as number[],
   audioCarregado: [] as string[],
+  anotacao: '' as string,
+  guardadas: [] as string[],
+}))
+
+vi.mock('../lib/anotacoes', async (original) => ({
+  ...(await original<typeof import('../lib/anotacoes')>()),
+  carregarAnotacaoDaAula: async () => falso.anotacao,
+  guardarAnotacaoDaAula: async (_u: string, _a: number, texto: string) => {
+    falso.guardadas.push(texto)
+  },
 }))
 
 vi.mock('../lib/progresso', async (original) => ({
@@ -47,6 +57,7 @@ const PROFESSOR = { ...ALUNO, perfil: { ...ALUNO.perfil, nome: 'Professor Fictí
 
 const AULA: DadosDaAula = {
   id: 41,
+  unidade: 4,
   onde: 'ALG · Unidade IV · Aula 1',
   titulo: 'Listas',
   topicos: ['O que é uma lista', 'Percorrer com for'],
@@ -63,6 +74,8 @@ beforeEach(() => {
   falso.aberturas = []
   falso.audios = []
   falso.audioCarregado = []
+  falso.anotacao = 'ver listas de novo'
+  falso.guardadas = []
 })
 
 describe('Página da aula', () => {
@@ -117,5 +130,29 @@ describe('Página da aula', () => {
     abrir('/aula/42', ALUNO)
     expect(await screen.findByText(/não existe ou ainda não foi liberada/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/ponte')
+  })
+
+  it('o menu leva a Slides, Apostila e Áudio, e a unidade dá a cor da página', async () => {
+    abrir('/aula/41', ALUNO)
+    await screen.findByTitle('Slides: Listas')
+    const menu = screen.getByRole('navigation', { name: 'Partes da aula' })
+    expect(menu.textContent).toBe('SlidesApostilaÁudio')
+    expect(document.querySelector('.aula')?.getAttribute('style')).toContain('--cor-unidade: var(--plasma)')
+  })
+
+  it('sem áudio o menu não mostra "Áudio"', async () => {
+    falso.resposta = { ...AULA, audio: null }
+    abrir('/aula/41', ALUNO)
+    await screen.findByTitle('Slides: Listas')
+    expect(screen.getByRole('navigation', { name: 'Partes da aula' }).textContent).toBe('SlidesApostila')
+  })
+
+  it('anotações carregam e salvam sozinhas', async () => {
+    abrir('/aula/41', ALUNO)
+    const caixa = await screen.findByLabelText('Suas anotações desta aula')
+    await vi.waitFor(() => expect(caixa).toHaveValue('ver listas de novo'))
+    await userEvent.type(caixa, '!')
+    await vi.waitFor(() => expect(falso.guardadas).toEqual(['ver listas de novo!']), { timeout: 3000 })
+    expect(await screen.findByText(/Salvo\./)).toBeInTheDocument()
   })
 })

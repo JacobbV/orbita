@@ -63,6 +63,33 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"anotacoes_da_aula": {
+                  Row: {
+                    "atualizado_em": string,"aula_id": number,"texto": string,"usuario_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "atualizado_em"?: string,"aula_id": number,"texto"?: string,"usuario_id": string
+                  }
+                  Update: {
+                    "atualizado_em"?: string,"aula_id"?: number,"texto"?: string,"usuario_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "anotacoes_da_aula_aula_id_fkey"
+      columns: ["aula_id"]
+isOneToOne: false
+      referencedRelation: "aulas"
+      referencedColumns: ["id"]
+    },
+    {
+      foreignKeyName: "anotacoes_da_aula_usuario_id_fkey"
+      columns: ["usuario_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"aulas_abertas": {
                   Row: {
                     "aberta_em": string,"aluno_id": string,"aula_id": number

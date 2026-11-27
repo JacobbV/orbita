@@ -18,6 +18,8 @@ export interface DadosDaAula {
   id: number
   /** "ALG · Unidade IV · Aula 1" */
   onde: string
+  /** Número da unidade, para a cor da unidade. */
+  unidade: number
   titulo: string
   topicos: string[]
   exercicios: ExercicioDaAula[]
@@ -84,6 +86,7 @@ export async function carregarAula(aulaId: number, ehProfessor: boolean, comoAlu
   return {
     id: aula.id,
     onde: `${aula.unidade.disciplina.sigla} · Unidade ${numeroRomano(aula.unidade.numero)} · Aula ${aula.numero}`,
+    unidade: aula.unidade.numero,
     titulo: aula.titulo,
     topicos: aula.topicos,
     exercicios: [...aula.exercicios]

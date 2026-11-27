@@ -35,3 +35,22 @@ export async function guardarAnotacoes(
   const { error } = await supabase().from('slides_do_usuario').upsert(linha, { onConflict: 'usuario_id,material_id' })
   if (error) throw error
 }
+
+export const LIMITE_DA_ANOTACAO = 5000
+
+/** Anotação pessoal da aula (texto livre). Vazio se a pessoa ainda não escreveu. */
+export async function carregarAnotacaoDaAula(aulaId: number): Promise<string> {
+  const { data, error } = await supabase().from('anotacoes_da_aula').select('texto').eq('aula_id', aulaId).maybeSingle()
+  if (error) throw error
+  return data?.texto ?? ''
+}
+
+export async function guardarAnotacaoDaAula(usuarioId: string, aulaId: number, texto: string): Promise<void> {
+  const { error } = await supabase()
+    .from('anotacoes_da_aula')
+    .upsert(
+      { usuario_id: usuarioId, aula_id: aulaId, texto: texto.slice(0, LIMITE_DA_ANOTACAO) },
+      { onConflict: 'usuario_id,aula_id' },
+    )
+  if (error) throw error
+}
