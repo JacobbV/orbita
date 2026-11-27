@@ -310,7 +310,7 @@ async function carregarDisciplinas(aprovados: Pedido[], tudoLiberado = false): P
     if (materiaisRes.error) throw materiaisRes.error
     materiais = materiaisRes.data as MaterialDoBanco[]
     // Exercícios são um extra: se a consulta falhar, a ponte abre sem eles.
-    if (!exerciciosRes.error) exercicios = exerciciosRes.data
+    if (!exerciciosRes.error) exercicios = exerciciosRes.data.filter((e): e is ExercicioDoBanco => e.aula_id !== null)
     // Entregas do próprio aluno (a RLS só devolve as dele). No Modo Ninja o professor não entrega nada.
     if (!tudoLiberado && exercicios.length > 0) {
       const entregasRes = await supabase()

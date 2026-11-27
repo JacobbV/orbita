@@ -7,6 +7,7 @@ import { BonecoDoHangar } from '../components/BonecoDoHangar'
 import { Carregando } from '../components/Carregando'
 import { Medalha } from '../components/Medalha'
 import { ProfessorDaNave } from '../components/ProfessorDaNave'
+import { ProvasDaPonte } from '../components/ProvasDaPonte'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
@@ -105,6 +106,8 @@ export function Ponte() {
       {!perfil?.apelido && <EscolherApelido />}
 
       <ProfessorDaNave />
+
+      <ProvasDaPonte />
 
       {dados.disciplinas.map((d) => (
         <PainelDisciplina key={d.oferta.id} disciplina={d} />

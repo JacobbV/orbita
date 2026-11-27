@@ -434,7 +434,7 @@ function SuasEntregas({ entregas }: { entregas: EntregaDoAluno[] }) {
   )
 }
 
-function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao }) {
+export function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao }) {
   if (resultado.tempoEsgotado) {
     return (
       <pre className="exercicio-erro">

@@ -226,6 +226,25 @@ const TELAS: Tela[] = [
       await page.getByText('Preencher as saídas com a sua solução').click()
     },
   },
+  {
+    nome: 'Painel: provas',
+    caminho: 'professor?aba=provas',
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Provas' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Painel: montar prova',
+    caminho: 'professor/prova/nova',
+    papel: 'professor',
+    preparar: async (page) => {
+      await page.getByLabel('Turma e disciplina').selectOption({ index: 1 })
+      await page.getByRole('button', { name: 'Salvar prova' }).click()
+      await page.getByRole('button', { name: '+ Criar questão só desta prova' }).click()
+      await expect(page.getByRole('button', { name: 'Salvar questão' })).toBeVisible()
+    },
+  },
 ]
 
 const sessoes: Partial<Record<Papel, Awaited<ReturnType<BrowserContext['storageState']>>>> = {}

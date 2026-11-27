@@ -14,6 +14,7 @@ import {
   entregasParaReconferir,
   EXPLICACAO_DO_TIPO,
   MAX_TESTES,
+  NOVO_EXERCICIO,
   NOME_DO_TIPO,
   removerExercicio,
   salvarExercicio,
@@ -31,18 +32,6 @@ import { NOME_DIFICULDADE, XP_POR_DIFICULDADE } from '../../lib/laboratorio'
 import { numeroRomano } from '../../lib/ponte'
 import './Professor.css'
 import './Exercicios.css'
-
-const NOVO: DadosDoExercicio = {
-  titulo: '',
-  enunciado: '',
-  dificuldade: 1,
-  linguagem: 'python',
-  codigoInicial: '',
-  testes: [
-    { tipo: 'visivel', entrada: '', saidaEsperada: '' },
-    { tipo: 'oculto', entrada: '', saidaEsperada: '' },
-  ],
-}
 
 function resumoDosTestes(testes: TesteDoProfessor[]): string {
   const conta = (t: TipoDeTeste) => testes.filter((x) => x.tipo === t).length
@@ -152,7 +141,7 @@ export function Exercicios() {
       {editando === 'novo' ? (
         <FormExercicio
           titulo="Novo exercício"
-          inicial={NOVO}
+          inicial={NOVO_EXERCICIO}
           aoSalvar={(d) => salvar(null, d)}
           aoCancelar={() => setEditando(null)}
         />
@@ -277,16 +266,19 @@ export function Exercicios() {
   )
 }
 
-function FormExercicio({
+export function FormExercicio({
   titulo,
   inicial,
   aoSalvar,
   aoCancelar,
+  paraProva = false,
 }: {
   titulo: string
   inicial: DadosDoExercicio
   aoSalvar: (d: DadosDoExercicio) => Promise<void>
   aoCancelar: () => void
+  /** Questão de prova: sem dificuldade nem XP. */
+  paraProva?: boolean
 }) {
   const id = useId()
   const [d, setD] = useState<DadosDoExercicio>(() => ({
@@ -374,6 +366,7 @@ function FormExercicio({
         </select>
       </div>
 
+      {!paraProva && (
       <fieldset className="exercicios-dificuldade">
         <legend>Dificuldade</legend>
         <div className="exercicios-opcoes">
@@ -390,6 +383,7 @@ function FormExercicio({
           ))}
         </div>
       </fieldset>
+      )}
 
       <div className="campo">
         <span className="exercicios-rotulo" id={`${id}-codigo-rotulo`}>
@@ -447,7 +441,7 @@ function FormExercicio({
       {erroGeral && <Aviso tipo="erro">{erroGeral}</Aviso>}
       <div className="painel-botoes">
         <button type="submit" className="botao botao-primario" disabled={enviando}>
-          {enviando ? 'Salvando…' : 'Salvar exercício'}
+          {enviando ? 'Salvando…' : paraProva ? 'Salvar questão' : 'Salvar exercício'}
         </button>
         <button type="button" className="botao" onClick={aoCancelar} disabled={enviando}>
           Cancelar

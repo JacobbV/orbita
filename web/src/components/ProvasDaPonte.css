@@ -1,0 +1,55 @@
+.provas-ponte {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.provas-ponte-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.provas-ponte-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 18px;
+}
+
+.provas-ponte-texto {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.provas-ponte-titulo {
+  margin: 2px 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.provas-ponte-meta {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.9375rem;
+}
+
+.provas-ponte-estado {
+  margin: 0;
+  font-size: 0.6rem;
+  color: var(--texto-suave);
+}
+
+.provas-ponte-aberta,
+.provas-ponte-em_andamento {
+  color: var(--sucesso);
+}
+
+.provas-ponte-antes {
+  color: var(--ciano);
+}

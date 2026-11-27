@@ -68,7 +68,7 @@ PRs #8, #9 e #10 no ar em 22/11.
 - [x] Relatório do professor: nota de cada aluno por exercício, tentativas, código de cada entrega e planilha (CSV).
 - [x] Revisão final: maiúsculas acentuadas (Á, É, Ó...) inteiras nos selos em pixel, com fonte derivada da Press Start 2P (OFL).
 
-## Modo Ninja e apelidos (PR novo, em revisão)
+## Modo Ninja e apelidos (PR #11, no ar)
 
 - [x] Apelidos só por sorteio: nome + adjetivo de listas aprovadas (294 nomes, 155 adjetivos, mais de 45 mil combinações), com concordância de gênero e sem repetição entre contas. Não há campo para digitar.
 - [x] Aluno sorteia na ponte (cartão aparece enquanto não tem apelido) e troca no Hangar.
@@ -102,9 +102,17 @@ Plano completo em /mnt/project-files/ideias-novembro/PLANO-aula-escola-e-correco
 
 ### Próximos blocos
 
-- [ ] Bloco 3: Fase 4 (provas), já aprovada, usando a tela de exercício nova.
+- [x] Bloco 3: Fase 4 (provas), já aprovada (PR #13, em revisão).
 - [ ] Bloco 4: Hangar novo (base masculina e feminina, mais corpos, paletas, acessórios em três grupos, farda do IF sem logotipo).
 - [ ] Bloco 5: escola virtual 2D por degraus (mapa, colegas, frases prontas); chat livre só depois de conversar com a coordenação.
+
+## Fase 4: provas (branch `fase-4-provas`, em revisão)
+
+- [x] P1 banco: provas, questões com peso, tentativas, respostas, saídas da aba e segunda chamada, com regras de acesso e horário conferidos no banco.
+- [x] P2 painel: aba Provas com a lista, montar e editar prova (turma, horário de abrir e fechar, duração, regra de saída da aba), questões das aulas ou criadas só para a prova, peso e ordem; questões travadas depois que algum aluno começa.
+- [x] P3 aluno: lista de provas na ponte; tela da prova com cronômetro, tela cheia, colar desligado no editor, registro de saída da aba (detecta e avisa, não impede), salvar resposta por questão, entrega com confirmação e encerramento por tempo ou por saídas.
+- [x] P4 acompanhar a prova (atualiza sozinho): quem está fazendo, entregou ou não começou, saídas da aba com o tempo fora, código de cada resposta, segunda chamada por aluno, reconferência no navegador do professor com os testes secretos e publicação das notas (só depois de reconferir e sem ninguém fazendo).
+- [x] P5 planilha da prova (CSV): uma linha por aluno com situação, como terminou, saídas da aba, nota de cada questão e nota final.
 
 ## Ideias
 
