@@ -59,8 +59,11 @@ test.describe.serial('Menu do sistema e ponte', () => {
     await page.goto('ponte')
     await expect(page.getByRole('link', { name: 'Começar aula' })).toHaveAttribute('href', new RegExp(`/aula/${aulaId}$`))
     await expect(page.getByRole('heading', { name: 'Atividades abertas' })).toBeVisible()
+    // Espera o banco confirmar a abertura antes de sair da aula (sair antes cancelaria o pedido).
+    const aberturaGravada = page.waitForResponse((r) => r.url().includes('registrar_aula_aberta') && r.ok())
     await page.getByRole('link', { name: 'Começar aula' }).click()
     await expect(page).toHaveURL(new RegExp(`/aula/${aulaId}$`))
+    await aberturaGravada
 
     // Abrir a aula grava a última aula aberta e o dia de estudo.
     await expect(async () => {
