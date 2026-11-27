@@ -152,3 +152,36 @@ export async function devolverEntrega(id: number, comentario: string): Promise<v
   const { error } = await supabase().rpc('devolver_entrega', { p_entrega_id: id, p_comentario: comentario })
   if (error) throw error
 }
+
+// ---------------------------------------------------------------------------
+// Filtro por situação (aba Entregas)
+// ---------------------------------------------------------------------------
+
+export type FiltroDeEntregas = 'todas' | StatusDoAluno
+
+export const FILTROS_DE_ENTREGAS: { id: FiltroDeEntregas; rotulo: string }[] = [
+  { id: 'todas', rotulo: 'Todas' },
+  { id: 'entregue', rotulo: 'Falta corrigir' },
+  { id: 'corrigida', rotulo: 'Corrigidas' },
+  { id: 'devolvida', rotulo: 'Devolvidas' },
+  { id: 'sem_entrega', rotulo: 'Sem entrega' },
+]
+
+/** Quantos pares aluno + exercício há em cada situação (e o total em "todas"). */
+export function contarPorSituacao(
+  dados: Pick<DadosDasEntregas, 'alunos' | 'exercicios' | 'entregas'>,
+): Record<FiltroDeEntregas, number> {
+  const contagem: Record<FiltroDeEntregas, number> = { todas: 0, entregue: 0, corrigida: 0, devolvida: 0, sem_entrega: 0 }
+  for (const ex of dados.exercicios) {
+    for (const a of dados.alunos) {
+      const status = statusDoAluno(dados.entregas.filter((e) => e.exercicioId === ex.id && e.alunoId === a.alunoId))
+      contagem[status] += 1
+      contagem.todas += 1
+    }
+  }
+  return contagem
+}
+
+export function combinaComFiltro(status: StatusDoAluno, filtro: FiltroDeEntregas): boolean {
+  return filtro === 'todas' || status === filtro
+}

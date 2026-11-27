@@ -642,3 +642,33 @@ export function provaEmCsv(
   })
   return `\uFEFF${[cabecalho, ...linhas].map((l) => l.map(campo).join(';')).join('\r\n')}\r\n`
 }
+
+// ---------------------------------------------------------------------------
+// Alerta da prova no painel
+// ---------------------------------------------------------------------------
+
+export interface AlertaDeProva {
+  tipo: 'aberta' | 'publicar' | 'proxima'
+  prova: ProvaDoPainel
+}
+
+/**
+ * A prova que merece aviso na entrada do painel: uma aberta agora; senão a mais
+ * recente já fechada com alunos e notas por publicar; senão a próxima a abrir.
+ */
+export function alertaDeProva(provas: ProvaDoPainel[], agora = Date.now()): AlertaDeProva | null {
+  const aberta = provas
+    .filter((p) => momentoDaProva(p, agora) === 'aberta')
+    .sort((a, b) => new Date(a.fechaEm).getTime() - new Date(b.fechaEm).getTime())[0]
+  if (aberta) return { tipo: 'aberta', prova: aberta }
+
+  const paraPublicar = provas
+    .filter((p) => momentoDaProva(p, agora) === 'fechada' && p.tentativas > 0 && !p.notasPublicadasEm)
+    .sort((a, b) => new Date(b.fechaEm).getTime() - new Date(a.fechaEm).getTime())[0]
+  if (paraPublicar) return { tipo: 'publicar', prova: paraPublicar }
+
+  const proxima = provas
+    .filter((p) => momentoDaProva(p, agora) === 'antes')
+    .sort((a, b) => new Date(a.abreEm).getTime() - new Date(b.abreEm).getTime())[0]
+  return proxima ? { tipo: 'proxima', prova: proxima } : null
+}

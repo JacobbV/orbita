@@ -333,3 +333,98 @@
   font-family: var(--fonte-codigo);
   overflow-wrap: anywhere;
 }
+
+/* Aba Exercícios (visão geral) */
+.visao-disciplinas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.visao-resumo {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.visao-unidade {
+  padding: 12px 16px;
+}
+
+.visao-unidade summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--alvo-toque);
+  cursor: pointer;
+}
+
+.visao-unidade-numero {
+  flex: none;
+  color: var(--ciano);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+
+.visao-unidade-titulo {
+  font-weight: 600;
+}
+
+.visao-aulas,
+.visao-exercicios {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visao-aulas {
+  margin-top: 8px;
+}
+
+.visao-aula {
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--espaco);
+}
+
+.visao-aula-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.visao-aula-numero {
+  color: var(--nebulosa);
+  font-size: 0.6875rem;
+}
+
+.visao-sem {
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.visao-exercicios {
+  margin-top: 8px;
+}
+
+.visao-exercicios li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid var(--borda);
+}
+
+.visao-exercicio-nome {
+  font-weight: 600;
+}
+
+.visao-exercicio-info {
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}

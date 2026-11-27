@@ -2,16 +2,19 @@ import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import { BonecoDoHangar } from '../../components/BonecoDoHangar'
 import { saudacao } from '../../lib/saudacao'
+import { AlertaDeProva } from './AlertaDeProva'
 import { Aulas } from './Aulas'
 import { Entregas } from './Entregas'
 import { Pedidos } from './Pedidos'
 import { Provas } from './Provas'
 import { Turmas } from './Turmas'
+import { VisaoDosExercicios } from './VisaoDosExercicios'
 import './Professor.css'
 
 const ABAS = [
   { id: 'pedidos', rotulo: 'Pedidos' },
   { id: 'aulas', rotulo: 'Aulas' },
+  { id: 'exercicios', rotulo: 'Exercícios' },
   { id: 'turmas', rotulo: 'Turmas' },
   { id: 'entregas', rotulo: 'Entregas' },
   { id: 'provas', rotulo: 'Provas' },
@@ -36,6 +39,8 @@ export function Professor() {
         </div>
       </header>
 
+      <AlertaDeProva />
+
       <nav className="painel-abas" aria-label="Seções do painel">
         {ABAS.map((a) => (
           <Link
@@ -51,6 +56,7 @@ export function Professor() {
 
       {aba === 'pedidos' && <Pedidos />}
       {aba === 'aulas' && <Aulas />}
+      {aba === 'exercicios' && <VisaoDosExercicios />}
       {aba === 'turmas' && <Turmas />}
       {aba === 'entregas' && <Entregas />}
       {aba === 'provas' && <Provas />}

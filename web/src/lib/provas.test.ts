@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  alertaDeProva,
   doCampoDeData,
   duracaoEmTexto,
   estadoDaProvaDoAluno,
@@ -184,5 +185,33 @@ describe('provaEmCsv', () => {
   it('quem não começou fica com as notas em branco', () => {
     const csv = provaEmCsv(prova, [aluno({})], [])
     expect(csv.trim().split('\r\n')[1]).toBe('Aluno Fictício;Cometa Veloz;Não começou;;;Não;;;;')
+  })
+})
+
+describe('alertaDeProva', () => {
+  const agora = new Date('2026-12-01T12:00:00Z').getTime()
+  const prova = (id: number, abreEm: string, fechaEm: string, extra: Record<string, unknown> = {}) =>
+    ({ id, titulo: `Prova ${id}`, abreEm, fechaEm, tentativas: 0, notasPublicadasEm: null, ...extra }) as unknown as Parameters<typeof alertaDeProva>[0][number]
+
+  it('prioriza a prova aberta agora', () => {
+    const aberta = prova(1, '2026-12-01T11:00:00Z', '2026-12-01T13:00:00Z')
+    const futura = prova(2, '2026-12-05T11:00:00Z', '2026-12-05T13:00:00Z')
+    expect(alertaDeProva([futura, aberta], agora)).toMatchObject({ tipo: 'aberta', prova: { id: 1 } })
+  })
+
+  it('depois, a fechada com alunos e notas por publicar', () => {
+    const fechada = prova(3, '2026-11-20T11:00:00Z', '2026-11-20T13:00:00Z', { tentativas: 12 })
+    const futura = prova(2, '2026-12-05T11:00:00Z', '2026-12-05T13:00:00Z')
+    expect(alertaDeProva([futura, fechada], agora)).toMatchObject({ tipo: 'publicar', prova: { id: 3 } })
+    const publicada = prova(3, '2026-11-20T11:00:00Z', '2026-11-20T13:00:00Z', { tentativas: 12, notasPublicadasEm: '2026-11-21T10:00:00Z' })
+    expect(alertaDeProva([futura, publicada], agora)).toMatchObject({ tipo: 'proxima', prova: { id: 2 } })
+  })
+
+  it('a próxima a abrir é a mais cedo, e sem nada para avisar devolve null', () => {
+    const a = prova(4, '2026-12-10T11:00:00Z', '2026-12-10T13:00:00Z')
+    const b = prova(5, '2026-12-03T11:00:00Z', '2026-12-03T13:00:00Z')
+    expect(alertaDeProva([a, b], agora)).toMatchObject({ prova: { id: 5 } })
+    expect(alertaDeProva([prova(6, '2026-11-01T11:00:00Z', '2026-11-01T13:00:00Z')], agora)).toBeNull()
+    expect(alertaDeProva([], agora)).toBeNull()
   })
 })
