@@ -165,18 +165,6 @@
   min-width: 0;
 }
 
-.exercicio-entrada {
-  width: 100%;
-  font-family: var(--fonte-codigo);
-  font-size: 0.9rem;
-  background: var(--espaco);
-  color: var(--texto);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio-pequeno);
-  padding: 8px 12px;
-  resize: vertical;
-}
-
 .exercicio-botoes {
   display: flex;
   flex-wrap: wrap;
@@ -244,9 +232,37 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--borda);
+  padding: 20px;
+}
+
+.exercicio-entregar h2 {
+  font-size: 1.125rem;
+}
+
+.exercicio-confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  border: 1px solid var(--estrela);
+  border-radius: var(--raio-pequeno);
+  padding: 12px 16px;
+}
+
+.exercicio-confirmar-titulo {
+  color: var(--texto) !important;
+  font-weight: 800;
+}
+
+.exercicio-entrega-correcao {
+  flex-basis: 100%;
+  display: grid;
+  gap: 4px;
+  color: var(--texto-suave);
+}
+
+.exercicio-entrega-devolvida {
+  color: var(--estrela);
 }
 
 .exercicio-entregar p {

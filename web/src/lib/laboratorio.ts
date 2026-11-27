@@ -83,13 +83,30 @@ export interface EntregaDoAluno {
   testesTotal: number
   situacao: SituacaoDaEntrega
   criadoEm: string
+  /** Nota pelos testes (0 a 10). */
+  nota: number
+  /** Nota ajustada pelo professor; quando existe, vale no lugar da nota dos testes. */
+  notaProfessor: number | null
+  comentario: string | null
+  /** Quando o professor devolveu a entrega para o aluno refazer. */
+  devolvidaEm: string | null
+}
+
+/** A nota que vale: a do professor, se ele ajustou, ou a dos testes. */
+export function notaQueVale(e: Pick<EntregaDoAluno, 'nota' | 'notaProfessor'>): number {
+  return e.notaProfessor ?? e.nota
+}
+
+/** O aluno já entregou e o professor ainda não devolveu: não dá para entregar de novo. */
+export function entregaEmAberto(entregas: Pick<EntregaDoAluno, 'devolvidaEm'>[]): boolean {
+  return entregas.some((e) => e.devolvidaEm === null)
 }
 
 /** Entregas do próprio aluno neste exercício, da mais nova para a mais antiga. */
 export async function minhasEntregas(exercicioId: number, alunoId: string): Promise<EntregaDoAluno[]> {
   const { data, error } = await supabase()
     .from('entregas')
-    .select('id, tentativa, testes_certos, testes_total, situacao, criado_em')
+    .select('id, tentativa, testes_certos, testes_total, situacao, criado_em, nota, nota_professor, comentario, devolvida_em')
     .eq('exercicio_id', exercicioId)
     .eq('aluno_id', alunoId)
     .order('tentativa', { ascending: false })
@@ -101,6 +118,10 @@ export async function minhasEntregas(exercicioId: number, alunoId: string): Prom
     testesTotal: e.testes_total,
     situacao: e.situacao as SituacaoDaEntrega,
     criadoEm: e.criado_em,
+    nota: Number(e.nota),
+    notaProfessor: e.nota_professor === null ? null : Number(e.nota_professor),
+    comentario: e.comentario,
+    devolvidaEm: e.devolvida_em,
   }))
 }
 
