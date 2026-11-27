@@ -384,6 +384,10 @@
   color: var(--estrela);
 }
 
+.ponte-exercicio-entregue { color: var(--ciano-claro); }
+.ponte-exercicio-corrigida { color: var(--sucesso); }
+.ponte-exercicio-devolvida { color: var(--plasma); }
+
 .ponte-topo-nome {
   min-width: 0;
 }

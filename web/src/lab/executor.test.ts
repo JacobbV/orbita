@@ -13,7 +13,7 @@ class WorkerFalso {
     if (!this.responder) return
     queueMicrotask(() =>
       this.onmessage?.({
-        data: { tipo: 'resultado', id: pedido.id, saida: `rodou: ${pedido.codigo}`, erro: null, saidaGrande: false },
+        data: { tipo: 'resultado', id: pedido.id, saida: `rodou: ${pedido.codigo}`, erro: null, saidaGrande: false, precisaDeEntrada: false },
       } as MessageEvent),
     )
   }
@@ -27,7 +27,7 @@ describe('ExecutorPython', () => {
 
   it('roda o código no worker e devolve a saída', async () => {
     const executor = new ExecutorPython(() => new WorkerFalso() as unknown as Worker)
-    expect(await executor.rodar('print(1)')).toEqual({ saida: 'rodou: print(1)', erro: null, tempoEsgotado: false, saidaGrande: false })
+    expect(await executor.rodar('print(1)')).toEqual({ saida: 'rodou: print(1)', erro: null, tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false })
   })
 
   it('código que não termina é parado no tempo limite e o worker é trocado', async () => {

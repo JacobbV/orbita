@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { criarConta, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, emailDeTeste, entrar, oferta, registrarErros, responderNoTerminal, rest } from './apoio.ts'
 
 // Laboratório com o Python de verdade (Pyodide) no navegador. Dados inventados.
 
@@ -63,20 +63,20 @@ test.describe.serial('Laboratório de código: Python no navegador', () => {
     await expect(page).toHaveURL(new RegExp(`/exercicio/${exercicioId}$`))
     await expect(page.getByText('Leia dois números inteiros')).toBeVisible()
 
-    // Código errado: o visível passa por acaso? Não: imprime a diferença.
+    // Código errado: o Rodar pede as respostas no terminal e, ao terminar, confere os testes.
     await escreverCodigo(page, 'a = int(input("Primeiro: "))\nb = int(input("Segundo: "))\nprint(a - b)')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await page.getByRole('button', { name: '▶ Rodar' }).click()
+    await expect(page.locator('.terminal')).toContainText('Primeiro:', { timeout: 60_000 })
+    await responderNoTerminal(page, ['1', '2'])
     await expect(page.getByRole('heading', { name: '0 de 2 testes certos' })).toBeVisible({ timeout: 60_000 })
     await expect(page.getByText('Resposta escondida')).toBeVisible()
 
-    // Código certo, com perguntas no input(): nos testes as perguntas não contam.
+    // Código certo: o terminal mostra as perguntas e as respostas digitadas, como no CMD.
     await escreverCodigo(page, 'a = int(input("Primeiro: "))\nb = int(input("Segundo: "))\nprint(a + b)')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
-    await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible()
-
-    // Rodar mostra as perguntas e as respostas digitadas, como no terminal.
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.locator('.exercicio-console pre').first()).toHaveText('Primeiro: 1\nSegundo: 2\n3')
+    await responderNoTerminal(page, ['1', '2'])
+    await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible({ timeout: 60_000 })
+    await expect(page.locator('.terminal-saida').first()).toHaveText('Primeiro: 1\nSegundo: 2\n3')
     expect(erros).toEqual([])
   })
 
@@ -85,16 +85,16 @@ test.describe.serial('Laboratório de código: Python no navegador', () => {
     await page.goto(`exercicio/${exercicioId}`)
     await escreverCodigo(page, 'x = 1\nprint(y)')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.locator('.exercicio-erro')).toContainText("NameError: name 'y' is not defined", { timeout: 60_000 })
-    await expect(page.locator('.exercicio-erro')).toContainText('line 2')
+    await expect(page.locator('.terminal-erro')).toContainText("NameError: name 'y' is not defined", { timeout: 60_000 })
+    await expect(page.locator('.terminal-erro')).toContainText('line 2')
 
     await escreverCodigo(page, 'while True:\n    pass')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.locator('.exercicio-erro')).toContainText('foi parado', { timeout: 30_000 })
+    await expect(page.locator('.terminal-erro')).toContainText('foi parado', { timeout: 30_000 })
 
     // Depois de parar, o Python volta a funcionar.
     await escreverCodigo(page, 'print("de volta")')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.locator('.exercicio-console pre').first()).toHaveText('de volta', { timeout: 60_000 })
+    await expect(page.locator('.terminal-saida').first()).toHaveText('de volta', { timeout: 60_000 })
   })
 })

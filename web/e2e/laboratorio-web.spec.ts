@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { criarConta, criarProfessor, emailDeTeste, entrar, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, criarProfessor, emailDeTeste, entrar, entregarConfirmando, oferta, registrarErros, responderNoTerminal, rest } from './apoio.ts'
 
 // Laboratório de JavaScript e de HTML e CSS, de verdade no navegador. Dados inventados.
 
@@ -60,17 +60,17 @@ test.describe.serial('Laboratório: JavaScript e HTML e CSS', () => {
     await expect(page.getByText('main.js')).toBeVisible()
     await escrever(page, 'Editor de código JavaScript', 'const a = Number(prompt("Nota 1: "))\nconst b = Number(prompt("Nota 2: "))\nconsole.log((a + b) / 2)')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.locator('.exercicio-console pre').first()).toHaveText('Nota 1: 6\nNota 2: 8\n7')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await responderNoTerminal(page, ['6', '8'])
+    await expect(page.locator('.terminal-saida').first()).toHaveText('Nota 1: 6\nNota 2: 8\n7')
     await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible()
 
     // Erro com a linha do código e laço infinito parado.
     await escrever(page, 'Editor de código JavaScript', 'console.log(notas)')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.getByText('ReferenceError na linha 1: notas is not defined')).toBeVisible()
+    await expect(page.locator('.terminal-erro')).toContainText('ReferenceError na linha 1: notas is not defined')
     await escrever(page, 'Editor de código JavaScript', 'while (true) {}')
     await page.getByRole('button', { name: '▶ Rodar' }).click()
-    await expect(page.getByText(/foi parado/)).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('.terminal-erro')).toContainText('foi parado', { timeout: 15_000 })
     expect(erros).toEqual([])
   })
 
@@ -110,12 +110,12 @@ test.describe.serial('Laboratório: JavaScript e HTML e CSS', () => {
     await escrever(page, 'Editor de código HTML e CSS', '<h1 style="color: #ff0000">Cometa</h1>\n<ul><li>a</li><li>b</li></ul>')
     const previa = page.frameLocator('iframe[title="Prévia da sua página"]')
     await expect(previa.locator('h1')).toHaveText('Cometa')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await page.getByRole('button', { name: '▶ Rodar' }).click()
     await expect(page.getByRole('heading', { name: '1 de 2 testes certos' })).toBeVisible()
     await escrever(page, 'Editor de código HTML e CSS', '<h1 style="color: #ff0000">Cometa</h1>\n<ul><li>a</li><li>b</li><li>c</li></ul>')
-    await page.getByRole('button', { name: '✓ Testar' }).click()
+    await page.getByRole('button', { name: '▶ Rodar' }).click()
     await expect(page.getByRole('heading', { name: 'Todos os 2 testes certos!' })).toBeVisible()
-    await page.getByRole('button', { name: 'Entregar' }).click()
+    await entregarConfirmando(page)
     await expect(page.getByText(/Entrega 1 enviada: 2 de 2 testes certos/)).toBeVisible()
     expect(erros).toEqual([])
   })

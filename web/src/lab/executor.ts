@@ -8,6 +8,8 @@ export interface ResultadoDaExecucao {
   erro: string | null
   tempoEsgotado: boolean
   saidaGrande: boolean
+  /** No terminal (Rodar): o programa parou esperando a próxima resposta do input(). */
+  precisaDeEntrada: boolean
 }
 
 /** Tempo máximo de cada execução, depois que o Python já carregou. */
@@ -53,7 +55,7 @@ class ExecutorEmWorker implements Executor {
           const { resolver, relogio } = this.pendente
           clearTimeout(relogio)
           this.pendente = null
-          resolver({ saida: r.saida, erro: r.erro, tempoEsgotado: false, saidaGrande: r.saidaGrande })
+          resolver({ saida: r.saida, erro: r.erro, tempoEsgotado: false, saidaGrande: r.saidaGrande, precisaDeEntrada: r.precisaDeEntrada })
         }
       }
       worker.onerror = () => {
@@ -73,7 +75,7 @@ class ExecutorEmWorker implements Executor {
         // Laço infinito ou código muito lento: encerra e prepara outro worker.
         this.pendente = null
         this.descartar()
-        resolver({ saida: '', erro: null, tempoEsgotado: true, saidaGrande: false })
+        resolver({ saida: '', erro: null, tempoEsgotado: true, saidaGrande: false, precisaDeEntrada: false })
       }, TEMPO_LIMITE_MS)
       this.pendente = { resolver, relogio }
       const pedido: PedidoAoPython = { id: this.proximoId++, codigo, entrada, mostrarPerguntas }

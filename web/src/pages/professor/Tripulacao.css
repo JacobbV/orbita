@@ -1,0 +1,129 @@
+/* Tripulação: a turma vista pelo professor */
+
+.tripulacao-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tripulante {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--alvo-toque);
+  padding: 12px 8px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--casco);
+  color: var(--texto);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.tripulante:hover {
+  border-color: var(--nebulosa);
+}
+
+.tripulante-aberto {
+  border-color: var(--ciano);
+  box-shadow: 0 0 0 1px var(--ciano);
+}
+
+.tripulante-nome {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.tripulante-apelido {
+  color: var(--nebulosa);
+  font-size: 0.8125rem;
+}
+
+.tripulante-patente {
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.tripulacao-perfil {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.tripulacao-perfil-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+}
+
+.tripulacao-perfil h2 {
+  font-size: 1.5rem;
+  overflow-wrap: anywhere;
+}
+
+.tripulacao-perfil h3 {
+  font-size: 1.0625rem;
+}
+
+.tripulacao-apelido,
+.tripulacao-patente {
+  color: var(--texto-suave);
+}
+
+.tripulacao-patente .pixel {
+  color: var(--estrela);
+  font-size: 0.7rem;
+}
+
+.tripulacao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tripulacao-medalhas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tripulacao-entregas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tripulacao-entregas li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding-block: 8px;
+  border-top: 1px solid var(--borda);
+}
+
+.tripulacao-entrega-titulo {
+  font-weight: 700;
+  flex: 1 1 12rem;
+  overflow-wrap: anywhere;
+}
+
+.tripulacao-entrega-situacao {
+  color: var(--estrela);
+}
+
+.tripulacao-entrega-data {
+  color: var(--texto-suave);
+  margin-left: auto;
+}

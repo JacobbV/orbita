@@ -6,18 +6,26 @@ export type PedidoAoPython = { id: number; codigo: string; entrada: string; most
 export type RespostaDoPython =
   | { tipo: 'pronto' }
   | { tipo: 'falha-ao-carregar'; mensagem: string }
-  | { tipo: 'resultado'; id: number; saida: string; erro: string | null; saidaGrande: boolean }
+  | { tipo: 'resultado'; id: number; saida: string; erro: string | null; saidaGrande: boolean; precisaDeEntrada: boolean }
 
 const LIMITE_SAIDA = 20_000
 
 const responder = (r: RespostaDoPython) => (self as unknown as { postMessage(m: RespostaDoPython): void }).postMessage(r)
 
 // input() lê as linhas da entrada; sem a pergunta na saída quando é teste.
+// No terminal (Rodar), quando as linhas acabam o programa para e a tela pede a
+// próxima resposta ao aluno; depois roda de novo com todas as respostas.
 const PRELUDIO = `
+import sys as __orbita_sys
+class __OrbitaPrecisaDeEntrada(BaseException):
+    pass
 def input(pergunta=''):
     if __orbita_mostrar:
         print(pergunta, end='')
     if not __orbita_linhas:
+        if __orbita_mostrar:
+            __orbita_sys.stdout.flush()
+            raise __OrbitaPrecisaDeEntrada()
         raise EOFError('a entrada acabou (input() sem mais linhas)')
     linha = __orbita_linhas.pop(0)
     if __orbita_mostrar:
@@ -70,14 +78,17 @@ self.onmessage = async (evento: MessageEvent<PedidoAoPython>) => {
   globais.set('__orbita_linhas', py.toPy(linhas))
   globais.set('__orbita_mostrar', mostrarPerguntas)
   let erro: string | null = null
+  let precisaDeEntrada = false
   try {
     py.runPython(PRELUDIO, { globals: globais })
     await py.runPythonAsync(codigo, { globals: globais })
   } catch (e) {
-    erro = limparTraceback(e instanceof Error ? e.message : String(e))
+    const mensagem = e instanceof Error ? e.message : String(e)
+    if (mostrarPerguntas && mensagem.includes('__OrbitaPrecisaDeEntrada')) precisaDeEntrada = true
+    else erro = limparTraceback(mensagem)
   } finally {
     globais.destroy()
   }
   if (saidaGrande) saida = saida.slice(0, LIMITE_SAIDA)
-  responder({ tipo: 'resultado', id, saida, erro, saidaGrande })
+  responder({ tipo: 'resultado', id, saida, erro, saidaGrande, precisaDeEntrada })
 }

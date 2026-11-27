@@ -3,6 +3,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { BonecoDoHangar } from '../../components/BonecoDoHangar'
 import { saudacao } from '../../lib/saudacao'
 import { Aulas } from './Aulas'
+import { Entregas } from './Entregas'
 import { Pedidos } from './Pedidos'
 import { Turmas } from './Turmas'
 import './Professor.css'
@@ -11,6 +12,7 @@ const ABAS = [
   { id: 'pedidos', rotulo: 'Pedidos' },
   { id: 'aulas', rotulo: 'Aulas' },
   { id: 'turmas', rotulo: 'Turmas' },
+  { id: 'entregas', rotulo: 'Entregas' },
 ] as const
 
 type Aba = (typeof ABAS)[number]['id']
@@ -48,6 +50,7 @@ export function Professor() {
       {aba === 'pedidos' && <Pedidos />}
       {aba === 'aulas' && <Aulas />}
       {aba === 'turmas' && <Turmas />}
+      {aba === 'entregas' && <Entregas />}
     </div>
   )
 }

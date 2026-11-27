@@ -1,0 +1,84 @@
+/* Terminal do exercício (estilo CMD) */
+.terminal {
+  display: flex;
+  flex-direction: column;
+  min-height: 18rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: #05070f;
+  overflow: hidden;
+}
+
+.terminal-barra {
+  padding: 6px 12px;
+  background: var(--casco);
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.65rem;
+  color: var(--ciano);
+}
+
+.terminal-corpo {
+  flex: 1;
+  padding: 12px;
+  font-family: var(--fonte-codigo);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  max-height: 32rem;
+  overflow: auto;
+}
+
+.terminal-vazio,
+.terminal-aviso {
+  color: var(--texto-suave);
+  font-family: var(--fonte-texto);
+  font-size: 0.875rem;
+}
+
+.terminal-aviso {
+  color: var(--estrela);
+}
+
+/* O .exercicio pre global dá borda e fundo: no terminal a saída é texto corrido. */
+.exercicio .terminal pre {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  max-height: none;
+  overflow: visible;
+  color: var(--texto);
+}
+
+.exercicio .terminal .terminal-erro {
+  color: #fca5a5;
+}
+
+.terminal-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-linha > span {
+  color: var(--ciano);
+}
+
+.terminal-campo {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--alvo-toque);
+  background: transparent;
+  color: var(--texto);
+  border: none;
+  border-bottom: 1px solid var(--borda);
+  font: inherit;
+  padding: 0 4px;
+}
+
+.terminal-campo:focus-visible {
+  outline: 2px solid var(--ciano);
+  outline-offset: 2px;
+}

@@ -52,7 +52,7 @@ vi.mock('../../lab/executor', async (original) => ({
     async carregar() {}
     async rodar(codigo: string, entrada: string) {
       const saida = falso.saidas.get(`${codigo}|${entrada}`) ?? falso.saidas.get(entrada) ?? ''
-      return { saida: `${saida}\n`, erro: null, tempoEsgotado: false, saidaGrande: false }
+      return { saida: `${saida}\n`, erro: null, tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false }
     }
     encerrar() {}
   },
