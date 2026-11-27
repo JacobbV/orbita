@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
-import { saidaConfere, type TesteDoAluno } from '../lab/correcao'
+import { CaixaDoEnunciado } from '../components/CaixaDoEnunciado'
+import { modoDoExercicio, saidaConfere, valoresConferidos, type TesteDoAluno } from '../lab/correcao'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import { TEMPO_LIMITE_MS, type Executor, type ResultadoDaExecucao } from '../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
@@ -241,7 +242,7 @@ export function Exercicio() {
           <span className="exercicio-etiqueta">+{xp} XP ao acertar tudo</span>
           <span className="exercicio-etiqueta">{linguagem.nome}</span>
         </p>
-        <div className="exercicio-enunciado">{exercicio.enunciado}</div>
+        <CaixaDoEnunciado texto={exercicio.enunciado} modo={modoDoExercicio(testes)} />
         {visiveis.length > 0 && (
           <div className="exercicio-exemplos">
             {visiveis.map((t, i) => (
@@ -502,6 +503,41 @@ function DetalheDoErro({ r, rotulos }: { r: ResultadoTeste; rotulos: Rotulos }) 
       <Coluna titulo={rotulos.obtido}>
         <pre>{resultado.saida || '(sem saída)'}</pre>
       </Coluna>
+      <ValoresDoTeste teste={teste} saida={resultado.saida} />
     </div>
+  )
+}
+
+/** Mostra o que o site comparou, quando não é o texto exato. */
+export function ValoresDoTeste({ teste, saida }: { teste: TesteDoAluno; saida: string }) {
+  if (teste.conferencia === 'exato') return null
+  const doAluno = valoresConferidos(saida, teste.entrada, teste.palavras, teste.conferencia)
+  const esperados =
+    teste.saida_esperada !== null ? valoresConferidos(teste.saida_esperada, teste.entrada, teste.palavras, teste.conferencia) : null
+  return (
+    <div className="exercicio-valores">
+      <p className="exercicio-rotulo">O que o site comparou</p>
+      {esperados && (
+        <p>
+          Esperado: <ListaDeValores valores={esperados} />
+        </p>
+      )}
+      <p>
+        No seu programa: <ListaDeValores valores={doAluno} />
+      </p>
+    </div>
+  )
+}
+
+function ListaDeValores({ valores }: { valores: string[] }) {
+  if (valores.length === 0) return <em>(nada)</em>
+  return (
+    <>
+      {valores.map((v, i) => (
+        <code key={i} className="exercicio-valor">
+          {v}
+        </code>
+      ))}
+    </>
   )
 }

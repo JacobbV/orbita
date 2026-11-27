@@ -21,6 +21,14 @@ describe('decidirReconferencia', () => {
     expect(r.motivo).toBe('A entrega dizia 2 de 2 testes certos, e agora deu 1 de 2.')
   })
 
+  it('confere quando agora dá mais acertos (conferência ficou mais flexível depois da entrega)', () => {
+    const r = decidirReconferencia({ testesCertos: 1, testesTotal: 2 }, [
+      { tipo: 'visivel', certo: true },
+      { tipo: 'oculto', certo: true },
+    ])
+    expect(r).toEqual({ confere: true, motivo: 'Confere: 2 de 2 testes certos.' })
+  })
+
   it('quem disse que acertou tudo precisa passar nos secretos', () => {
     const r = decidirReconferencia(tudoCerto, [
       { tipo: 'visivel', certo: true },
@@ -51,7 +59,23 @@ describe('validarExercicio', () => {
         linguagem: 'python',
         codigoInicial: '',
         testes: [{ tipo: 'visivel', entrada: '1 2', saidaEsperada: '3' }],
+        conferencia: 'valores',
+        palavrasExtras: '',
       }),
     ).toEqual({})
+  })
+
+  it('palavras extras têm limite de 500 letras', () => {
+    const erros = validarExercicio({
+      titulo: 'Par ou ímpar',
+      enunciado: 'Diga se é par.',
+      dificuldade: 1,
+      linguagem: 'python',
+      codigoInicial: '',
+      testes: [{ tipo: 'visivel', entrada: '2', saidaEsperada: 'par' }],
+      conferencia: 'valores',
+      palavrasExtras: 'par '.repeat(130),
+    })
+    expect(erros.palavrasExtras).toBe('Use até 500 letras nas palavras que também contam.')
   })
 })

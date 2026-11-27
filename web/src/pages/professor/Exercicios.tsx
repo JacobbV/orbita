@@ -2,7 +2,16 @@ import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 
 import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
-import { normalizarSaida } from '../../lab/correcao'
+import {
+  EXPLICACAO_DO_MODO,
+  MODOS_DE_CONFERENCIA,
+  modoDoTeste,
+  NOME_DO_MODO,
+  normalizarSaida,
+  saidasConferem,
+  valoresConferidos,
+  type ModoDeConferencia,
+} from '../../lab/correcao'
 import { EditorCodigo } from '../../lab/EditorCodigo'
 import type { Executor } from '../../lab/executor'
 import { criarExecutor, LINGUAGENS, ORDEM_DAS_LINGUAGENS, type Linguagem } from '../../lab/linguagens'
@@ -16,6 +25,7 @@ import {
   MAX_TESTES,
   NOVO_EXERCICIO,
   NOME_DO_TIPO,
+  regraDe,
   removerExercicio,
   salvarExercicio,
   temErros,
@@ -288,6 +298,8 @@ export function FormExercicio({
     linguagem: inicial.linguagem,
     codigoInicial: inicial.codigoInicial,
     testes: inicial.testes.map((t) => ({ ...t })),
+    conferencia: inicial.conferencia,
+    palavrasExtras: inicial.palavrasExtras,
   }))
   const [erros, setErros] = useState<ErrosDoExercicio>({})
   const [erroGeral, setErroGeral] = useState<string | null>(null)
@@ -400,6 +412,14 @@ export function FormExercicio({
         <p className="campo-dica">O aluno começa com este código no editor.</p>
       </div>
 
+      <ComoConferir
+        modo={d.conferencia}
+        palavras={d.palavrasExtras}
+        erro={erros.palavrasExtras}
+        aoMudarModo={(m) => mudar('conferencia', m)}
+        aoMudarPalavras={(p) => mudar('palavrasExtras', p)}
+      />
+
       <fieldset className="exercicios-testes" aria-describedby={erros.testes ? `${id}-testes-erro` : undefined}>
         <legend>Testes</legend>
         <DicaDosTestes linguagem={d.linguagem} />
@@ -414,6 +434,8 @@ export function FormExercicio({
               key={i}
               numero={i + 1}
               teste={t}
+              modo={d.conferencia}
+              palavras={d.palavrasExtras}
               erro={erros.porTeste?.[i]}
               podeRemover={d.testes.length > 1}
               aoMudar={(parte) => mudarTeste(i, parte)}
@@ -485,6 +507,8 @@ function DicaDosTestes({ linguagem }: { linguagem: Linguagem }) {
 function CartaoTeste({
   numero,
   teste,
+  modo,
+  palavras,
   erro,
   podeRemover,
   aoMudar,
@@ -492,6 +516,8 @@ function CartaoTeste({
 }: {
   numero: number
   teste: TesteDoProfessor
+  modo: ModoDeConferencia
+  palavras: string
   erro: string | undefined
   podeRemover: boolean
   aoMudar: (parte: Partial<TesteDoProfessor>) => void
@@ -540,6 +566,7 @@ function CartaoTeste({
           )}
         </div>
       </div>
+      <OQueConta teste={teste} modo={modo} palavras={palavras} />
     </li>
   )
 }
@@ -649,7 +676,7 @@ function Reconferencia({
           const resultados: { tipo: TipoDeTeste; certo: boolean }[] = []
           for (const t of exercicio.testes) {
             const r = await py.rodar(entrega.codigo, t.entrada, false)
-            const certo = !r.erro && !r.tempoEsgotado && normalizarSaida(r.saida) === normalizarSaida(t.saidaEsperada)
+            const certo = !r.erro && !r.tempoEsgotado && saidasConferem(r.saida, t.saidaEsperada, t.entrada, regraDe(exercicio))
             resultados.push({ tipo: t.tipo, certo })
           }
           const decisao = decidirReconferencia(entrega, resultados)
@@ -698,5 +725,82 @@ function Reconferencia({
         </button>
       )}
     </div>
+  )
+}
+
+/** Escolha do professor: como a saída do aluno é conferida neste exercício. */
+function ComoConferir({
+  modo,
+  palavras,
+  erro,
+  aoMudarModo,
+  aoMudarPalavras,
+}: {
+  modo: ModoDeConferencia
+  palavras: string
+  erro: string | undefined
+  aoMudarModo: (m: ModoDeConferencia) => void
+  aoMudarPalavras: (p: string) => void
+}) {
+  const id = useId()
+  return (
+    <fieldset className="exercicios-conferencia">
+      <legend>Como conferir a saída</legend>
+      <div className="exercicios-conferencia-opcoes">
+        {MODOS_DE_CONFERENCIA.map((m) => (
+          <label key={m} className={`exercicios-conferencia-opcao${modo === m ? ' exercicios-conferencia-escolhida' : ''}`}>
+            <input type="radio" name={`${id}-conferencia`} checked={modo === m} onChange={() => aoMudarModo(m)} />
+            <span>
+              <strong>
+                {NOME_DO_MODO[m]}
+                {m === 'valores' ? ' (recomendado)' : ''}
+              </strong>
+              <span className="campo-dica">{EXPLICACAO_DO_MODO[m]}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {modo === 'valores' && (
+        <div className={`campo${erro ? ' campo-com-erro' : ''}`}>
+          <label htmlFor={`${id}-palavras`}>Palavras que também contam (opcional)</label>
+          <input
+            id={`${id}-palavras`}
+            value={palavras}
+            maxLength={500}
+            placeholder="ex.: aprovado, reprovado, par, impar"
+            onChange={(e) => aoMudarPalavras(e.target.value)}
+            aria-describedby={`${id}-palavras-dica${erro ? ` ${id}-palavras-erro` : ''}`}
+            {...(erro ? { 'aria-invalid': true } : {})}
+          />
+          <p id={`${id}-palavras-dica`} className="campo-dica">
+            Palavras de resultado que não estão na entrada, como “aprovado” ou “par”. Sem elas, “aprovado” e “reprovado”
+            valeriam igual. Separe com vírgula ou espaço. Em Python, True e False também entram aqui.
+          </p>
+          {erro && (
+            <p id={`${id}-palavras-erro`} className="campo-erro">
+              {erro}
+            </p>
+          )}
+        </div>
+      )}
+    </fieldset>
+  )
+}
+
+/** Mostra, em cada teste, o que o site vai comparar na saída do aluno. */
+function OQueConta({ teste, modo, palavras }: { teste: TesteDoProfessor; modo: ModoDeConferencia; palavras: string }) {
+  if (!teste.saidaEsperada.trim() || modo === 'exato') return null
+  const modoDoCaso = modoDoTeste(teste.saidaEsperada, teste.entrada, { modo, palavras })
+  const lista = valoresConferidos(teste.saidaEsperada, teste.entrada, palavras, modoDoCaso)
+  return (
+    <p className="exercicios-o-que-conta">
+      <span className="exercicios-o-que-conta-rotulo">O site confere:</span>{' '}
+      {lista.map((v, i) => (
+        <code key={i}>{v}</code>
+      ))}
+      {modo === 'valores' && modoDoCaso === 'texto' && (
+        <span className="campo-dica"> (sem números nem palavras da entrada, vale o texto flexível)</span>
+      )}
+    </p>
   )
 }

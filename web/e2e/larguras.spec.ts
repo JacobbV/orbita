@@ -108,6 +108,8 @@ const TELAS: Tela[] = [
     caminho: 'professor?aba=aulas',
     papel: 'professor',
     preparar: async (page) => {
+      // Só a unidade atual começa aberta: abre todas para medir o pior caso.
+      await page.getByRole('button', { name: 'Abrir todas as unidades' }).click()
       await page.getByRole('button', { name: 'Editar aula I.1', exact: true }).click()
       await page.getByRole('button', { name: 'Remover aula' }).click()
       await page.getByRole('button', { name: 'Remover unidade II', exact: true }).click()
@@ -381,6 +383,11 @@ for (const [largura, altura] of LARGURAS) {
         const erros = registrarErros(page)
         await page.goto(tela.caminho, { waitUntil: 'networkidle' })
         await tela.preparar?.(page)
+        // Com PRINTS_DIR definido, guarda um print de cada tela medida.
+        if (process.env.PRINTS_DIR) {
+          const nomeDoArquivo = tela.nome.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+          await page.screenshot({ path: `${process.env.PRINTS_DIR}/${nomeDoArquivo}-${largura}.png`, fullPage: true })
+        }
 
         const medida = await page.evaluate(() => {
           const raiz = document.documentElement

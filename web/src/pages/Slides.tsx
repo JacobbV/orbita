@@ -22,10 +22,12 @@ export function Slides() {
   const [slides, setSlides] = useState<SlidesDaAula | null>(null)
   const ehAluno = perfil?.papel === 'aluno'
   const [erro, setErro] = useState<string | null>(null)
+  const ehProfessor = perfil?.papel === 'professor'
+  const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
 
   useEffect(() => {
     let ativo = true
-    carregarSlides(Number(id))
+    carregarSlides(Number(id), ehProfessor && !comoAluno)
       .then((s) => {
         if (!ativo) return
         setSlides(s)
@@ -38,12 +40,10 @@ export function Slides() {
     return () => {
       ativo = false
     }
-  }, [id, ehAluno])
+  }, [id, ehAluno, ehProfessor, comoAluno])
 
-  const ehProfessor = perfil?.papel === 'professor'
   const ninja = useModoNinja().ativo
   // "Ver como aluno": o professor vê a marca-d'água como o aluno veria (com um nome de exemplo).
-  const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
   const marca = comoAluno
     ? 'Nome do aluno · aluno@academico.ifpb.edu.br'
     : ehProfessor
@@ -88,6 +88,7 @@ export function Slides() {
         html={slides.html}
         titulo={`Slides: ${slides.titulo}`}
         marca={marca}
+        materialId={slides.id}
         dica="Clique no slide e use as setas do teclado, ou deslize o dedo, para avançar e voltar. No celular, toque em Tela cheia e deite o aparelho."
       />
     </div>

@@ -331,3 +331,22 @@
   border-radius: 8px;
   background: #fff;
 }
+
+/* O que o site comparou, no detalhe de um teste errado. */
+.exercicio-valores {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9375rem;
+}
+
+.exercicio-valor {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: var(--espaco);
+  font-family: var(--fonte-codigo);
+  font-size: 0.875rem;
+}

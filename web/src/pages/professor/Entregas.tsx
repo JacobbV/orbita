@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Carregando } from '../../components/Carregando'
-import { normalizarSaida } from '../../lab/correcao'
+import { saidasConferem } from '../../lab/correcao'
 import { criarExecutor, LINGUAGENS } from '../../lab/linguagens'
 import { rotuloTurma } from '../../lib/api'
 import {
@@ -19,7 +19,7 @@ import {
   type ExercicioDasEntregas,
 } from '../../lib/entregas'
 import { mensagemDeErro } from '../../lib/erros'
-import { carregarAulaComExercicios } from '../../lib/exercicios'
+import { carregarAulaComExercicios, regraDe } from '../../lib/exercicios'
 import { listarOfertasDoPainel, type OfertaDoPainel } from '../../lib/professor'
 import { numeroRomano } from '../../lib/ponte'
 import './Entregas.css'
@@ -314,7 +314,7 @@ function DetalheComEntregas({
       for (const [i, t] of dadosDoExercicio.testes.entries()) {
         const r = await py.rodar(entrega.codigo, t.entrada, false)
         const obtido = r.tempoEsgotado ? '(passou do tempo)' : r.saida
-        const certo = !r.erro && !r.tempoEsgotado && normalizarSaida(r.saida) === normalizarSaida(t.saidaEsperada)
+        const certo = !r.erro && !r.tempoEsgotado && saidasConferem(r.saida, t.saidaEsperada, t.entrada, regraDe(dadosDoExercicio))
         lista.push({ numero: i + 1, tipo: t.tipo, certo, esperado: t.saidaEsperada, obtido, erro: r.erro })
         setTestes({ estado: 'rodando', lista: [...lista] })
       }

@@ -80,10 +80,12 @@ function dados(): AulaComExercicios {
           { tipo: 'oculto', entrada: '1', saidaEsperada: '1\n0' },
           { tipo: 'secreto', entrada: '0', saidaEsperada: '0' },
         ],
+        conferencia: 'valores',
+        palavrasExtras: '',
         entregas: 3,
         aConfirmar: 2,
       },
-      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, linguagem: 'python', codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], entregas: 0, aConfirmar: 0 },
+      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, linguagem: 'python', codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], conferencia: 'exato', palavrasExtras: '', entregas: 0, aConfirmar: 0 },
     ],
   }
 }
@@ -125,6 +127,10 @@ describe('Exercícios da aula (painel)', () => {
     await u.click(within(form).getByRole('button', { name: '▶ Rodar a solução nos testes' }))
     expect(await within(form).findByText('2 saídas preenchidas. Confira e salve o exercício.')).toBeInTheDocument()
     expect(within(form).getByLabelText('Saída esperada do teste 1')).toHaveValue('5')
+    // Padrão: só os valores, com o que vai ser conferido em cada teste.
+    expect(within(form).getByLabelText(/Só os valores/)).toBeChecked()
+    expect(within(form).getAllByText('O site confere:')).toHaveLength(2)
+    await u.type(within(form).getByLabelText('Palavras que também contam (opcional)'), 'total')
     await u.click(within(form).getByRole('button', { name: 'Salvar exercício' }))
     expect(await screen.findByText('Exercício "Soma" criado.')).toBeInTheDocument()
     expect(falso.salvos).toEqual([
@@ -141,6 +147,8 @@ describe('Exercícios da aula (painel)', () => {
             { tipo: 'visivel', entrada: '2 3', saidaEsperada: '5' },
             { tipo: 'oculto', entrada: '10 -4', saidaEsperada: '6' },
           ],
+          conferencia: 'valores',
+          palavrasExtras: 'total',
         },
       },
     ])

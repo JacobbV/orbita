@@ -100,6 +100,16 @@ Plano completo em /mnt/project-files/ideias-novembro/PLANO-aula-escola-e-correco
 - [x] 10 XP por ouvir o áudio até o fim, uma vez por aula.
 - [ ] Falta: conferir o peso do áudio no tráfego do Supabase gratuito quando houver áudios reais (um de 12 min com qualidade de voz fica perto de 3 MB).
 
+### Ajustes dos exercícios e dos slides (branch `claude/project-thread-5lsmn8`, em revisão)
+
+- [x] Conferência flexível da saída, padrão em todos os exercícios: contam os números e as palavras que vieram da entrada do teste (mais as palavras que o professor marcar), na ordem. Texto em volta, aspas, colchetes, vírgulas, dois-pontos, maiúsculas, acentos e espaços não contam. O professor escolhe por exercício: só os valores, texto flexível ou texto exato. Vale para testes visíveis, ocultos e secretos, reconferência e provas. Exercícios antigos passam para "só os valores"; entregas e notas já guardadas não mudam.
+- [x] Caixa do enunciado separada do título, com a explicação de como o site confere. No erro, mostra o que foi comparado.
+- [x] Aba Aulas do painel: setas para recolher as unidades; só a atual (última com aula liberada) começa aberta; botão para abrir ou fechar todas.
+- [x] Slides: botão "Editar" que vem dentro do arquivo some para o aluno (continua para o professor); sem reenviar os slides.
+- [x] Slides: marcador de página ("Parei aqui") para professor e aluno, guardado no banco; ao abrir, oferece continuar do slide marcado.
+- [x] Slides: lápis, marca-texto, borracha, desfazer e limpar tela, com salvamento automático por pessoa.
+- [ ] Ideias para os exercícios, ainda sem construir: ver a lista no corpo do PR.
+
 ### Próximos blocos
 
 - [x] Bloco 3: Fase 4 (provas), já aprovada (PR #13, em revisão).
