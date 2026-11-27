@@ -25,6 +25,9 @@ import { Slides } from './pages/Slides'
 // O laboratório (editor e Python) só baixa quando alguém abre um exercício.
 const Exercicio = lazy(() => import('./pages/Exercicio').then((m) => ({ default: m.Exercicio })))
 const RelatorioDaTurma = lazy(() => import('./pages/professor/Relatorio').then((m) => ({ default: m.Relatorio })))
+const Prova = lazy(() => import('./pages/Prova').then((m) => ({ default: m.Prova })))
+const AcompanharProva = lazy(() => import('./pages/professor/AcompanharProva').then((m) => ({ default: m.AcompanharProva })))
+const EditarProva = lazy(() => import('./pages/professor/EditarProva').then((m) => ({ default: m.EditarProva })))
 const ExerciciosDaAula = lazy(() => import('./pages/professor/Exercicios').then((m) => ({ default: m.Exercicios })))
 
 export function App() {
@@ -124,6 +127,36 @@ export function App() {
             }
           />
           <Route
+            path="professor/prova/nova"
+            element={
+              <RotaProtegida papel="professor">
+                <Suspense fallback={<Carregando />}>
+                  <EditarProva />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/prova/:provaId/acompanhar"
+            element={
+              <RotaProtegida papel="professor">
+                <Suspense fallback={<Carregando />}>
+                  <AcompanharProva />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/prova/:provaId"
+            element={
+              <RotaProtegida papel="professor">
+                <Suspense fallback={<Carregando />}>
+                  <EditarProva />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
             path="hangar"
             element={
               <RotaProtegida>
@@ -137,6 +170,16 @@ export function App() {
               <RotaProtegida>
                 <Suspense fallback={<Carregando />}>
                   <Exercicio />
+                </Suspense>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="prova/:provaId"
+            element={
+              <RotaProtegida>
+                <Suspense fallback={<Carregando />}>
+                  <Prova />
                 </Suspense>
               </RotaProtegida>
             }

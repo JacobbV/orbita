@@ -118,12 +118,15 @@ export function temErros(e: ErrosDoExercicio): boolean {
   return Boolean(e.titulo || e.enunciado || e.testes || e.porTeste)
 }
 
-/** Cria (id null) ou edita o exercício com os testes, de uma vez só. Devolve o id. */
-export async function salvarExercicio(id: number | null, aulaId: number, d: DadosDoExercicio): Promise<number> {
+/**
+ * Cria (id null) ou edita o exercício com os testes, de uma vez só. Devolve o id.
+ * Aula null = questão só de prova.
+ */
+export async function salvarExercicio(id: number | null, aulaId: number | null, d: DadosDoExercicio): Promise<number> {
   const { data, error } = await supabase().rpc('salvar_exercicio', {
     // null cria um exercício novo; o tipo gerado não sabe que o banco aceita null.
     p_id: id as number,
-    p_aula_id: aulaId,
+    p_aula_id: aulaId as number,
     p_titulo: d.titulo.trim(),
     p_enunciado: d.enunciado,
     p_dificuldade: d.dificuldade,
@@ -208,4 +211,17 @@ export function decidirReconferencia(
         ? `Confere: ${certosAgora} de ${abertos.length} testes e ${secretos.length === 1 ? 'o secreto' : `os ${secretos.length} secretos`}.`
         : `Confere: ${certosAgora} de ${abertos.length} testes certos.`,
   }
+}
+
+/** Formulário vazio: um teste visível e um oculto para começar. */
+export const NOVO_EXERCICIO: DadosDoExercicio = {
+  titulo: '',
+  enunciado: '',
+  dificuldade: 1,
+  linguagem: 'python',
+  codigoInicial: '',
+  testes: [
+    { tipo: 'visivel', entrada: '', saidaEsperada: '' },
+    { tipo: 'oculto', entrada: '', saidaEsperada: '' },
+  ],
 }

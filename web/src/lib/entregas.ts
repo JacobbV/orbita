@@ -142,7 +142,7 @@ export function lerNota(texto: string): { ok: true; nota: number | null } | { ok
 export async function corrigirEntrega(id: number, nota: number | null, comentario: string): Promise<void> {
   const { error } = await supabase().rpc('corrigir_entrega', {
     p_entrega_id: id,
-    p_nota: nota,
+    p_nota: nota as number,
     p_comentario: comentario,
   })
   if (error) throw error
