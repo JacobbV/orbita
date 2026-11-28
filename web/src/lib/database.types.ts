@@ -703,6 +703,9 @@ isOneToOne: false
 "conferir_entrega":
 { Args: { "p_confere": boolean,"p_entrega_id": number }; Returns: undefined
                            },
+"refazer_conferencia":
+{ Args: { "p_entrega_id": number,"p_secretos_ok": boolean,"p_testes_certos": number }; Returns: Json
+                           },
 "conferir_resposta":
 { Args: { "p_confere": boolean,"p_resposta_id": number }; Returns: undefined
                            },
