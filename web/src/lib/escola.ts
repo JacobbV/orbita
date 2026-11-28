@@ -4,8 +4,10 @@ import {
   LARGURA_MAPA,
   TILE,
   montarGrade,
+  layoutDaSala,
   salasDo,
   type Andar,
+  type Assento,
   type Escada,
   type Sala,
   type Tile,
@@ -19,6 +21,8 @@ import type { DisciplinaDaPonte } from './ponte'
 export type Direcao = 'baixo' | 'cima' | 'esquerda' | 'direita'
 
 export interface Jogador {
+  /** Cadeira em que está sentado (some ao andar). */
+  sentado?: Assento | undefined
   andar: Andar
   /** Posição dos pés, em pixels do mapa. */
   x: number
@@ -62,6 +66,47 @@ export function tilePisavel(andar: Andar, tx: number, ty: number): boolean {
   return true
 }
 
+const SOLIDOS: Record<Andar, [number, number, number, number][]> = { terreo: [], superior: [] }
+const ASSENTOS: Record<Andar, Assento[]> = { terreo: [], superior: [] }
+for (const andarDaSala of ['terreo', 'superior'] as const) {
+  for (const sala of salasDo(andarDaSala)) {
+    if (!sala.ativa) continue
+    const l = layoutDaSala(sala)
+    SOLIDOS[andarDaSala].push(...l.solidos)
+    ASSENTOS[andarDaSala].push(...l.assentos)
+  }
+}
+
+export function assentosDo(andarDaSala: Andar): Assento[] {
+  return ASSENTOS[andarDaSala]
+}
+
+/** Assento livre mais perto do ponto, até `alcance` pixels. */
+export function assentoPerto(andarDaSala: Andar, x: number, y: number, alcance = 18): Assento | undefined {
+  let melhor: Assento | undefined
+  let dist = alcance
+  for (const a of ASSENTOS[andarDaSala]) {
+    const d = Math.hypot(a.x - x, a.y - y)
+    if (d <= dist) {
+      melhor = a
+      dist = d
+    }
+  }
+  return melhor
+}
+
+export function sentar(j: Jogador, assento: Assento): Jogador {
+  return { ...j, x: assento.x, y: assento.y, direcao: assento.direcao, sentado: assento }
+}
+
+function batePeloMovel(andarDaSala: Andar, x: number, y: number): boolean {
+  const x0 = x - 4
+  const x1 = x + 4
+  const y0 = y - 3
+  const y1 = y
+  return SOLIDOS[andarDaSala].some(([rx, ry, rw, rh]) => x0 < rx + rw && x1 > rx && y0 < ry + rh && y1 > ry)
+}
+
 /** Os pés ocupam uma caixinha de 8×4 px; ela não pode tocar tile bloqueado. */
 export function podeFicarEm(andar: Andar, x: number, y: number): boolean {
   const xs = [x - 4, x + 3]
@@ -69,7 +114,7 @@ export function podeFicarEm(andar: Andar, x: number, y: number): boolean {
   for (const px of xs) for (const py of ys) {
     if (!tilePisavel(andar, Math.floor(px / TILE), Math.floor(py / TILE))) return false
   }
-  return true
+  return !batePeloMovel(andar, x, y)
 }
 
 /** Anda `dt` segundos na direção (dx, dy) (cada um de -1 a 1); desliza pelas paredes. */
@@ -83,7 +128,7 @@ export function andar(j: Jogador, dx: number, dy: number, dt: number): Jogador {
   if (podeFicarEm(j.andar, x + mx, y)) x += mx
   if (podeFicarEm(j.andar, x, y + my)) y += my
   const direcao: Direcao = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'direita' : 'esquerda') : dy > 0 ? 'baixo' : 'cima'
-  return { ...j, x, y, direcao }
+  return { andar: j.andar, x, y, direcao }
 }
 
 // -----------------------------------------------------------------------------
