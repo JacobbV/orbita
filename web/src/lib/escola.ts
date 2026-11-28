@@ -12,7 +12,8 @@ import {
   type Sala,
   type Tile,
 } from '../arte/escola'
-import type { DisciplinaDaPonte } from './ponte'
+import { atividadesAbertas, type AtividadeAberta, type DisciplinaDaPonte } from './ponte'
+import { estadoDaProvaDoAluno, type EstadoDaProvaDoAluno, type ProvaDoAluno } from './provas'
 
 // Regras do mapa da escola virtual: onde o boneco pode pisar, caminho ao tocar
 // no chão, escadas e o que cada sala abre. Tudo roda no navegador (degrau 1,
@@ -250,4 +251,39 @@ export function exerciciosLiberados(d: DisciplinaDaPonte): ExercicioDaEscola[] {
       .filter((a) => a.liberada)
       .flatMap((a) => a.exercicios.map((e) => ({ id: e.id, titulo: e.titulo, rotulo: `Unidade ${u.numero} · Aula ${a.numero}` }))),
   )
+}
+
+// -----------------------------------------------------------------------------
+// Quadro de avisos das salas de aula
+// -----------------------------------------------------------------------------
+/** Onde flutua o sinal de aviso: na parede, à direita do quadro. Só nas salas de aula acesas. */
+export function sinaisDoQuadro(andarDaSala: Andar): { sala: Sala; x: number; y: number }[] {
+  return salasDo(andarDaSala)
+    .filter((sl) => sl.ativa && sl.tipo === 'sala')
+    .map((sl) => ({ sala: sl, x: sl.x * TILE + 104, y: sl.y * TILE - 5 }))
+}
+
+export interface ProvaNoQuadro {
+  id: number
+  titulo: string
+  abreEm: string
+  fechaEm: string
+  estado: Exclude<EstadoDaProvaDoAluno, 'entregue' | 'perdida'>
+}
+
+export interface AvisosDoQuadro {
+  provas: ProvaNoQuadro[]
+  atividades: AtividadeAberta[]
+}
+
+/** O que o quadro mostra: provas que ainda não passaram e exercícios por fazer. */
+export function avisosDoQuadro(disciplinas: DisciplinaDaPonte[], provas: ProvaDoAluno[], agora = Date.now()): AvisosDoQuadro {
+  const daProva: ProvaNoQuadro[] = []
+  for (const p of provas) {
+    const estado = estadoDaProvaDoAluno(p, agora)
+    if (estado === 'entregue' || estado === 'perdida') continue
+    daProva.push({ id: p.id, titulo: p.titulo, abreEm: p.abreEm, fechaEm: p.fechaEm, estado })
+  }
+  daProva.sort((a, b) => a.abreEm.localeCompare(b.abreEm))
+  return { provas: daProva, atividades: atividadesAbertas(disciplinas) }
 }

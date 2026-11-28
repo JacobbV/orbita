@@ -132,8 +132,8 @@ export const SALAS: Sala[] = [
   s('superior', C, 'lab-cad', 'Lab. de Desenho CAD', 'cad', 17, 7, true),
   s('superior', C, 'lab-4', 'Laboratório 4', 'lab', 36, 7, false),
   s('superior', C, 'sala-12', 'Sala 12', 'sala', 44, 7, false),
-  s('superior', D, 'lab-1', 'Laboratório 1', 'lab', 9, 7, true),
-  s('superior', D, 'lab-3', 'Laboratório 3', 'lab', 17, 7, false),
+  // O Laboratório 1 junta o 1 e o 3 (a parede do meio some): 27 lugares, para a turma toda.
+  s('superior', D, 'lab-1', 'Laboratório 1', 'lab', 9, 15, true),
   s('superior', D, 'wc-fem-4', 'WC Feminino', 'wc-f', 25, 3, false),
   s('superior', D, 'lavanderia-4', 'Lavanderia', 'lavanderia', 29, 2, false),
   s('superior', D, 'wc-masc-4', 'WC Masculino', 'wc-m', 32, 3, false),
@@ -461,11 +461,12 @@ function moveis(pinta: Pinta, sala: Sala) {
         break
       }
       quadroNaParede(pinta, px + 30, face, 52, '#f4f6fa')
+      if (pw > 160) quadroNaParede(pinta, px + pw - 90, face, 52, '#f4f6fa')
       for (let r = 0; r < 3; r++) {
         const y = py + 10 + r * 28
         pinta(px + 6, y + 6, pw - 12, 8, '#dfe3ea')
         pinta(px + 6, y + 12, pw - 12, 2, '#aab1c0')
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < Math.floor((pw - 12) / 24); k++) {
           const x = px + 12 + k * 24
           pinta(x, y, 13, 9, '#262b40')
           pinta(x + 1, y + 1, 11, 6, k % 2 ? '#3ad1e6' : '#6fe3f2')
@@ -900,7 +901,7 @@ export function layoutDaSala(sala: Sala): LayoutDaSala {
       for (let r = 0; r < 3; r++) {
         const y = py + 10 + r * 28
         solidos.push([px + 6, y, pw - 12, 14])
-        for (let k = 0; k < 4; k++) lugar(px + 12 + k * 24 + 6, y + 22, 'cima')
+        for (let k = 0; k < Math.floor((pw - 12) / 24); k++) lugar(px + 12 + k * 24 + 6, y + 22, 'cima')
       }
       break
     }
