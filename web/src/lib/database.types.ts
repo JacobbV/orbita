@@ -23,7 +23,27 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "anotacoes_da_aula": {
+            "acessos": {
+                  Row: {
+                    "perfil_id": string,"ultimo_acesso": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "perfil_id": string,"ultimo_acesso"?: string
+                  }
+                  Update: {
+                    "perfil_id"?: string,"ultimo_acesso"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "acessos_perfil_id_fkey"
+      columns: ["perfil_id"]
+isOneToOne: true
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"anotacoes_da_aula": {
                   Row: {
                     "atualizado_em": string,"aula_id": number,"texto": string,"usuario_id": string
                   }
@@ -110,6 +130,26 @@ isOneToOne: false
                     {
       foreignKeyName: "avatares_perfil_id_fkey"
       columns: ["perfil_id"]
+isOneToOne: true
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"cadeiras_escola": {
+                  Row: {
+                    "aluno_id": string,"assento": string,"marcada_em": string,"sala": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"assento": string,"marcada_em"?: string,"sala": string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"assento"?: string,"marcada_em"?: string,"sala"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cadeiras_escola_aluno_id_fkey"
+      columns: ["aluno_id"]
 isOneToOne: true
       referencedRelation: "perfis"
       referencedColumns: ["id"]
@@ -442,6 +482,26 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"presencas_escola": {
+                  Row: {
+                    "aluno_id": string,"dia": string,"pagamentos": number,"segundos": number,"ultimo_sinal": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"dia": string,"pagamentos"?: number,"segundos"?: number,"ultimo_sinal"?: string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"dia"?: string,"pagamentos"?: number,"segundos"?: number,"ultimo_sinal"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "presencas_escola_aluno_id_fkey"
+      columns: ["aluno_id"]
+isOneToOne: false
+      referencedRelation: "perfis"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"prova_questoes": {
                   Row: {
@@ -798,6 +858,11 @@ isOneToOne: false
 "aprovar_todos":
 { Args: { "p_turma_disciplina_id": number }; Returns: number
                            },
+"cadeiras_ocupadas":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "assento": string,"minha": boolean
+            }[]
+                           },
 "comecar_prova":
 { Args: { "p_prova_id": number }; Returns: string
                            },
@@ -871,6 +936,9 @@ isOneToOne: false
                            },
 "escolher_apelido":
 { Args: { "p_apelido": string }; Returns: string
+                           },
+"escolher_cadeira":
+{ Args: { "p_assento": string,"p_sala": string }; Returns: undefined
                            },
 "historico_da_loja":
 { Args: { "p_limite": number }; Returns: {
@@ -955,11 +1023,17 @@ isOneToOne: false
 "registrar_abertura_da_aula":
 { Args: { "p_aula_id": number }; Returns: Json
                            },
+"registrar_acesso":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "registrar_audio_ouvido":
 { Args: { "p_aula_id": number }; Returns: Json
                            },
 "registrar_aula_aberta":
 { Args: { "p_aula_id": number }; Returns: undefined
+                           },
+"registrar_presenca_escola":
+{ Args: { "p_sala": string }; Returns: Json
                            },
 "registrar_saida_da_prova":
 { Args: { "p_prova_id": number }; Returns: Json
@@ -1007,6 +1081,9 @@ isOneToOne: false
 { Args: { "p_prova_id": number }; Returns: {
               "a_confirmar": number,"aluno_id": string,"apelido": string,"comecou_em": string,"encerrada_por": string,"entregue_em": string,"nome": string,"nota": number,"respondidas": number,"saidas": number,"segunda_chamada": boolean,"tentativa_id": number,"termina_em": string
             }[]
+                           },
+"soltar_cadeira":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "sortear_apelido":
 { Args: { "p_evitar"?: string }; Returns: string

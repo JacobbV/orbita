@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 import { FaixaNinja } from '../ninja/FaixaNinja'
 import { AvisoConquista } from './AvisoConquista'
+import { RegistraAcesso } from './RegistraAcesso'
 import { SiteFooter } from './SiteFooter'
 import { SiteHeader } from './SiteHeader'
 import { ScrollToHash } from './ScrollToHash'
@@ -20,6 +21,7 @@ export function PublicLayout() {
       </main>
       <SiteFooter />
       <AvisoConquista />
+      <RegistraAcesso />
     </>
   )
 }

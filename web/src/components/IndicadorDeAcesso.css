@@ -1,0 +1,24 @@
+.acesso {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texto-suave);
+  font-size: 0.8125rem;
+}
+
+.acesso-bolinha {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--borda);
+}
+
+.acesso-online {
+  color: var(--sucesso);
+  font-weight: 700;
+}
+
+.acesso-online .acesso-bolinha {
+  background: var(--sucesso);
+  box-shadow: 0 0 8px var(--sucesso);
+}

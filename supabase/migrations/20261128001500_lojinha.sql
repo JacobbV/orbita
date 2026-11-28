@@ -466,7 +466,7 @@ alter table public.xp_eventos drop constraint xp_eventos_motivo_check;
 
 alter table public.xp_eventos
   add constraint xp_eventos_motivo_check
-  check (motivo in ('aula', 'sequencia', 'professor', 'exercicio', 'audio', 'prova'));
+  check (motivo in ('aula', 'sequencia', 'professor', 'exercicio', 'audio', 'presenca', 'prova'));
 
 alter table public.xp_eventos
   add constraint xp_eventos_prova_com_prova check (motivo <> 'prova' or prova_id is not null);

@@ -68,6 +68,19 @@ describe('XP da turma', () => {
     expect(linha).toHaveTextContent('175 XP')
   })
 
+  it('ordena a lista por nome ou por XP', async () => {
+    falso.dados = [
+      { alunoId: 'a1', nome: 'Andrômeda Vega', xp: 10, patente: 'Cadete' },
+      { alunoId: 'a2', nome: 'Sírius Altair', xp: 90, patente: 'Piloto' },
+    ]
+    abrir('/professor/xp/11', PROFESSOR)
+    await screen.findByRole('heading', { name: '1º INFO M · ALG' })
+    const nomes = () => screen.getAllByText(/Andrômeda Vega|Sírius Altair/, { selector: '.xp-turma-nome' }).map((e) => e.firstChild?.textContent)
+    expect(nomes()).toEqual(['Andrômeda Vega', 'Sírius Altair'])
+    await userEvent.click(screen.getByRole('button', { name: 'XP' }))
+    expect(nomes()).toEqual(['Sírius Altair', 'Andrômeda Vega'])
+  })
+
   it('dá XP por participação e atualiza a lista', async () => {
     abrir('/professor/xp/11', PROFESSOR)
     await userEvent.click(await screen.findByRole('button', { name: 'Dar XP para Sírius Altair' }))

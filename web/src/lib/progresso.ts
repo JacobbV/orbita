@@ -105,6 +105,13 @@ export async function registrarAudioOuvido(aulaId: number): Promise<Conquista> {
   return lerConquista(data)
 }
 
+/** Sinal de presença: o aluno está sentado numa sala de estudo da escola. Quem conta o tempo é o banco. */
+export async function registrarPresencaEscola(sala: string): Promise<Conquista> {
+  const { data, error } = await supabase().rpc('registrar_presenca_escola', { p_sala: sala })
+  if (error) throw error
+  return lerConquista(data)
+}
+
 // ---------------------------------------------------------------------------
 // Aviso de conquista: qualquer tela anuncia, o aviso no canto mostra.
 // ---------------------------------------------------------------------------
