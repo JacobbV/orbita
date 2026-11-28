@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
+import { BotaoVoltarAoTopo } from '../../components/BotaoVoltarAoTopo'
 import { Carregando } from '../../components/Carregando'
 import { saidasConferem } from '../../lab/correcao'
 import { criarExecutor, LINGUAGENS } from '../../lab/linguagens'
@@ -139,6 +140,7 @@ function EntregasDaTurma({ oferta }: { oferta: OfertaDoPainel }) {
 
   return (
     <div className="entregas-arvore">
+      <BotaoVoltarAoTopo />
       <div className="entregas-filtros" role="group" aria-label="Mostrar por situação">
         {FILTROS_DE_ENTREGAS.map((f) => (
           <button

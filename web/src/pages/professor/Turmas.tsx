@@ -129,42 +129,61 @@ function CartaoTurma({
           {aprovados} {aprovados === 1 ? 'aluno aprovado' : 'alunos aprovados'} · {pendentes}{' '}
           {pendentes === 1 ? 'pedido aguardando' : 'pedidos aguardando'}
         </p>
-        {ofertasDaTurma.length > 0 && (
-          <ul className="painel-ver-como-aluno" role="list">
-            {ofertasDaTurma.map((o) => (
-              <li key={o.id}>
-                <Link to={`/professor/ver-como-aluno/${o.id}`} className="botao botao-compacto">
-                  Ver como aluno{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
-                  <span className="sr-only">
-                    {' '}
-                    ({turma.nome}, {o.disciplina.nome})
+        {ofertasDaTurma.map((o) => {
+          const sufixo = ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''
+          const oculto = (
+            <span className="sr-only">
+              {' '}
+              ({turma.nome}, {o.disciplina.nome})
+            </span>
+          )
+          return (
+            <div key={o.id} className="turma-comando" role="group" aria-label={`Painel de comando de ${turma.nome}, ${o.disciplina.nome}`}>
+              <p className="turma-comando-titulo">
+                <span className="turma-comando-led" aria-hidden="true" />
+                <span className="pixel">{o.disciplina.sigla}</span>
+                <span className="turma-comando-disciplina">{o.disciplina.nome}</span>
+              </p>
+              <div className="turma-comando-teclas">
+                <Link to={`/professor/tripulacao/${o.id}`} className="turma-tecla">
+                  <span className="turma-tecla-icone" aria-hidden="true">
+                    ◉
                   </span>
+                  Tripulação{sufixo}
+                  {oculto}
                 </Link>
-                <Link to={`/professor/xp/${o.id}`} className="botao botao-compacto">
-                  XP da turma{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
-                  <span className="sr-only">
-                    {' '}
-                    ({turma.nome}, {o.disciplina.nome})
+                <Link to={`/professor/xp/${o.id}`} className="turma-tecla">
+                  <span className="turma-tecla-icone" aria-hidden="true">
+                    ★
                   </span>
+                  XP da turma{sufixo}
+                  {oculto}
                 </Link>
-                <Link to={`/professor/tripulacao/${o.id}`} className="botao botao-compacto">
-                  Tripulação{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
-                  <span className="sr-only">
-                    {' '}
-                    ({turma.nome}, {o.disciplina.nome})
+                <Link to={`/professor/relatorio/${o.id}`} className="turma-tecla">
+                  <span className="turma-tecla-icone" aria-hidden="true">
+                    ▤
                   </span>
+                  Relatório{sufixo}
+                  {oculto}
                 </Link>
-                <Link to={`/professor/relatorio/${o.id}`} className="botao botao-compacto">
-                  Relatório{ofertasDaTurma.length > 1 ? `: ${o.disciplina.sigla}` : ''}
-                  <span className="sr-only">
-                    {' '}
-                    ({turma.nome}, {o.disciplina.nome})
+                <Link to={`/professor?aba=entregas&turma=${o.id}`} className="turma-tecla">
+                  <span className="turma-tecla-icone" aria-hidden="true">
+                    ✎
                   </span>
+                  Entregas{sufixo}
+                  {oculto}
                 </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+                <Link to={`/professor/ver-como-aluno/${o.id}`} className="turma-tecla turma-tecla-suave">
+                  <span className="turma-tecla-icone" aria-hidden="true">
+                    ◌
+                  </span>
+                  Ver como aluno{sufixo}
+                  {oculto}
+                </Link>
+              </div>
+            </div>
+          )
+        })}
       </div>
       <form className="painel-turma-form" onSubmit={salvar} noValidate aria-labelledby={`${id}-nome`}>
         <div className={`campo painel-campo-ano${erroAno ? ' campo-com-erro' : ''}`}>

@@ -3,9 +3,12 @@ import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Avatar } from '../../components/Avatar'
 import { Carregando } from '../../components/Carregando'
+import { BotaoVoltarAoTopo } from '../../components/BotaoVoltarAoTopo'
 import { Medalha } from '../../components/Medalha'
+import { OrdenarPor } from '../../components/OrdenarPor'
 import { buscarOferta, nomeTurno, type Oferta } from '../../lib/api'
 import { mensagemDeErro } from '../../lib/erros'
+import { ordenarAlunos, type CriterioDeOrdem } from '../../lib/ordem'
 import { carregarPerfilDoAluno, carregarTripulacao, type PerfilDoAluno, type TripulanteDaTurma } from '../../lib/tripulacao'
 import './Professor.css'
 import './Tripulacao.css'
@@ -27,6 +30,7 @@ export function Tripulacao() {
   const [tripulantes, setTripulantes] = useState<TripulanteDaTurma[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [aberto, setAberto] = useState<string | null>(null)
+  const [ordem, setOrdem] = useState<CriterioDeOrdem>('nome')
 
   useEffect(() => {
     let ativo = true
@@ -48,6 +52,7 @@ export function Tripulacao() {
     }
   }, [id])
 
+  const lista = useMemo(() => ordenarAlunos(tripulantes ?? [], ordem), [tripulantes, ordem])
   const escolhido = useMemo(() => tripulantes?.find((t) => t.alunoId === aberto) ?? null, [tripulantes, aberto])
 
   const voltar = (
@@ -89,8 +94,9 @@ export function Tripulacao() {
         <p className="cartao painel-vazio">Nenhum aluno aprovado nesta turma ainda.</p>
       ) : (
         <>
+          <OrdenarPor valor={ordem} aoMudar={setOrdem} />
           <ul className="tripulacao-grade" role="list" aria-label="Tripulantes da turma">
-            {tripulantes.map((t) => (
+            {lista.map((t) => (
               <li key={t.alunoId}>
                 <button
                   type="button"
@@ -112,6 +118,7 @@ export function Tripulacao() {
           {escolhido && <PerfilDoTripulante key={escolhido.alunoId} tripulante={escolhido} ofertaId={id} aoFechar={() => setAberto(null)} />}
         </>
       )}
+      <BotaoVoltarAoTopo />
     </div>
   )
 }

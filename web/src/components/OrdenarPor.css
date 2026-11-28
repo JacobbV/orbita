@@ -1,0 +1,11 @@
+.ordenar-por {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ordenar-por-rotulo {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
