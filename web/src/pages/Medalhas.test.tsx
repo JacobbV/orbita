@@ -49,6 +49,20 @@ describe('Medalhas', () => {
     expect(screen.getByRole('link', { name: 'Voltar à ponte' })).toHaveAttribute('href', '/ponte')
   })
 
+  it('mostra a barra de progresso nas medalhas de contagem que faltam', async () => {
+    falso.resposta = [
+      { codigo: 'cobra-criada', nome: 'Cobra Criada', descricao: 'Resolveu 15 exercícios em Python.', ganhaEm: null, progresso: { atual: 10, meta: 15 } },
+      { codigo: 'estilista', nome: 'Estilista Espacial', descricao: 'Montou o boneco.', ganhaEm: null },
+    ]
+    abrir('/medalhas', ALUNO)
+    await screen.findByRole('heading', { name: 'Cobra Criada' })
+    const cobra = screen.getByRole('heading', { name: 'Cobra Criada' }).closest('li') as HTMLElement
+    expect(within(cobra).getByText('10 de 15')).toBeInTheDocument()
+    expect(within(cobra).getByRole('progressbar', { name: 'Progresso em Cobra Criada' })).toHaveAttribute('value', '10')
+    const estilista = screen.getByRole('heading', { name: 'Estilista Espacial' }).closest('li') as HTMLElement
+    expect(within(estilista).getByText('Ainda falta')).toBeInTheDocument()
+  })
+
   it('mostra o erro em português', async () => {
     falso.resposta = new Error('Failed to fetch')
     abrir('/medalhas', ALUNO)

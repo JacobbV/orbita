@@ -89,7 +89,20 @@ export function Medalhas() {
                     <span className="medalhas-falta">Como ganhar: </span>
                     {m.descricao}
                   </p>
-                  <p className="medalhas-quando">Ainda falta</p>
+                  {m.progresso ? (
+                    <div className="medalhas-progresso">
+                      <progress
+                        value={m.progresso.atual}
+                        max={m.progresso.meta}
+                        aria-label={`Progresso em ${m.nome}`}
+                      />
+                      <span className="medalhas-quando">
+                        {m.progresso.atual} de {m.progresso.meta}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="medalhas-quando">Ainda falta</p>
+                  )}
                 </>
               )}
             </div>

@@ -856,6 +856,11 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"progresso_das_medalhas":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "atual": number,"medalha": string,"meta": number
+            }[]
+                           },
 "registrar_acesso":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },

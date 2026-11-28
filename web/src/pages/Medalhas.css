@@ -77,3 +77,17 @@
   font-weight: 700;
   color: var(--texto);
 }
+
+.medalhas-progresso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.medalhas-progresso progress {
+  flex: 1;
+  max-width: 14rem;
+  height: 10px;
+  accent-color: var(--ciano);
+}
