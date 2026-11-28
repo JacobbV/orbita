@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import {
   CABELO_COR_LIVRE,
   CAMADAS_OPCIONAIS,
   COR_LIVRE,
   PECAS,
   corValida,
-  recorteDaCamada,
   type Camada,
   type Escolhas,
   type Peca,
@@ -18,7 +17,10 @@ import { Avatar } from '../components/Avatar'
 import { Carregando } from '../components/Carregando'
 import { carregarAvatar, carregarAvatarNinja, salvarAvatar, salvarAvatarNinja } from '../lib/avatar'
 import { mensagemDeErro } from '../lib/erros'
-import { carregarProgresso } from '../lib/progresso'
+import { carregarLoja, situacaoDaPeca, type Loja, type SituacaoDaPeca } from '../lib/loja'
+import { Moeda } from '../components/Moeda'
+import { CompraDaPeca, LojaDoHangar } from './LojaDoHangar'
+import { OpcaoPeca } from '../components/OpcaoPeca'
 import { useModoNinja } from '../ninja/ModoNinja'
 import { apelidoDoNinja, guardarApelidoDoNinja } from '../ninja/progressoNinja'
 import './Hangar.css'
@@ -101,8 +103,10 @@ export function Hangar() {
   const ninja = useModoNinja().ativo
   const [salvo, setSalvo] = useState<Escolhas | null>(null)
   const [escolhas, setEscolhas] = useState<Escolhas | null>(null)
-  const [xp, setXp] = useState(0)
-  const [aba, setAba] = useState('corpo')
+  // Só o aluno tem loja: professor e ninja usam tudo de graça.
+  const [loja, setLoja] = useState<Loja | null>(null)
+  const [params] = useSearchParams()
+  const [aba, setAba] = useState(() => (params.get('aba') === 'loja' ? 'loja' : 'corpo'))
   const [sub, setSub] = useState<Record<string, number>>({})
   const [erro, setErro] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
@@ -113,13 +117,13 @@ export function Hangar() {
     let ativo = true
     Promise.all([
       ninja ? carregarAvatarNinja(perfil.id) : carregarAvatar(perfil.id, papel),
-      papel === 'aluno' ? carregarProgresso().then((p) => p.xp, () => 0) : Promise.resolve(Number.MAX_SAFE_INTEGER),
+      papel === 'aluno' && !ninja ? carregarLoja() : Promise.resolve(null),
     ])
-      .then(([avatar, xpAtual]) => {
+      .then(([avatar, lojaAtual]) => {
         if (!ativo) return
         setSalvo(avatar)
         setEscolhas(avatar)
-        setXp(xpAtual)
+        setLoja(lojaAtual)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(mensagemDeErro(e))
@@ -141,8 +145,19 @@ export function Hangar() {
   if (!escolhas || !salvo) return <Carregando />
 
   // O ninja usa qualquer peça; aluno e professor, só as do seu papel.
-  const pode = (p: Peca) => ninja || p.para === 'todos' || p.para === papel
-  const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0]!
+  // Peça da loja fora de venda e não comprada nem aparece.
+  const situacao = (p: Peca): SituacaoDaPeca => (loja ? situacaoDaPeca(p.id, loja, p.xpMinimo) : { tipo: 'livre' })
+  const pode = (p: Peca) => {
+    if (!(ninja || p.para === 'todos' || p.para === papel)) return false
+    const s = situacao(p)
+    return s.tipo !== 'loja' || s.aVenda
+  }
+  const abas = loja ? [...ABAS, { id: 'loja', rotulo: 'Loja', grupos: [] }] : ABAS
+  const abaAtual = abas.find((a) => a.id === aba) ?? ABAS[0]!
+  // Peças da loja que o aluno está só experimentando (ainda não comprou).
+  const experimentando = PECAS.filter(
+    (p) => escolhas[p.camada] === p.id && situacao(p).tipo === 'loja',
+  )
   const grupos = abaAtual.submenu ? [abaAtual.grupos[sub[aba] ?? 0] ?? abaAtual.grupos[0]!] : abaAtual.grupos
   const mudou = JSON.stringify(escolhas) !== JSON.stringify(salvo)
   const voltarPara = ninja ? '/ninja' : papel === 'professor' ? '/professor' : '/ponte'
@@ -193,8 +208,16 @@ export function Hangar() {
             ? 'O ninja pode usar qualquer peça, inclusive as cinco só dele. Ele aparece só no Modo Ninja: os alunos continuam vendo o seu boneco de professor.'
             : papel === 'professor'
             ? 'Os alunos veem o seu boneco. As peças de professor são só suas.'
-            : `Você tem ${xp} XP. Peças com cadeado se abrem quando você ganha mais XP. Só você e o professor veem o seu boneco.`}
+            : `Você tem ${loja?.xp ?? 0} XP. As peças do uniforme se abrem sozinhas quando a sua patente sobe. As peças com moedinha ficam na Loja: dá para experimentar antes de comprar. Só você e o professor veem o seu boneco.`}
         </p>
+        {loja && (
+          <p className="hangar-saldo">
+            <Moeda tamanho={20} />
+            <span>
+              <strong>{loja.moedas}</strong> {loja.moedas === 1 ? 'moeda' : 'moedas'}
+            </span>
+          </p>
+        )}
       </header>
 
       <div className="hangar-oficina">
@@ -203,7 +226,12 @@ export function Hangar() {
             <Avatar escolhas={escolhas} tamanho={192} rotulo={ninja ? 'Prévia do seu ninja' : 'Prévia do seu boneco'} />
           </div>
           <div className="hangar-acoes">
-            <button type="button" className="botao botao-primario" onClick={salvar} disabled={!mudou || salvando}>
+            <button
+              type="button"
+              className="botao botao-primario"
+              onClick={salvar}
+              disabled={!mudou || salvando || experimentando.length > 0}
+            >
               {salvando ? 'Salvando…' : ninja ? 'Salvar ninja' : 'Salvar boneco'}
             </button>
             <button type="button" className="botao" onClick={() => setEscolhas(salvo)} disabled={!mudou || salvando}>
@@ -211,13 +239,30 @@ export function Hangar() {
             </button>
           </div>
           <p role="status" className={`hangar-mensagem hangar-mensagem-${mensagem?.tipo ?? 'vazia'}`}>
-            {mensagem?.texto ?? (mudou ? 'Há mudanças não salvas.' : '')}
+            {mensagem?.texto ??
+              (experimentando.length > 0
+                ? 'Peça da loja: compre antes de salvar o boneco.'
+                : mudou
+                  ? 'Há mudanças não salvas.'
+                  : '')}
           </p>
+          {loja &&
+            experimentando.map((p) => (
+              <CompraDaPeca
+                key={p.id}
+                peca={p}
+                loja={loja}
+                aoComprar={(moedas) => {
+                  setLoja({ ...loja, moedas, compradas: new Set([...loja.compradas, p.id]) })
+                  setMensagem({ tipo: 'sucesso', texto: `${p.nome} agora é sua! Salve o boneco para usar.` })
+                }}
+              />
+            ))}
         </section>
 
         <section className="cartao hangar-pecas" aria-label="Peças">
           <div className="hangar-abas" role="tablist" aria-label="Partes do boneco">
-            {ABAS.map((a) => (
+            {abas.map((a) => (
               <button
                 key={a.id}
                 type="button"
@@ -231,6 +276,17 @@ export function Hangar() {
             ))}
           </div>
           <div className="hangar-painel" role="tabpanel" aria-label={abaAtual.rotulo}>
+            {abaAtual.id === 'loja' && loja && (
+              <LojaDoHangar
+                loja={loja}
+                escolhas={escolhas}
+                aoMudarLoja={setLoja}
+                aoExperimentar={(p) => {
+                  setMensagem(null)
+                  setEscolhas((atual) => ({ ...atual, [p.camada]: p.id }))
+                }}
+              />
+            )}
             {abaAtual.submenu && (
               <div className="hangar-submenu" role="group" aria-label={`Grupos de ${abaAtual.rotulo.toLowerCase()}`}>
                 {abaAtual.grupos.map((g, i) => {
@@ -270,7 +326,7 @@ export function Hangar() {
                             key={p.id}
                             peca={p}
                             escolhida={escolhas[g.camada] === p.id}
-                            trancada={p.xpMinimo > xp ? p.xpMinimo : null}
+                            situacao={situacao(p)}
                             aoEscolher={() => escolher(g.camada, p)}
                           />
                         ),
@@ -292,7 +348,7 @@ export function Hangar() {
                           key={p.id}
                           nome={p.nome}
                           escolhida={escolhas[g.camada] === p.id}
-                          trancada={p.xpMinimo > xp ? p.xpMinimo : null}
+                          situacao={situacao(p)}
                           aoEscolher={() => escolher(g.camada, p)}
                           previa={{ ...escolhas, [g.camada]: p.id }}
                           camada={g.camada}
@@ -333,53 +389,24 @@ function ApelidoDoNinja({ perfilId }: { perfilId: string }) {
   )
 }
 
-function OpcaoPeca({
-  nome,
-  escolhida,
-  trancada = null,
-  aoEscolher,
-  previa,
-  camada,
-}: {
-  nome: string
-  escolhida: boolean
-  trancada?: number | null
-  aoEscolher: () => void
-  previa: Partial<Record<string, string | undefined>>
-  camada: Camada
-}) {
-  const limpa: Escolhas = Object.fromEntries(Object.entries(previa).filter(([, v]) => v)) as Escolhas
-  // O quadradinho mostra só a parte que muda: a cabeça, o tronco, as pernas ou os pés.
-  const recorte = recorteDaCamada(camada, limpa)
-  return (
-    <button
-      type="button"
-      className={`hangar-opcao${escolhida ? ' hangar-opcao-escolhida' : ''}${trancada ? ' hangar-opcao-trancada' : ''}`}
-      aria-pressed={escolhida}
-      disabled={trancada !== null}
-      onClick={aoEscolher}
-    >
-      <span className="hangar-opcao-desenho">
-        <Avatar escolhas={limpa} tamanho={recorte ? 72 : 56} rotulo="" recorte={recorte} />
-      </span>
-      <span className="hangar-opcao-nome">{nome}</span>
-      {trancada !== null && <span className="hangar-opcao-cadeado">🔒 {trancada} XP</span>}
-    </button>
-  )
-}
-
-function Bolinha({
+export function Bolinha({
   peca,
   escolhida,
-  trancada,
+  situacao,
   aoEscolher,
 }: {
   peca: Peca
   escolhida: boolean
-  trancada: number | null
+  situacao: SituacaoDaPeca
   aoEscolher: () => void
 }) {
-  const nome = trancada !== null ? `${peca.nome} (abre com ${trancada} XP)` : peca.nome
+  const trancada = situacao.tipo === 'xp' ? situacao.xp : null
+  const nome =
+    situacao.tipo === 'xp'
+      ? `${peca.nome} (abre com ${situacao.xp} XP)`
+      : situacao.tipo === 'loja'
+        ? `${peca.nome} (na loja por ${situacao.preco} moedas)`
+        : peca.nome
   return (
     <button
       type="button"
@@ -394,6 +421,11 @@ function Bolinha({
       {trancada !== null && (
         <span className="hangar-bolinha-cadeado" aria-hidden="true">
           🔒
+        </span>
+      )}
+      {situacao.tipo === 'loja' && (
+        <span className="hangar-bolinha-moeda" aria-hidden="true">
+          <Moeda tamanho={14} />
         </span>
       )}
     </button>

@@ -317,3 +317,120 @@
     min-height: 0;
   }
 }
+
+/* Lojinha: saldo, preço nas peças e aba Loja */
+.hangar-saldo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--estrela);
+}
+
+.hangar-opcao-preco {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--estrela);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.hangar-bolinha-moeda {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--espaco);
+}
+
+.loja {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.loja-saldo,
+.loja-troca,
+.loja-movimentos,
+.loja-escolhida {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+}
+
+.loja-escolhida {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+
+.loja-saldo-valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  color: var(--estrela);
+}
+
+.loja-regras,
+.loja-vazia {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.loja-falta {
+  color: var(--estrela);
+  font-size: 0.9rem;
+}
+
+.loja-confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loja-botoes,
+.loja-troca-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.loja-troca-form input {
+  width: 6rem;
+  min-height: var(--alvo-toque);
+}
+
+.loja-movimentos ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loja-movimento {
+  display: flex;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.loja-ganho,
+.loja-perda {
+  flex: none;
+  min-width: 2.5rem;
+  font-weight: 800;
+}
+
+.loja-ganho { color: var(--estrela); }
+.loja-perda { color: #fca5a5; }

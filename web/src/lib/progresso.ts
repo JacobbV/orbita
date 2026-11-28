@@ -12,6 +12,8 @@ export interface Progresso {
   /** Próxima patente, ou null para quem já é Almirante Galáctico. */
   proxima: string | null
   xpDaProxima: number | null
+  /** Moedinhas da loja (só o aluno; o Modo Ninja não tem). */
+  moedas?: number
 }
 
 export interface Ganho {
@@ -33,6 +35,7 @@ interface ProgressoDoBanco {
   xp_da_patente: number
   proxima: string | null
   xp_da_proxima: number | null
+  moedas?: number
 }
 
 interface ConquistaDoBanco {
@@ -53,6 +56,7 @@ export async function carregarProgresso(): Promise<Progresso> {
     xpDaPatente: p.xp_da_patente,
     proxima: p.proxima,
     xpDaProxima: p.xp_da_proxima,
+    ...(typeof p.moedas === 'number' ? { moedas: p.moedas } : {}),
   }
 }
 

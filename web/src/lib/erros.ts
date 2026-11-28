@@ -87,11 +87,26 @@ const MENSAGENS_DO_BANCO = [
   'O peso de cada questão vai de 0,1 a 100.',
   'Escolha encerrar na 1ª, 2ª ou 3ª saída, ou só avisar.',
   'As instruções passaram do limite de 5 mil letras.',
+  'Esta peça não está à venda.',
+  'Você já tem esta peça.',
+  'Escolha quantas moedas quer receber.',
+  'A loja é só para alunos.',
+  'O preço vai de 1 a 9999 moedas.',
+  'Esta peça não é da loja.',
+  'Dê de 1 a 10 moedas (ou tire até 100).',
+  'Escreva o motivo (até 200 caracteres).',
+  'Compra não encontrada.',
+  'Aluno não encontrado.',
 ]
+
+// Mensagens do banco com números no meio (passam inteiras).
+const MENSAGENS_COM_NUMERO = [/Faltam \d+ moedas para esta peça\./, /Cada moeda custa 50 XP\. Você tem \d+ XP\./, /O aluno tem só -?\d+ moedas\./]
 
 export function mensagemDeErro(erro: unknown): string {
   const e = (erro ?? {}) as ErroComMensagem
   const msg = typeof e.message === 'string' ? e.message : String(erro ?? '')
+  const comNumero = MENSAGENS_COM_NUMERO.map((r) => msg.match(r)?.[0]).find(Boolean)
+  if (comNumero) return comNumero
   const doBanco = MENSAGENS_DO_BANCO.find((m) => msg.includes(m))
   if (doBanco) return doBanco
   for (const [padrao, texto] of MAPA) {

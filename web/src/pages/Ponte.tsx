@@ -11,6 +11,7 @@ import { ProvasDaPonte } from '../components/ProvasDaPonte'
 import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
+import { Moedas } from '../components/Moeda'
 import { PreviaDoProfessor } from '../lib/previa'
 import { useModoNinja } from '../ninja/ModoNinja'
 import { registrarAulaDoNinja } from '../ninja/progressoNinja'
@@ -401,6 +402,12 @@ function CartaoPatente({ progresso }: { progresso: Progresso }) {
         <span className="pixel ponte-patente-nome">{patente}</span>
         <span className="ponte-patente-xp">{xp} XP</span>
       </p>
+      {progresso.moedas !== undefined && (
+        <Link to="/hangar?aba=loja" className="ponte-moedas" aria-label={`${progresso.moedas} moedas. Abrir a Loja`}>
+          <Moedas quantidade={progresso.moedas} />
+          <span className="ponte-moedas-loja">Loja →</span>
+        </Link>
+      )}
       <div
         className="ponte-barra ponte-barra-xp"
         role="progressbar"

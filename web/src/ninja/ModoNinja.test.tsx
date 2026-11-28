@@ -67,7 +67,7 @@ describe('Modo Ninja', () => {
     expect(await screen.findByRole('heading', { name: 'Monte o seu ninja' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('tab', { name: 'Acessórios' }))
     expect(screen.getByRole('button', { name: /Faixa ninja/ })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /Capacete espacial/ })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Capacete de piloto/ })).toBeEnabled()
     await userEvent.click(screen.getByRole('button', { name: 'Corpo e mãos' }))
     expect(screen.getByRole('button', { name: /Caneca de café/ })).toBeEnabled()
     await userEvent.click(screen.getByRole('button', { name: /Estrela ninja/ }))

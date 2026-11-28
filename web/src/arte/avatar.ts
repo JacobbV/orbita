@@ -544,25 +544,40 @@ function desenharRoupa(id: string, g: Geo): Ret[] {
       ]
     }
     case 'roupa-jaqueta-de-piloto': {
+      // Jaqueta de aviador (uniforme da nave, 28/11/2026): couro marrom, gola
+      // de lã, zíper, emblema da nave no peito e escudo vermelho na manga.
       const [a0, a1] = bordas(g, g.ombro)
-      const [b0] = bordas(g, T(g, 4))
+      const [c0] = bordas(g, T(g, 3))
       return [
-        ...camiseta(g, '#f08a24'),
-        ...faixa(g, B(g, 2), 3, '#c96a12'),
-        [19, g.ombro, 10, 2, '#f3e3c3'], [a0 + 1, g.ombro, 3, 2, '#f3e3c3'], [a1 - 3, g.ombro, 3, 2, '#f3e3c3'],
-        [23, T(g, 2), 2, g.fim - T(g, 2) + 1, '#c9ccd6'],
-        [b0 + 2, T(g, 4), 3, 2, '#3e7bf0'], [b0 + 2, T(g, 4), 1, 1, BRANCO],
-        ...punhos(g, '#c96a12'),
+        ...camiseta(g, '#7a4a2a'),
+        ...faixa(g, B(g, 1), 2, '#4a2c18'),
+        [g.be, g.ombro + 2, 1, g.fimBraco - g.ombro - 2, '#5e3820'], [g.bd + g.braco - 1, g.ombro + 2, 1, g.fimBraco - g.ombro - 2, '#5e3820'],
+        [a0, g.ombro, 5, 2, '#e8d9b8'], [a1 - 4, g.ombro, 5, 2, '#e8d9b8'], [21, g.ombro, 6, 1, '#e8d9b8'],
+        [a0 + 1, g.ombro + 1, 3, 1, '#cbb88f'], [a1 - 3, g.ombro + 1, 3, 1, '#cbb88f'],
+        [23, T(g, 1), 2, g.fim - T(g, 1) - 1, '#5e3820'], [23, T(g, 1), 1, g.fim - T(g, 1) - 1, '#c9ccd6'],
+        [c0 + 2, T(g, 3), 3, 3, '#22c3dd'], [c0 + 3, T(g, 4), 1, 1, '#f5c542'],
+        [g.be, T(g, 3), g.braco, 2, '#d23b43'], [g.be + 1, T(g, 3), 1, 1, BRANCO],
+        ...punhos(g, '#4a2c18'),
       ]
     }
-    case 'roupa-camiseta-estrela':
+    case 'roupa-camiseta-estrela': {
+      // Camiseta de piloto (uniforme da nave, 28/11/2026): azul-marinho com as
+      // asas douradas no peito.
+      const [x0, x1] = bordas(g, T(g, 2))
+      const c = 23
+      const asa = (y: number, de: number, ate: number): Ret[] => {
+        const l0 = Math.max(x0 + 1, c - ate)
+        const r1 = Math.min(x1 - 1, c + 1 + ate)
+        return [[l0, y, c - de - l0 + 1, 1, '#f5c542'], [c + 1 + de, y, r1 - (c + 1 + de) + 1, 1, '#f5c542']]
+      }
       return [
-        ...camiseta(g, '#ec4899', T(g, 3)),
-        ...faixa(g, B(g, 1), 2, '#c42f7a'),
-        [23, T(g, 2), 2, 1, '#f5c542'], [21, T(g, 3), 6, 2, '#f5c542'], [22, T(g, 5), 4, 1, '#f5c542'],
-        [21, T(g, 6), 2, 1, '#f5c542'], [25, T(g, 6), 2, 1, '#f5c542'],
-        [be, T(g, 3), braco, 1, '#c42f7a'], [bd, T(g, 3), braco, 1, '#c42f7a'],
+        ...camiseta(g, '#1f3b73', T(g, 3)),
+        ...faixa(g, B(g, 1), 2, '#162b55'),
+        ...asa(T(g, 2), 2, 6), ...asa(T(g, 3), 1, 4), ...asa(T(g, 4), 1, 2),
+        [c, T(g, 2), 2, 3, '#f5c542'], [c, T(g, 3), 2, 1, '#22c3dd'],
+        [g.be, T(g, 3), g.braco, 1, '#162b55'], [g.bd, T(g, 3), g.braco, 1, '#162b55'],
       ]
+    }
     case 'roupa-cardiga': {
       const botao = (y: number): Ret[] => {
         const [x0, x1] = bordas(g, y)
@@ -776,11 +791,16 @@ function desenharAcessorio(id: string, g: Geo): Ret[] {
         [17, 10, 18, 2, '#b4343a'], [23, 6, 2, 2, BRANCO],
       ]
     case 'acessorio-capacete':
+      // Capacete de piloto (uniforme da nave, 28/11/2026): casco branco com a
+      // faixa ciano, viseira escura levantada e protetores de orelha.
       return [
-        [18, 1, 12, 1, '#c9ccd6'], [16, 2, 2, 1, '#c9ccd6'], [30, 2, 2, 1, '#c9ccd6'],
-        [15, 3, 1, 2, '#c9ccd6'], [32, 3, 1, 2, '#c9ccd6'], [14, 5, 1, 16, '#c9ccd6'], [33, 5, 1, 16, '#c9ccd6'],
-        [15, 21, 1, 1, '#c9ccd6'], [32, 21, 1, 1, '#c9ccd6'],
-        [14, 22, 20, 2, '#8e92a6'], [16, 4, 1, 3, '#eef9fc'], [17, 3, 2, 1, '#eef9fc'],
+        [19, 1, 10, 1, '#eef1f6'], [17, 2, 14, 1, '#eef1f6'], [16, 3, 16, 1, '#eef1f6'], [15, 4, 18, 5, '#eef1f6'],
+        [14, 9, 3, 12, '#eef1f6'], [31, 9, 3, 12, '#eef1f6'], [15, 21, 2, 1, '#c9ccd6'], [31, 21, 2, 1, '#c9ccd6'],
+        [15, 8, 18, 1, '#c9ccd6'], [14, 12, 1, 9, '#c9ccd6'], [33, 12, 1, 9, '#c9ccd6'],
+        [22, 1, 4, 7, '#22c3dd'], [22, 1, 1, 7, '#1a9ab0'], [21, 2, 1, 6, '#d23b43'], [26, 2, 1, 6, '#d23b43'],
+        [15, 9, 18, 3, '#1f2a44'], [17, 9, 5, 1, '#7fe6f5'], [27, 10, 3, 1, '#3e5a8c'],
+        [14, 14, 3, 5, '#8e92a6'], [31, 14, 3, 5, '#8e92a6'], [15, 15, 1, 3, '#5b6280'], [32, 15, 1, 3, '#5b6280'],
+        [17, 3, 3, 1, BRANCO], [16, 4, 1, 3, BRANCO],
       ]
     case 'acessorio-faixa-ninja':
       // Faixa na testa, com o nó e as pontas voando para o lado.
@@ -830,9 +850,14 @@ function desenharAcessorio(id: string, g: Geo): Ret[] {
     case 'acessorio-oculos-redondos':
       return OCULOS_REDONDOS
     case 'acessorio-visor':
+      // Óculos de aviador (uniforme da nave, 28/11/2026): armação dourada e
+      // lentes em gota, escuras em cima e mais claras embaixo.
       return [
-        [16, 13, 16, 4, '#22c3dd'], [16, 13, 16, 1, '#7fe6f5'], [18, 14, 3, 1, BRANCO],
-        [15, 14, 1, 2, '#5b6280'], [32, 14, 1, 2, '#5b6280'],
+        [18, 13, 5, 1, '#f5c542'], [25, 13, 5, 1, '#f5c542'], [23, 13, 2, 1, '#f5c542'], [17, 14, 1, 1, '#f5c542'], [30, 14, 1, 1, '#f5c542'],
+        [18, 14, 5, 1, '#1f2a44'], [25, 14, 5, 1, '#1f2a44'],
+        [18, 15, 5, 1, '#2d3e66'], [25, 15, 5, 1, '#2d3e66'],
+        [19, 16, 3, 1, '#3e5a8c'], [26, 16, 3, 1, '#3e5a8c'],
+        [19, 14, 1, 1, '#7fe6f5'], [26, 14, 1, 1, '#7fe6f5'],
       ]
     case 'acessorio-oculos-quadrados':
       return [
@@ -862,9 +887,11 @@ function desenharAcessorio(id: string, g: Geo): Ret[] {
       return MASCARA
     // ---- corpo e mãos ----
     case 'acessorio-broche':
+      // Asas de piloto (uniforme da nave, 28/11/2026): broche dourado no peito.
       return [
-        [t1 - 4, T(g, 2), 3, 3, '#f5c542'], [t1 - 3, T(g, 1), 1, 5, '#f5c542'], [t1 - 5, T(g, 3), 5, 1, '#f5c542'],
-        [t1 - 3, T(g, 3), 1, 1, BRANCO],
+        [t1 - 7, T(g, 2), 3, 1, '#f5c542'], [t1 - 2, T(g, 2), 2, 1, '#f5c542'],
+        [t1 - 6, T(g, 3), 5, 1, '#f5c542'], [t1 - 4, T(g, 3), 1, 1, '#22c3dd'],
+        [t1 - 5, T(g, 4), 3, 1, '#c99a1e'],
       ]
     case 'acessorio-estrela-ninja': {
       // Estrela de quatro pontas na mão.
@@ -991,8 +1018,8 @@ export const PECAS: Peca[] = [
   ...lista('roupa', [
     ['roupa-uniforme', 'Uniforme da nave', 'aluno', 0],
     ['roupa-moletom', 'Moletom roxo', 'aluno', 0],
-    ['roupa-camiseta-estrela', 'Camiseta estrela', 'aluno', 100],
-    ['roupa-jaqueta-de-piloto', 'Jaqueta de piloto', 'aluno', 250],
+    ['roupa-camiseta-estrela', 'Camiseta de piloto', 'aluno', 100],
+    ['roupa-jaqueta-de-piloto', 'Jaqueta de aviador', 'aluno', 250],
     ['roupa-cardiga', 'Cardigã e camisa xadrez', 'professor', 0],
     ['roupa-camisa-xadrez', 'Camisa xadrez azul', 'professor', 0],
     ['roupa-traje-ninja', 'Traje ninja', 'ninja', 0],
@@ -1018,7 +1045,7 @@ export const PECAS: Peca[] = [
   ...lista('acessorio-cabeca', [
     ['acessorio-bone', 'Boné', 'aluno', 0],
     ['acessorio-fone', 'Fone de ouvido', 'aluno', 0],
-    ['acessorio-capacete', 'Capacete espacial', 'aluno', 900],
+    ['acessorio-capacete', 'Capacete de piloto', 'aluno', 900],
     ['acessorio-faixa-ninja', 'Faixa ninja', 'ninja', 0],
     ['acessorio-tiara', 'Tiara', 'todos', 0],
     ['acessorio-laco', 'Laço', 'todos', 0],
@@ -1032,12 +1059,12 @@ export const PECAS: Peca[] = [
     ['acessorio-oculos-quadrados', 'Óculos quadrados', 'todos', 0],
     ['acessorio-oculos-escuros', 'Óculos escuros', 'todos', 0],
     ['acessorio-oculos-coracao', 'Óculos de coração', 'todos', 100],
-    ['acessorio-visor', 'Visor de piloto', 'aluno', 250],
+    ['acessorio-visor', 'Óculos de aviador', 'aluno', 250],
     ['acessorio-bandana-rosto', 'Bandana no rosto', 'todos', 100],
     ['acessorio-mascara-ninja', 'Máscara ninja', 'todos', 250],
   ], desenharAcessorio),
   ...lista('acessorio-corpo', [
-    ['acessorio-broche', 'Broche de estrela', 'aluno', 100],
+    ['acessorio-broche', 'Asas de piloto', 'aluno', 100],
     ['acessorio-cachecol', 'Cachecol', 'todos', 0],
     ['acessorio-mochila', 'Mochila', 'todos', 0],
     ['acessorio-livro', 'Livro', 'todos', 0],
