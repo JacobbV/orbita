@@ -172,6 +172,18 @@ describe('Aba Entregas', () => {
     expect(detalhe).toHaveTextContent('Esperado: 4')
   })
 
+  it('a entrega abre logo abaixo da linha do aluno e cada questão recolhe', async () => {
+    const u = userEvent.setup()
+    await abrirTurma()
+    await u.click(screen.getByRole('button', { name: 'Abrir a entrega de Andrômeda Vega' }))
+    const item = screen.getByRole('region', { name: 'Entrega de Andrômeda Vega' }).closest('li')
+    expect(item).toHaveTextContent('Andrômeda Vega')
+    const questao = item?.closest('details')
+    expect(questao).toHaveAttribute('open')
+    await u.click(questao!.querySelector('summary')!)
+    expect(questao).not.toHaveAttribute('open')
+  })
+
   it('salva a nota ajustada e o comentário', async () => {
     const u = userEvent.setup()
     await abrirTurma()

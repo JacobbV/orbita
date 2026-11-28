@@ -204,54 +204,60 @@ function ExercicioComAlunos({
   const entregaram = linhas.filter((l) => l.status !== 'sem_entrega').length
   const faltaCorrigir = linhas.filter((l) => l.status === 'entregue').length
   const visiveis = linhas.filter((l) => combinaComFiltro(l.status, filtro))
-  const aberto = visiveis.find((l) => l.aluno.alunoId === aberta)
   if (visiveis.length === 0) return null
 
   return (
     <section className="entregas-exercicio" aria-label={`Exercício ${exercicio.titulo}`}>
-      <h3>{exercicio.titulo}</h3>
-      <p className="entregas-resumo">
-        {LINGUAGENS[exercicio.linguagem].nome} · {entregaram} de {linhas.length} entregaram
-        {faltaCorrigir > 0 && ` · ${faltaCorrigir} ${faltaCorrigir === 1 ? 'falta corrigir' : 'faltam corrigir'}`}
-      </p>
-      <ul className="entregas-alunos" role="list">
-        {visiveis.map(({ aluno, entregas, status }) => {
-          const ultima = entregas[0]
-          return (
-            <li key={aluno.alunoId} className={`entregas-aluno entregas-status-${status}`}>
-              <span className="entregas-aluno-nome">
-                {aluno.nome}
-                {aluno.apelido && <span className="entregas-apelido"> ({aluno.apelido})</span>}
-              </span>
-              <span className="entregas-status">{NOME_DO_STATUS[status]}</span>
-              <span className="entregas-nota">{ultima ? nota(notaFinal(ultima)) : '—'}</span>
-              {entregas.length > 0 ? (
-                <button
-                  type="button"
-                  className="botao botao-compacto"
-                  aria-expanded={aberta === aluno.alunoId}
-                  aria-label={`${aberta === aluno.alunoId ? 'Fechar' : 'Abrir'} a entrega de ${aluno.nome}`}
-                  onClick={() => aoAbrir(aberta === aluno.alunoId ? null : aluno.alunoId)}
-                >
-                  {aberta === aluno.alunoId ? 'Fechar' : 'Abrir'}
-                </button>
-              ) : (
-                <span />
-              )}
-            </li>
-          )
-        })}
-      </ul>
-      {aberto && (
-        <DetalheDaEntrega
-          key={aberto.aluno.alunoId}
-          exercicio={exercicio}
-          aluno={aberto.aluno}
-          entregas={aberto.entregas}
-          aoMudar={aoMudar}
-          aoFechar={() => aoAbrir(null)}
-        />
-      )}
+      <details className="entregas-questao" open={faltaCorrigir > 0 || filtro !== 'todas' || aberta !== null}>
+        <summary>
+          <span className="entregas-questao-titulo">{exercicio.titulo}</span>
+          <span className="entregas-resumo">
+            {LINGUAGENS[exercicio.linguagem].nome} · {entregaram} de {linhas.length} entregaram
+            {faltaCorrigir > 0 && ` · ${faltaCorrigir} ${faltaCorrigir === 1 ? 'falta corrigir' : 'faltam corrigir'}`}
+          </span>
+        </summary>
+        <ul className="entregas-alunos" role="list">
+          {visiveis.map(({ aluno, entregas, status }) => {
+            const ultima = entregas[0]
+            const aberto = aberta === aluno.alunoId
+            return (
+              <li key={aluno.alunoId} className={`entregas-item entregas-status-${status}`}>
+                <div className="entregas-aluno">
+                  <span className="entregas-aluno-nome">
+                    {aluno.nome}
+                    {aluno.apelido && <span className="entregas-apelido"> ({aluno.apelido})</span>}
+                  </span>
+                  <span className="entregas-status">{NOME_DO_STATUS[status]}</span>
+                  <span className="entregas-nota">{ultima ? nota(notaFinal(ultima)) : '—'}</span>
+                  {entregas.length > 0 ? (
+                    <button
+                      type="button"
+                      className="botao botao-compacto"
+                      aria-expanded={aberto}
+                      aria-label={`${aberto ? 'Fechar' : 'Abrir'} a entrega de ${aluno.nome}`}
+                      onClick={() => aoAbrir(aberto ? null : aluno.alunoId)}
+                    >
+                      {aberto ? 'Fechar' : 'Abrir'}
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                </div>
+                {aberto && (
+                  <DetalheDaEntrega
+                    key={aluno.alunoId}
+                    exercicio={exercicio}
+                    aluno={aluno}
+                    entregas={entregas}
+                    aoMudar={aoMudar}
+                    aoFechar={() => aoAbrir(null)}
+                  />
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </details>
     </section>
   )
 }

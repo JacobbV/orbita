@@ -43,15 +43,29 @@
   border-top: 1px solid var(--borda);
 }
 
-.entregas-exercicio h3 {
+.entregas-questao > summary {
+  display: grid;
+  gap: 2px;
+  min-height: var(--alvo-toque);
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.entregas-questao-titulo {
   font-size: 1.0625rem;
+  font-weight: 800;
   overflow-wrap: anywhere;
 }
 
 .entregas-resumo {
   color: var(--texto-suave);
   font-size: 0.875rem;
-  margin: 2px 0 8px;
+}
+
+.entregas-questao[open] > summary { margin-bottom: 8px; }
+
+.entregas-item {
+  border-top: 1px solid var(--borda);
 }
 
 .entregas-alunos {
@@ -70,7 +84,6 @@
   align-items: center;
   gap: 2px 12px;
   padding-block: 8px;
-  border-top: 1px solid var(--borda);
 }
 
 .entregas-aluno-nome { grid-area: nome; font-weight: 700; overflow-wrap: anywhere; }
