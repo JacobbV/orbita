@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { Avatar } from '../../components/Avatar'
 import { Carregando } from '../../components/Carregando'
+import { IndicadorDeAcesso } from '../../components/IndicadorDeAcesso'
 import { BotaoVoltarAoTopo } from '../../components/BotaoVoltarAoTopo'
 import { Medalha } from '../../components/Medalha'
 import { OrdenarPor } from '../../components/OrdenarPor'
@@ -111,6 +112,7 @@ export function Tripulacao() {
                   <span className="tripulante-patente">
                     {t.patente} · {t.xp} XP
                   </span>
+                  <IndicadorDeAcesso ultimo={t.ultimoAcesso} />
                 </button>
               </li>
             ))}
@@ -151,6 +153,9 @@ function PerfilDoTripulante({ tripulante, ofertaId, aoFechar }: { tripulante: Tr
           {tripulante.apelido && <p className="tripulacao-apelido">Apelido: {tripulante.apelido}</p>}
           <p className="tripulacao-patente">
             <span className="pixel">{tripulante.patente}</span> · {tripulante.xp} XP
+          </p>
+          <p>
+            <IndicadorDeAcesso ultimo={tripulante.ultimoAcesso} />
           </p>
           <div className="tripulacao-acoes">
             <Link to={`/professor/xp/${ofertaId}`} className="botao botao-compacto">

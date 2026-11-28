@@ -3,8 +3,10 @@ import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
 import { BotaoVoltarAoTopo } from '../../components/BotaoVoltarAoTopo'
 import { Carregando } from '../../components/Carregando'
+import { IndicadorDeAcesso } from '../../components/IndicadorDeAcesso'
 import { OrdenarPor } from '../../components/OrdenarPor'
 import { buscarOferta, nomeTurno, type Oferta } from '../../lib/api'
+import { carregarAcessos } from '../../lib/acessos'
 import { apagarApelido, sortearApelidoDoAluno } from '../../lib/apelidos'
 import { mensagemDeErro } from '../../lib/erros'
 import { ordenarAlunos, type CriterioDeOrdem } from '../../lib/ordem'
@@ -22,6 +24,7 @@ export function XpDaTurma() {
   const [erro, setErro] = useState<string | null>(null)
 
   const [alunoId, setAlunoId] = useState('')
+  const [acessos, setAcessos] = useState<Map<string, string>>(new Map())
   const [ordem, setOrdem] = useState<CriterioDeOrdem>('nome')
   const [quantidade, setQuantidade] = useState('10')
   const [motivo, setMotivo] = useState('Participação na aula')
@@ -56,6 +59,19 @@ export function XpDaTurma() {
       ativo = false
     }
   }, [id])
+
+  useEffect(() => {
+    if (!alunos || alunos.length === 0) return
+    let ativo = true
+    void carregarAcessos(alunos.map((a) => a.alunoId)).then((m) => {
+      if (ativo) setAcessos(m)
+    })
+    return () => {
+      ativo = false
+    }
+    // Só quando a turma carrega: dar XP não muda quem está online.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alunos?.length, id])
 
   function escolher(aluno: XpDoAluno) {
     setAlunoId(aluno.alunoId)
@@ -220,6 +236,7 @@ export function XpDaTurma() {
                   </span>
                   <span className="xp-turma-patente">
                     <span className="pixel">{a.patente}</span> · {a.xp} XP
+                    <IndicadorDeAcesso ultimo={acessos.get(a.alunoId)} />
                   </span>
                   <button
                     type="button"
