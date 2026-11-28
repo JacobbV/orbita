@@ -3,7 +3,7 @@ import { ehRotaDoSistema, inicialDoPerfil, itensDoMenu } from './menu'
 
 describe('menu do sistema', () => {
   it('reconhece as rotas do sistema e as públicas', () => {
-    for (const r of ['/ponte', '/hangar', '/professor', '/professor/xp/3', '/aula/9', '/exercicio/2', '/ninja', '/mapa']) {
+    for (const r of ['/ponte', '/hangar', '/professor', '/professor/xp/3', '/aula/9', '/exercicio/2', '/ninja', '/mapa', '/ranking', '/professor/ranking/3']) {
       expect(ehRotaDoSistema(r), r).toBe(true)
     }
     for (const r of ['/', '/creditos', '/entrar', '/cadastro', '/ponteira', '/aulas']) {
@@ -11,8 +11,8 @@ describe('menu do sistema', () => {
     }
   })
 
-  it('aluno vê Ponte, Mapa, Hangar e Medalhas', () => {
-    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas'])
+  it('aluno vê Ponte, Mapa, Hangar, Medalhas e Ranking', () => {
+    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas', 'Ranking'])
   })
 
   it('professor vê o Painel e, no Modo Ninja, a ponte ninja', () => {

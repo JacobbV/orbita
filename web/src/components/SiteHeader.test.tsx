@@ -27,7 +27,7 @@ describe('topo do site', () => {
   it('depois de entrar, nas telas do sistema, troca os links da página inicial pelos menus', () => {
     topo('/ponte', ALUNO)
     const menu = screen.getByRole('navigation', { name: 'Menu do sistema' })
-    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas'])
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas', 'Ranking'])
     expect(screen.queryByRole('link', { name: 'Como funciona' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Créditos' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Minha área' })).toBeNull()

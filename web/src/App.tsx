@@ -16,6 +16,8 @@ import { PonteNinja } from './ninja/PonteNinja'
 import { NaoEncontrada } from './pages/NaoEncontrada'
 import { NovaSenha } from './pages/NovaSenha'
 import { Ponte } from './pages/Ponte'
+import { Ranking } from './pages/Ranking'
+import { RankingDaTurma } from './pages/professor/RankingDaTurma'
 import { Professor } from './pages/professor/Professor'
 import { VerComoAluno } from './pages/professor/VerComoAluno'
 import { XpDaTurma } from './pages/professor/XpDaTurma'
@@ -117,6 +119,22 @@ export function App() {
             element={
               <RotaProtegida papel="professor">
                 <Tripulacao />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="ranking"
+            element={
+              <RotaProtegida papel="aluno">
+                <Ranking />
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="professor/ranking/:turmaId"
+            element={
+              <RotaProtegida papel="professor">
+                <RankingDaTurma />
               </RotaProtegida>
             }
           />

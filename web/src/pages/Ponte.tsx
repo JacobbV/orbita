@@ -458,6 +458,11 @@ export function UltimasMedalhas() {
       <Link to="/medalhas" className="ponte-medalhas-link">
         {medalhas ? `Medalhas: ${ganhas} de ${medalhas.length}` : 'Medalhas'}
       </Link>
+      {!ninja && (
+        <Link to="/ranking" className="ponte-medalhas-link">
+          Ranking da turma
+        </Link>
+      )}
     </div>
   )
 }
