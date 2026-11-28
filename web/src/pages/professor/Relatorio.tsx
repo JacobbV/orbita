@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Aviso } from '../../components/Aviso'
+import { BotaoVoltarAoTopo } from '../../components/BotaoVoltarAoTopo'
 import { Carregando } from '../../components/Carregando'
 import { LINGUAGENS } from '../../lab/linguagens'
 import { buscarOferta, nomeTurno, type Oferta } from '../../lib/api'
@@ -226,6 +227,7 @@ export function Relatorio() {
           )}
         </>
       )}
+      <BotaoVoltarAoTopo />
     </div>
   )
 }
