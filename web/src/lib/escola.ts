@@ -78,15 +78,21 @@ for (const andarDaSala of ['terreo', 'superior'] as const) {
   }
 }
 
-export function assentosDo(andarDaSala: Andar): Assento[] {
-  return ASSENTOS[andarDaSala]
+// A cadeira atrás do birô é só do professor.
+let professorNaEscola = false
+export function definirProfessorNaEscola(eh: boolean) {
+  professorNaEscola = eh
+}
+
+export function assentosDo(andarDaSala: Andar, comProfessor = professorNaEscola): Assento[] {
+  return comProfessor ? ASSENTOS[andarDaSala] : ASSENTOS[andarDaSala].filter((a) => !a.professor)
 }
 
 /** Assento livre mais perto do ponto, até `alcance` pixels. */
 export function assentoPerto(andarDaSala: Andar, x: number, y: number, alcance = 18): Assento | undefined {
   let melhor: Assento | undefined
   let dist = alcance
-  for (const a of ASSENTOS[andarDaSala]) {
+  for (const a of assentosDo(andarDaSala)) {
     const d = Math.hypot(a.x - x, a.y - y)
     if (d <= dist) {
       melhor = a

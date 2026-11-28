@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_COLEGAS, SUMIU_APOS_MS, lerColega, podarColegas, type Colega } from './escola-ao-vivo'
+import { MAX_COLEGAS, SUMIU_APOS_MS, lerAula, lerColega, podarColegas, type Colega } from './escola-ao-vivo'
 
 const cores = { pele: '#e8b48a', cabelo: '#222222', camisa: '#3e7bf0', calca: '#2a3160', calcado: '#2a2230', longo: false, careca: false, detalhe: null }
 const msg = { id: 'a', apelido: 'Cometa Veloz', cores, andar: 'superior', x: 100, y: 80, direcao: 'baixo', quadro: 1, sentado: false }
@@ -39,5 +39,12 @@ describe('escola ao vivo', () => {
     podarColegas(mapa, 10_000 + SUMIU_APOS_MS - 1)
     expect(mapa.has('velho')).toBe(false)
     expect(mapa.size).toBe(MAX_COLEGAS)
+  })
+
+  it('lê o sinal de aula ao vivo e recusa o que não for número e sala', () => {
+    expect(lerAula({ aulaId: 12, sala: 'sala-7' }, 5)).toEqual({ aulaId: 12, sala: 'sala-7', visto: 5 })
+    expect(lerAula({ aulaId: '12', sala: 'sala-7' }, 5)).toBeNull()
+    expect(lerAula({ aulaId: 1.5, sala: 'sala-7' }, 5)).toBeNull()
+    expect(lerAula({ aulaId: 12, sala: '<img onerror=x>' }, 5)).toBeNull()
   })
 })

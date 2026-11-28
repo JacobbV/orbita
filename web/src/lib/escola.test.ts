@@ -144,11 +144,32 @@ describe('móveis e cadeiras', () => {
   })
 })
 
+describe('cadeira do professor', () => {
+  it('há uma atrás do birô em cada sala, laboratório e coordenação, e dá para chegar nela', () => {
+    for (const a of ['terreo', 'superior'] as const) {
+      const origem: [number, number] = a === 'terreo' ? tileDoPonto(INICIO.x, INICIO.y) : [13, 9]
+      const deles = assentosDo(a, true).filter((l) => l.professor)
+      expect(deles.length).toBeGreaterThan(0)
+      for (const l of deles) {
+        expect(podeFicarEm(a, l.x, l.y), l.id).toBe(true)
+        expect(caminho(a, origem, tileDoPonto(l.x, l.y)), l.id).not.toBeNull()
+      }
+    }
+    const ids = [...assentosDo('terreo', true), ...assentosDo('superior', true)].filter((l) => l.professor).map((l) => l.id)
+    expect(ids).toEqual(expect.arrayContaining(['sala-7-prof', 'sala-8-prof', 'coped-prof', 'coord-info-prof', 'lab-1-prof', 'lab-2-prof']))
+  })
+
+  it('o aluno não vê nem consegue sentar nela', () => {
+    expect(assentosDo('terreo').some((l) => l.professor)).toBe(false)
+    expect(assentosDo('superior').some((l) => l.professor)).toBe(false)
+  })
+})
+
 describe('laboratório grande', () => {
   it('o Laboratório 1 tem lugar para uma turma de 40 junto com o Laboratório 2', () => {
     const lugares = assentosDo('superior')
     const doLab1 = lugares.filter((l) => l.id.startsWith('lab-1-'))
-    expect(doLab1.length).toBe(27)
+    expect(doLab1.length).toBe(25)
     expect(lugares.length).toBeGreaterThanOrEqual(40)
   })
 })
