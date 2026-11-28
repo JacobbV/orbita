@@ -23,6 +23,8 @@
 
 .escola-palco {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   border: 1px solid var(--borda);
   border-radius: var(--raio);
@@ -106,3 +108,44 @@
   color: var(--ciano);
   font-size: 0.8125rem;
 }
+
+.escola-ferramentas {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.escola-botao {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--casco) 88%, transparent);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.escola-botao[aria-pressed='true'] { border-color: var(--ciano); }
+
+.escola-palco .escola-painel {
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+/* Tela cheia: o mapa ocupa tudo e o painel da sala fica por cima, embaixo. */
+.escola-palco:fullscreen { border-radius: 0; background: var(--espaco); }
+.escola-palco:fullscreen .escola-tela { flex: 1; min-height: 0; height: 100%; }
+.escola-palco:fullscreen .escola-painel {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: min(420px, calc(100% - 16px));
+  max-height: 40vh;
+  overflow: auto;
+  border-width: 1px;
+  border-radius: var(--raio);
+}
+.escola-palco:fullscreen .escola-direcional { bottom: 16px; }

@@ -4,12 +4,15 @@ import {
   INICIO,
   acaoDaSala,
   andar,
+  assentoPerto,
+  assentosDo,
   aulasLiberadas,
   caminho,
   escadaNoPonto,
   exerciciosLiberados,
   podeFicarEm,
   salaDoJogador,
+  sentar,
   tileDoPonto,
   usarEscada,
   type Jogador,
@@ -105,5 +108,35 @@ describe('o que cada sala abre', () => {
   it('lista só aulas e exercícios liberados, das aulas mais novas para as antigas', () => {
     expect(aulasLiberadas(disciplina).map((a) => a.id)).toEqual([2, 1])
     expect(exerciciosLiberados(disciplina).map((e) => e.id)).toEqual([9])
+  })
+})
+
+describe('móveis e cadeiras', () => {
+  it('toda cadeira é um lugar livre e dá para chegar a ela andando', () => {
+    for (const a of ['terreo', 'superior'] as const) {
+      const lugares = assentosDo(a)
+      expect(lugares.length).toBeGreaterThan(0)
+      const origem: [number, number] = a === 'terreo' ? tileDoPonto(INICIO.x, INICIO.y) : [13, 9]
+      for (const l of lugares) {
+        expect(podeFicarEm(a, l.x, l.y), l.id).toBe(true)
+        expect(caminho(a, origem, tileDoPonto(l.x, l.y)), l.id).not.toBeNull()
+      }
+    }
+  })
+
+  it('a mesa da sala barra o boneco e a cadeira fica ao lado dela', () => {
+    const s = sala('sala-7')
+    const mesa = { x: s.x * TILE + 10 + 9, y: s.y * TILE + 30 + 3 }
+    expect(podeFicarEm('terreo', mesa.x, mesa.y)).toBe(false)
+  })
+
+  it('sentar prende o boneco na cadeira, olhando para a mesa; andar levanta', () => {
+    const lugar = assentosDo('terreo')[0]!
+    const j = sentar({ ...INICIO }, lugar)
+    expect(j.sentado).toBe(lugar)
+    expect(j.direcao).toBe(lugar.direcao)
+    expect(andar(j, 1, 0, 0.05).sentado).toBeUndefined()
+    expect(assentoPerto('terreo', lugar.x + 3, lugar.y)?.id).toBe(lugar.id)
+    expect(assentoPerto('terreo', INICIO.x, INICIO.y)).toBeUndefined()
   })
 })
