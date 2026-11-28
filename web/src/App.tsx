@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
-import { RotaProtegida } from './auth/RotaProtegida'
+import { AlunoOuNinja, RotaProtegida } from './auth/RotaProtegida'
 import { PublicLayout } from './components/Layout'
 import { Carregando } from './components/Carregando'
 import { Starfield } from './components/Starfield'
@@ -63,8 +63,10 @@ export function App() {
           <Route
             path="mapa"
             element={
-              <RotaProtegida papel="aluno">
-                <Mapa />
+              <RotaProtegida>
+                <AlunoOuNinja>
+                  <Mapa />
+                </AlunoOuNinja>
               </RotaProtegida>
             }
           />

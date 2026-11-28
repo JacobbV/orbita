@@ -1,6 +1,11 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Session } from '@supabase/supabase-js'
+import { render } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import { App } from '../App'
+import { AuthContext } from '../auth/AuthContext'
+import { ModoNinjaContext } from '../ninja/ModoNinja'
 import { abrir, prepararNavegadorFalso, SEM_LOGIN } from '../test/renderizar'
 
 // Dados inventados. O Python e o editor de verdade são trocados por versões falsas.
@@ -121,6 +126,35 @@ beforeEach(() => {
   falso.entregues = []
   falso.linguagem = 'python'
   localStorage.clear()
+})
+
+const PROFESSOR = {
+  ...SEM_LOGIN,
+  sessao: { user: { id: 'p1' } } as unknown as Session,
+  perfil: { id: 'p1', nome: 'Professor Fictício', email: 'prof@academico.ifpb.edu.br', papel: 'professor' as const },
+}
+
+describe('Exercício no Modo Ninja', () => {
+  it('tem o Entregar do aluno, mas como treino: nada vai para o banco', async () => {
+    falso.saidas.set('1\n2', '3')
+    falso.saidas.set('5\n5', '10')
+    render(
+      <AuthContext.Provider value={PROFESSOR}>
+        <ModoNinjaContext.Provider value={{ ativo: true, entrar: () => {}, sair: () => {} }}>
+          <MemoryRouter initialEntries={['/exercicio/7']}>
+            <App />
+          </MemoryRouter>
+        </ModoNinjaContext.Provider>
+      </AuthContext.Provider>,
+    )
+    await userEvent.click(await screen.findByRole('button', { name: 'Entregar' }))
+    expect(screen.getByText(/esta entrega é só um treino/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sim, entregar' }))
+    expect(await screen.findByText(/Entrega de treino: 2 de 2 testes certos/)).toBeInTheDocument()
+    expect(falso.entregues).toEqual([])
+    // Pode treinar de novo.
+    expect(screen.getByRole('button', { name: 'Entregar' })).toBeEnabled()
+  })
 })
 
 describe('Exercício do laboratório', () => {

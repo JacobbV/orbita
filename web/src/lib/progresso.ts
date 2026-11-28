@@ -56,6 +56,13 @@ export async function carregarProgresso(): Promise<Progresso> {
   }
 }
 
+/** Nome da maior patente da nave (a do Modo Ninja). */
+export async function maiorPatente(): Promise<string | null> {
+  const { data, error } = await supabase().from('patentes').select('nome').order('xp_minimo', { ascending: false }).limit(1)
+  if (error) throw error
+  return data[0]?.nome ?? null
+}
+
 /** Quanto da patente atual já foi percorrido, de 0 a 100. */
 export function porcentagemDaPatente(p: Progresso): number {
   if (p.xpDaProxima === null) return 100

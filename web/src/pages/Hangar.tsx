@@ -20,6 +20,7 @@ import { carregarAvatar, carregarAvatarNinja, salvarAvatar, salvarAvatarNinja } 
 import { mensagemDeErro } from '../lib/erros'
 import { carregarProgresso } from '../lib/progresso'
 import { useModoNinja } from '../ninja/ModoNinja'
+import { apelidoDoNinja, guardarApelidoDoNinja } from '../ninja/progressoNinja'
 import './Hangar.css'
 
 interface Grupo {
@@ -306,10 +307,29 @@ export function Hangar() {
         </section>
       </div>
 
-      {!ninja && (
+      {ninja ? (
+        perfil && <ApelidoDoNinja perfilId={perfil.id} />
+      ) : (
         <EscolherApelido titulo={papel === 'professor' ? 'Seu apelido (aparece para os alunos)' : 'Seu apelido na nave'} />
       )}
     </div>
+  )
+}
+
+/** Apelido do ninja: sorteado como o do aluno, guardado só no navegador do professor. */
+function ApelidoDoNinja({ perfilId }: { perfilId: string }) {
+  const [atual, setAtual] = useState(() => apelidoDoNinja(perfilId))
+  return (
+    <EscolherApelido
+      titulo="Apelido do ninja"
+      ninja={{
+        atual,
+        aoUsar: (a) => {
+          guardarApelidoDoNinja(perfilId, a)
+          setAtual(a)
+        },
+      }}
+    />
   )
 }
 

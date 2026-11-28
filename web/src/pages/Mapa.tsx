@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
 import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
+import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import {
   corDaUnidade,
@@ -12,6 +14,7 @@ import {
 } from '../lib/mapa'
 import {
   carregarPonte,
+  carregarPonteNinja,
   numeroRomano,
   type AulaDaPonte,
   type DadosDaPonte,
@@ -19,6 +22,8 @@ import {
   type UnidadeDaPonte,
 } from '../lib/ponte'
 import { carregarEstudoRecente, registrarAberturaEmSilencio } from '../lib/progresso'
+import { useModoNinja } from '../ninja/ModoNinja'
+import { estudoDoNinja, registrarAulaDoNinja } from '../ninja/progressoNinja'
 import './Mapa.css'
 
 /** Acima disso a trilha não cabe com os nomes legíveis: vira lista, como no celular. */
@@ -26,6 +31,9 @@ const MAX_NA_TRILHA = 6
 
 /** Mapa da disciplina: um planeta por unidade; tocar no planeta abre as aulas. */
 export function Mapa() {
+  const { perfil } = useAuth()
+  const ninja = useModoNinja().ativo
+  const perfilId = perfil?.id
   const [dados, setDados] = useState<DadosDaPonte | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [ultimaAulaId, setUltimaAulaId] = useState<number | null>(null)
@@ -34,13 +42,20 @@ export function Mapa() {
 
   useEffect(() => {
     let ativo = true
-    carregarEstudoRecente().then(
+    // Ninja: todas as turmas, tudo liberado; a última aula fica só no navegador dele.
+    const estudo = ninja && perfilId ? Promise.resolve(estudoDoNinja(perfilId)) : carregarEstudoRecente()
+    estudo.then(
       (e) => {
         if (ativo) setUltimaAulaId(e.ultimaAulaId)
       },
       () => {},
     )
-    carregarPonte().then(
+    const carregar = ninja
+      ? listarOfertas()
+          .then(carregarPonteNinja)
+          .then((disciplinas): DadosDaPonte => ({ disciplinas, temOutrosPedidos: false }))
+      : carregarPonte()
+    carregar.then(
       (d) => {
         if (ativo) setDados(d)
       },
@@ -51,7 +66,7 @@ export function Mapa() {
     return () => {
       ativo = false
     }
-  }, [])
+  }, [ninja, perfilId])
 
   const disciplina = useMemo(() => {
     if (!dados) return null
@@ -68,7 +83,10 @@ export function Mapa() {
     )
   }
   if (!dados) return <Carregando />
-  if (!disciplina) return <Navigate to="/aguardando" replace />
+  if (!disciplina) {
+    if (ninja) return <p className="mapa-vazio container">Nenhuma turma ativa no momento.</p>
+    return <Navigate to="/aguardando" replace />
+  }
 
   const atual = unidadeAtual(disciplina, ultimaAulaId)
   const selecionada = disciplina.unidades.find((u) => u.id === unidadeId) ?? atual
@@ -78,7 +96,11 @@ export function Mapa() {
       <header className="mapa-topo">
         <p className="pixel mapa-selo">{disciplina.oferta.disciplina.nome}</p>
         <h1>Mapa da galáxia</h1>
-        <p className="mapa-explica">Cada unidade é um planeta. Aulas com cadeado abrem quando o professor libera.</p>
+        <p className="mapa-explica">
+          {ninja
+            ? 'Cada unidade é um planeta. No Modo Ninja todas as aulas estão abertas; o aluno vê cadeado nas que ainda não foram liberadas.'
+            : 'Cada unidade é um planeta. Aulas com cadeado abrem quando o professor libera.'}
+        </p>
         {dados.disciplinas.length > 1 && (
           <div className="mapa-disciplinas" role="group" aria-label="Disciplina">
             {dados.disciplinas.map((d) => (
@@ -181,6 +203,12 @@ function Estacoes({ unidade, continuarId }: { unidade: UnidadeDaPonte; continuar
 }
 
 function Estacao({ aula, romano, continuar }: { aula: AulaDaPonte; romano: string; continuar: boolean }) {
+  const ninja = useModoNinja().ativo
+  const { perfil } = useAuth()
+  function abriu(aulaId: number) {
+    if (!ninja) registrarAberturaEmSilencio(aulaId)
+    else if (perfil) registrarAulaDoNinja(perfil.id, aulaId)
+  }
   const interna = aula.materiais.some((m) => m.url === null)
   const externo = aula.materiais.find((m) => m.url !== null)
   return (
@@ -207,7 +235,7 @@ function Estacao({ aula, romano, continuar }: { aula: AulaDaPonte; romano: strin
           target="_blank"
           rel="noopener noreferrer"
           className="mapa-aula-acao"
-          onClick={() => registrarAberturaEmSilencio(aula.id)}
+          onClick={() => abriu(aula.id)}
           aria-label={`Abrir a aula ${aula.numero}: ${aula.titulo} (abre em outra aba)`}
         >
           Abrir ↗

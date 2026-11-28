@@ -8,9 +8,16 @@ import './Apelido.css'
  * Sorteio do apelido. Não há campo para digitar: o apelido sai de uma lista
  * aprovada (nome + adjetivo), então ninguém escreve nada ofensivo.
  */
-export function EscolherApelido({ titulo = 'Seu apelido na nave' }: { titulo?: string }) {
+export function EscolherApelido({
+  titulo = 'Seu apelido na nave',
+  ninja,
+}: {
+  titulo?: string
+  /** Modo Ninja: o apelido do ninja fica só no navegador e não ocupa a lista da nave. */
+  ninja?: { atual: string | null; aoUsar: (apelido: string) => void }
+}) {
   const { perfil, recarregarPerfil } = useAuth()
-  const atual = perfil?.apelido ?? null
+  const atual = ninja ? ninja.atual : (perfil?.apelido ?? null)
   const [sugestao, setSugestao] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -34,8 +41,12 @@ export function EscolherApelido({ titulo = 'Seu apelido na nave' }: { titulo?: s
     setOcupado(true)
     setErro(null)
     try {
-      await escolherApelido(sugestao)
-      await recarregarPerfil()
+      if (ninja) {
+        ninja.aoUsar(sugestao)
+      } else {
+        await escolherApelido(sugestao)
+        await recarregarPerfil()
+      }
       setSugestao(null)
       setSalvo(true)
     } catch (e) {
@@ -80,7 +91,9 @@ export function EscolherApelido({ titulo = 'Seu apelido na nave' }: { titulo?: s
       ) : (
         <>
           <p className="apelido-texto">
-            Você ainda não tem apelido. Ele sai de uma lista da nave, com milhares de combinações, e ninguém tem um igual.
+            {ninja
+              ? 'O ninja ainda não tem apelido. Sorteie como os alunos sorteiam: ele fica só no Modo Ninja e não muda o seu apelido de professor.'
+              : 'Você ainda não tem apelido. Ele sai de uma lista da nave, com milhares de combinações, e ninguém tem um igual.'}
           </p>
           <div className="apelido-acoes">
             <button type="button" className="botao botao-primario" onClick={sortear} disabled={ocupado}>

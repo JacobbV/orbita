@@ -388,3 +388,16 @@ export function aulaParaContinuar(
   }
   return melhor
 }
+
+/** A primeira aula liberada (Modo Ninja: "Próxima missão" antes de abrir qualquer aula). */
+export function primeiraAula(
+  disciplinas: DisciplinaDaPonte[],
+): { disciplina: DisciplinaDaPonte; unidade: UnidadeDaPonte; aula: AulaDaPonte; jaAberta: boolean } | null {
+  for (const d of disciplinas) {
+    for (const u of d.unidades) {
+      const aula = u.aulas.find((a) => a.liberada)
+      if (aula) return { disciplina: d, unidade: u, aula, jaAberta: false }
+    }
+  }
+  return null
+}

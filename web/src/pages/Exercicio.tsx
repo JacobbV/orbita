@@ -195,6 +195,14 @@ export function Exercicio() {
         setOcupado(null)
       }
       const acertos = lista.filter((r) => r.certo).length
+      if (ninja) {
+        // Treino do Modo Ninja: o mesmo caminho do aluno, sem enviar nada ao banco.
+        setAvisoEntrega({
+          tipo: 'sucesso',
+          texto: `Entrega de treino: ${acertos} de ${lista.length} testes certos. No Modo Ninja nada é enviado e ninguém ganha XP; dá para entregar de novo quantas vezes quiser.`,
+        })
+        return
+      }
       const { tentativa, conquista } = await entregar(exercicio.id, codigoEntregue ?? codigo, acertos)
       const c = lerConquista(conquista)
       anunciarConquista(c)
@@ -347,7 +355,7 @@ export function Exercicio() {
         </section>
       )}
 
-      {ehAluno && (
+      {(ehAluno || ninja) && (
         <section className="cartao exercicio-entregar" aria-labelledby="exercicio-entregar-titulo">
           <h2 id="exercicio-entregar-titulo">Entregar</h2>
           {jaEntregou ? (
@@ -358,9 +366,10 @@ export function Exercicio() {
                 Deseja realmente entregar?
               </p>
               <p>
-                Depois de entregue, não dá para desfazer nem mudar. O professor recebe o código que está no editor agora e o
-                resultado dos testes.
-                {certos === resultados?.length && resultados.length > 0 && codigoTestado === codigo
+                {ninja
+                  ? 'No Modo Ninja esta entrega é só um treino: o aluno vê esta mesma confirmação, mas aqui nada é enviado.'
+                  : 'Depois de entregue, não dá para desfazer nem mudar. O professor recebe o código que está no editor agora e o resultado dos testes.'}
+                {!ninja && certos === resultados?.length && resultados.length > 0 && codigoTestado === codigo
                   ? ` Acertando tudo, você ganha +${xp} XP na hora, a confirmar pelo professor.`
                   : ''}
               </p>

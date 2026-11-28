@@ -9,6 +9,7 @@ import type { Executor, ResultadoDaExecucao } from '../lab/executor'
 import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
 import { Terminal } from '../lab/Terminal'
 import { mensagemDeErro } from '../lib/erros'
+import { useModoNinja } from '../ninja/ModoNinja'
 import {
   comecarProva,
   dataHora,
@@ -19,7 +20,10 @@ import {
   lerRascunhoDaQuestao,
   minhasProvas,
   nomeDasSaidas,
+  notaDoTreino,
+  provaDoNinja,
   questoesDaProva,
+  questoesDaProvaNinja,
   registrarSaida,
   registrarVolta,
   responderQuestao,
@@ -52,10 +56,16 @@ function sairDaTelaCheia() {
   if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
 }
 
-/** Fazer uma prova: cronômetro, tela cheia, colar desligado e registro de saída da aba. */
+/**
+ * Fazer uma prova: cronômetro, tela cheia, colar desligado e registro de saída da aba.
+ * No Modo Ninja vira prova de treino: abre a qualquer hora e nada vai para o banco
+ * (sem tentativa, resposta, saída registrada, nota nem XP).
+ */
 export function Prova() {
   const { provaId } = useParams()
   const id = Number(provaId)
+  const ninja = useModoNinja().ativo
+  const voltar = ninja ? '/ninja' : '/ponte'
   const [prova, setProva] = useState<ProvaDoAluno | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [fase, setFase] = useState<Fase>('intro')
@@ -71,14 +81,20 @@ export function Prova() {
   const [entregando, setEntregando] = useState(false)
   const [fechando, setFechando] = useState(false)
   const fechandoRef = useRef(false)
+  const saidasNinja = useRef(0)
+  // Para a nota do treino sem refazer os ouvintes da aba a cada resposta salva.
+  const treino = useRef<{ questoes: QuestaoDaProva[]; salvas: Record<number, Salva> }>({ questoes: [], salvas: {} })
+  useEffect(() => {
+    treino.current = { questoes, salvas }
+  }, [questoes, salvas])
 
   // Carrega a prova (e a situação do aluno nela).
   useEffect(() => {
     let ativo = true
-    minhasProvas()
-      .then((lista) => {
+    const carregar = ninja ? provaDoNinja(id) : minhasProvas().then((lista) => lista.find((x) => x.id === id) ?? null)
+    carregar
+      .then((p) => {
         if (!ativo) return
-        const p = lista.find((x) => x.id === id)
         if (!p) setErro('Prova não encontrada.')
         else setProva(p)
       })
@@ -88,10 +104,16 @@ export function Prova() {
     return () => {
       ativo = false
     }
-  }, [id])
+  }, [id, ninja])
 
-  const terminar = useCallback(async () => {
+  const terminar = useCallback(async (encerradaPor: ProvaDoAluno['encerradaPor'] = 'aluno') => {
     sairDaTelaCheia()
+    if (ninja) {
+      // Treino: a nota é calculada aqui mesmo e não fica salva.
+      setProva((p) => p && { ...p, entregueEm: new Date().toISOString(), encerradaPor, nota: notaDoTreino(treino.current.questoes, treino.current.salvas) })
+      setFase('fim')
+      return
+    }
     try {
       const lista = await minhasProvas()
       const p = lista.find((x) => x.id === id)
@@ -100,7 +122,7 @@ export function Prova() {
       // A tela final aparece do mesmo jeito; a situação atualiza na próxima visita.
     }
     setFase('fim')
-  }, [id])
+  }, [id, ninja])
 
   async function comecar() {
     // A tela cheia só abre em resposta ao clique, por isso vem antes de qualquer espera.
@@ -108,8 +130,10 @@ export function Prova() {
     setComecando(true)
     setErroAoComecar(null)
     try {
-      const fim = await comecarProva(id)
-      const lista = await questoesDaProva(id)
+      const fim = ninja ? new Date(Date.now() + (prova?.duracaoMin ?? 60) * 60_000).toISOString() : await comecarProva(id)
+      const lista = ninja ? await questoesDaProvaNinja(id) : await questoesDaProva(id)
+      saidasNinja.current = 0
+      setSaidas(0)
       const guardadas: Record<number, Salva> = {}
       for (const q of lista) {
         if (q.minhaResposta !== null) guardadas[q.questaoId] = { codigo: q.minhaResposta, certos: -1, total: q.testes.length }
@@ -141,7 +165,8 @@ export function Prova() {
     fechandoRef.current = true
     setFechando(true)
     void (async () => {
-      for (let i = 0; i < 30; i++) {
+      // No treino do ninja não há banco para confirmar: encerra na hora.
+      for (let i = 0; !ninja && i < 30; i++) {
         try {
           const lista = await minhasProvas()
           const p = lista.find((x) => x.id === id)
@@ -151,10 +176,10 @@ export function Prova() {
         }
         await dormir(2000)
       }
-      await terminar()
+      await terminar('tempo')
       setFechando(false)
     })()
-  }, [acabou, id, terminar])
+  }, [acabou, id, ninja, terminar])
 
   // Saída da aba ou da janela: o site registra e avisa, mas não impede.
   useEffect(() => {
@@ -163,6 +188,23 @@ export function Prova() {
     async function saiu() {
       if (fora) return
       fora = true
+      if (ninja) {
+        // Treino: conta só aqui na tela, para o professor ver o aviso que o aluno vê.
+        saidasNinja.current += 1
+        const n = saidasNinja.current
+        const limite = prova?.saidasParaEncerrar ?? null
+        setSaidas(n)
+        if (limite && n >= limite) {
+          await terminar('saidas')
+          return
+        }
+        setAviso(
+          limite
+            ? `Você saiu da prova ${n} ${n === 1 ? 'vez' : 'vezes'}. Ela encerra na ${limite}ª saída.`
+            : `Você saiu da prova ${n} ${n === 1 ? 'vez' : 'vezes'}. O professor vê isso.`,
+        )
+        return
+      }
       try {
         const r = await registrarSaida(id)
         setSaidas(r.saidas)
@@ -182,7 +224,7 @@ export function Prova() {
     function voltou() {
       if (!fora) return
       fora = false
-      registrarVolta(id).catch(() => {})
+      if (!ninja) registrarVolta(id).catch(() => {})
     }
     const aoMudarVisibilidade = () => {
       if (document.hidden) void saiu()
@@ -202,12 +244,12 @@ export function Prova() {
       window.removeEventListener('blur', aoPerderFoco)
       window.removeEventListener('focus', voltou)
     }
-  }, [fase, id, terminar])
+  }, [fase, id, ninja, prova?.saidasParaEncerrar, terminar])
 
   async function entregar() {
     setEntregando(true)
     try {
-      await entregarProva(id)
+      if (!ninja) await entregarProva(id)
     } catch (e) {
       // "Já foi entregue" quer dizer que o tempo acabou ou a prova já encerrou: vale o mesmo caminho.
       const texto = mensagemDeErro(e)
@@ -228,7 +270,7 @@ export function Prova() {
         <Aviso tipo="erro" titulo="Não foi possível abrir a prova">
           {erro}
         </Aviso>
-        <Link to="/ponte" className="botao">
+        <Link to={voltar} className="botao">
           Voltar à ponte
         </Link>
       </div>
@@ -236,10 +278,10 @@ export function Prova() {
   }
   if (!prova) return <Carregando />
 
-  if (fase === 'fim') return <Fim prova={prova} />
+  if (fase === 'fim') return <Fim prova={prova} ninja={ninja} />
 
   if (fase === 'intro') {
-    return <Intro prova={prova} comecando={comecando} erro={erroAoComecar} aoComecar={comecar} />
+    return <Intro prova={prova} comecando={comecando} erro={erroAoComecar} aoComecar={comecar} ninja={ninja} />
   }
 
   const restante = (terminaEm ?? 0) - agora
@@ -249,7 +291,7 @@ export function Prova() {
     <div className="prova prova-fazendo container">
       <header className="cartao prova-barra">
         <div className="prova-barra-texto">
-          <p className="pixel prova-selo">Prova em andamento</p>
+          <p className="pixel prova-selo">{ninja ? 'Treino em andamento' : 'Prova em andamento'}</p>
           <h1>{prova.titulo}</h1>
         </div>
         <p className={`prova-relogio${restante <= 60_000 ? ' prova-relogio-fim' : restante <= 300_000 ? ' prova-relogio-pouco' : ''}`} role="timer" aria-label="Tempo que falta">
@@ -272,6 +314,7 @@ export function Prova() {
             salvas={salvas}
             aoSalvar={(qid, s) => setSalvas((x) => ({ ...x, [qid]: s }))}
             aoBloquearColar={() => setAviso('Colar está desligado na prova. Digite o código.')}
+            salvar={ninja ? async () => {} : responderQuestao}
           />
 
           <section className="cartao prova-entregar" aria-label="Entregar a prova">
@@ -307,11 +350,24 @@ export function Prova() {
   )
 }
 
-function Intro({ prova, comecando, erro, aoComecar }: { prova: ProvaDoAluno; comecando: boolean; erro: string | null; aoComecar: () => void }) {
-  const estado = estadoDaProvaDoAluno(prova)
+function Intro({
+  prova,
+  comecando,
+  erro,
+  aoComecar,
+  ninja = false,
+}: {
+  prova: ProvaDoAluno
+  comecando: boolean
+  erro: string | null
+  aoComecar: () => void
+  ninja?: boolean
+}) {
+  // O ninja treina a qualquer hora, como se a prova estivesse aberta.
+  const estado = ninja ? 'aberta' : estadoDaProvaDoAluno(prova)
   return (
     <div className="prova container">
-      <Link to="/ponte" className="exercicio-voltar">
+      <Link to={ninja ? '/ninja' : '/ponte'} className="exercicio-voltar">
         ← Voltar
       </Link>
       <header className="cartao prova-intro">
@@ -337,6 +393,13 @@ function Intro({ prova, comecando, erro, aoComecar }: { prova: ProvaDoAluno; com
           <li>A nota só aparece para você depois que o professor publicar.</li>
         </ul>
 
+        {ninja && (
+          <Aviso tipo="info" titulo="Prova de treino do Modo Ninja">
+            Abre a qualquer hora, com o mesmo tempo, as mesmas questões e os mesmos avisos que o aluno vê. Nada é salvo:
+            nenhuma tentativa, resposta, saída da aba ou nota vai para o banco, e ninguém ganha XP.
+          </Aviso>
+        )}
+
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
         {estado === 'antes' && <Aviso tipo="info">A prova ainda não abriu. Ela abre {dataHora(prova.abreEm)}.</Aviso>}
@@ -344,7 +407,7 @@ function Intro({ prova, comecando, erro, aoComecar }: { prova: ProvaDoAluno; com
         {estado === 'entregue' && <Fim prova={prova} dentro />}
         {(estado === 'aberta' || estado === 'em_andamento') && (
           <button type="button" className="botao botao-primario" disabled={comecando} onClick={aoComecar}>
-            {comecando ? 'Abrindo…' : estado === 'em_andamento' ? 'Continuar a prova' : 'Começar a prova'}
+            {comecando ? 'Abrindo…' : ninja ? 'Começar o treino' : estado === 'em_andamento' ? 'Continuar a prova' : 'Começar a prova'}
           </button>
         )}
       </header>
@@ -352,7 +415,7 @@ function Intro({ prova, comecando, erro, aoComecar }: { prova: ProvaDoAluno; com
   )
 }
 
-function Fim({ prova, dentro = false }: { prova: ProvaDoAluno; dentro?: boolean }) {
+function Fim({ prova, dentro = false, ninja = false }: { prova: ProvaDoAluno; dentro?: boolean; ninja?: boolean }) {
   const motivo =
     prova.encerradaPor === 'tempo'
       ? 'O tempo acabou e a prova foi entregue.'
@@ -365,12 +428,14 @@ function Fim({ prova, dentro = false }: { prova: ProvaDoAluno; dentro?: boolean 
         {motivo}
       </Aviso>
       <p>
-        {prova.nota !== null
-          ? `Sua nota: ${String(prova.nota).replace('.', ',')} (de 0 a 10).`
-          : 'A nota aparece aqui quando o professor publicar.'}
+        {ninja
+          ? `Nota do treino: ${String(prova.nota ?? 0).replace('.', ',')} (de 0 a 10). Ela não fica salva; para o aluno, a nota só aparece depois que o professor publicar.`
+          : prova.nota !== null
+            ? `Sua nota: ${String(prova.nota).replace('.', ',')} (de 0 a 10).`
+            : 'A nota aparece aqui quando o professor publicar.'}
       </p>
       {!dentro && (
-        <Link to="/ponte" className="botao botao-primario">
+        <Link to={ninja ? '/ninja' : '/ponte'} className="botao botao-primario">
           Voltar à ponte
         </Link>
       )}
@@ -393,12 +458,15 @@ function QuestoesDaProva({
   salvas,
   aoSalvar,
   aoBloquearColar,
+  salvar,
 }: {
   provaId: number
   questoes: QuestaoDaProva[]
   salvas: Record<number, Salva>
   aoSalvar: (questaoId: number, s: Salva) => void
   aoBloquearColar: () => void
+  /** Guarda a resposta no banco (no treino do ninja, não guarda nada). */
+  salvar: (questaoId: number, codigo: string, testesCertos: number) => Promise<void>
 }) {
   const [ativa, setAtiva] = useState(0)
   const [codigos, setCodigos] = useState<Record<number, string>>(() =>
@@ -481,7 +549,7 @@ function QuestoesDaProva({
     const certos = feitos.filter((f) => f.certo).length
     setOcupado('salvando')
     try {
-      await responderQuestao(q!.questaoId, codigo, certos)
+      await salvar(q!.questaoId, codigo, certos)
       aoSalvar(q!.questaoId, { codigo, certos, total: feitos.length })
     } catch (e) {
       setErroAoSalvar(mensagemDeErro(e))

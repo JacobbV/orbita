@@ -30,9 +30,12 @@ export function ehRotaDoSistema(caminho: string): boolean {
 export function itensDoMenu(papel: Perfil['papel'], ninja: boolean): ItemDoMenu[] {
   if (ninja) {
     return [
+      // O mesmo menu do aluno, mais a volta ao painel.
       { para: '/ninja', rotulo: 'Ponte' },
-      { para: '/professor', rotulo: 'Painel' },
+      { para: '/mapa', rotulo: 'Mapa' },
       { para: '/hangar', rotulo: 'Hangar' },
+      { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
+      { para: '/professor', rotulo: 'Painel', secundario: true },
     ]
   }
   if (papel === 'professor') {
