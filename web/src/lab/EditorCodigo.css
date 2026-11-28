@@ -13,3 +13,9 @@
   min-height: 8rem;
   max-height: 20rem;
 }
+
+/* Linha onde o último erro aconteceu */
+.editor-codigo .cm-line.editor-codigo-linha-erro {
+  background: rgb(244 114 182 / 0.18);
+  box-shadow: inset 3px 0 0 var(--plasma);
+}

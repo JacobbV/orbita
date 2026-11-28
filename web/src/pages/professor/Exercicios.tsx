@@ -16,6 +16,7 @@ import { EditorCodigo } from '../../lab/EditorCodigo'
 import type { Executor } from '../../lab/executor'
 import { criarExecutor, LINGUAGENS, ORDEM_DAS_LINGUAGENS, type Linguagem } from '../../lab/linguagens'
 import { mensagemDeErro } from '../../lib/erros'
+import { ERROS_POR_DICA, MAX_DICAS, MAX_LETRAS_DA_DICA } from '../../lib/dicas'
 import {
   carregarAulaComExercicios,
   conferirEntrega,
@@ -300,6 +301,8 @@ export function FormExercicio({
     testes: inicial.testes.map((t) => ({ ...t })),
     conferencia: inicial.conferencia,
     palavrasExtras: inicial.palavrasExtras,
+    // Questão de prova não tem dicas: o campo fica de fora e o banco não mexe.
+    ...(paraProva ? {} : { dicas: [...(inicial.dicas ?? [])] }),
   }))
   const [erros, setErros] = useState<ErrosDoExercicio>({})
   const [erroGeral, setErroGeral] = useState<string | null>(null)
@@ -419,6 +422,8 @@ export function FormExercicio({
         aoMudarModo={(m) => mudar('conferencia', m)}
         aoMudarPalavras={(p) => mudar('palavrasExtras', p)}
       />
+
+      {!paraProva && <CampoDasDicas dicas={d.dicas ?? []} erro={erros.dicas} aoMudar={(dicas) => mudar('dicas', dicas)} />}
 
       <fieldset className="exercicios-testes" aria-describedby={erros.testes ? `${id}-testes-erro` : undefined}>
         <legend>Testes</legend>
@@ -802,5 +807,40 @@ function OQueConta({ teste, modo, palavras }: { teste: TesteDoProfessor; modo: M
         <span className="campo-dica"> (sem números nem palavras da entrada, vale o texto flexível)</span>
       )}
     </p>
+  )
+}
+
+/** Até 3 dicas, que o aluno libera aos poucos (uma a cada ERROS_POR_DICA tentativas erradas). */
+function CampoDasDicas({ dicas, erro, aoMudar }: { dicas: string[]; erro: string | undefined; aoMudar: (d: string[]) => void }) {
+  const id = useId()
+  // Sempre 3 caixas; as vazias não são salvas.
+  const caixas = Array.from({ length: MAX_DICAS }, (_, i) => dicas[i] ?? '')
+  return (
+    <fieldset className="exercicios-dicas" aria-describedby={`${id}-explicacao${erro ? ` ${id}-erro` : ''}`}>
+      <legend>Dicas (opcional)</legend>
+      <p id={`${id}-explicacao`} className="campo-dica">
+        O aluno libera uma dica a cada {ERROS_POR_DICA} tentativas erradas no Rodar e abre quando quiser, na ordem. Comece
+        pela dica mais leve e deixe a mais forte por último. Não tira XP. Deixe em branco as que não usar.
+      </p>
+      {erro && (
+        <p id={`${id}-erro`} className="campo-erro">
+          {erro}
+        </p>
+      )}
+      {caixas.map((texto, i) => (
+        <div key={i} className="campo">
+          <label htmlFor={`${id}-dica-${i}`}>
+            Dica {i + 1} (libera depois de {(i + 1) * ERROS_POR_DICA} tentativas erradas)
+          </label>
+          <textarea
+            id={`${id}-dica-${i}`}
+            rows={2}
+            maxLength={MAX_LETRAS_DA_DICA}
+            value={texto}
+            onChange={(e) => aoMudar(caixas.map((c, j) => (j === i ? e.target.value : c)))}
+          />
+        </div>
+      ))}
+    </fieldset>
   )
 }

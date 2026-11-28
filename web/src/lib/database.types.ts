@@ -178,14 +178,14 @@ isOneToOne: false
                   ]
                 },"exercicios": {
                   Row: {
-                    "aula_id": number | null,"codigo_inicial": string,"conferencia": string,"criado_em": string,"dificuldade": number,"enunciado": string,"id": number,"linguagem": string,"ordem": number,"palavras_extras": string,"titulo": string
+                    "aula_id": number | null,"codigo_inicial": string,"conferencia": string,"criado_em": string,"dicas": string[],"dificuldade": number,"enunciado": string,"id": number,"linguagem": string,"ordem": number,"palavras_extras": string,"titulo": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado": string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo": string
+                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dicas"?: string[],"dificuldade"?: number,"enunciado": string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo": string
                   }
                   Update: {
-                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dificuldade"?: number,"enunciado"?: string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo"?: string
+                    "aula_id"?: number | null,"codigo_inicial"?: string,"conferencia"?: string,"criado_em"?: string,"dicas"?: string[],"dificuldade"?: number,"enunciado"?: string,"id"?: never,"linguagem"?: string,"ordem"?: number,"palavras_extras"?: string,"titulo"?: string
                   }
                   Relationships: [
                     {
@@ -851,7 +851,7 @@ isOneToOne: false
 { Args: { "p_escolhas": Json }; Returns: undefined
                            },
 "salvar_exercicio":
-{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_conferencia"?: string,"p_linguagem"?: string,"p_palavras_extras"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
+{ Args: { "p_aula_id": number,"p_codigo_inicial": string,"p_dificuldade": number,"p_enunciado": string,"p_id": number,"p_conferencia"?: string,"p_dicas"?: string[],"p_linguagem"?: string,"p_palavras_extras"?: string,"p_testes": Json,"p_titulo": string }; Returns: number
                            },
 "salvar_prova":
 { Args: { "p_abre_em": string,"p_duracao_min": number,"p_fecha_em": string,"p_id": number,"p_instrucoes": string,"p_questoes": Json,"p_saidas_para_encerrar": number,"p_titulo": string,"p_turma_disciplina_id": number }; Returns: number

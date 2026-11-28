@@ -5,10 +5,22 @@ import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { CaixaDoEnunciado } from '../components/CaixaDoEnunciado'
 import { modoDoExercicio, saidaConfere, valoresConferidos, type TesteDoAluno } from '../lab/correcao'
+import { diferencaDoTeste } from '../lab/diferenca'
+import { ErroExplicado } from '../lab/ErroExplicado'
 import { EditorCodigo } from '../lab/EditorCodigo'
 import { TEMPO_LIMITE_MS, type Executor, type ResultadoDaExecucao } from '../lab/executor'
-import { criarExecutor, LINGUAGENS } from '../lab/linguagens'
+import { criarExecutor, LINGUAGENS, type Linguagem } from '../lab/linguagens'
 import { Terminal } from '../lab/Terminal'
+import { traduzirErro } from '../lab/traducaoDeErros'
+import {
+  dicasLiberadas,
+  ERROS_POR_DICA,
+  faltamParaProxima,
+  guardarDicasAbertas,
+  guardarTentativasErradas,
+  lerDicasAbertas,
+  lerTentativasErradas,
+} from '../lib/dicas'
 import { mensagemDeErro } from '../lib/erros'
 import { anunciarConquista, lerConquista } from '../lib/progresso'
 import {
@@ -54,6 +66,11 @@ export function Exercicio() {
   const [confirmando, setConfirmando] = useState(false)
   const [entregando, setEntregando] = useState(false)
   const [avisoEntrega, setAvisoEntrega] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
+  // Tentativas erradas no Rodar e dicas já abertas (ficam no navegador).
+  const [tentativasErradas, setTentativasErradas] = useState(0)
+  const [dicasAbertas, setDicasAbertas] = useState(0)
+  // Linha do último erro, marcada no editor até o código mudar.
+  const [erroNaLinha, setErroNaLinha] = useState<{ linha: number } | null>(null)
   const executor = useRef<Executor | null>(null)
   const ehAluno = perfil?.papel === 'aluno'
   const ninja = useModoNinja().ativo
@@ -66,6 +83,8 @@ export function Exercicio() {
         if (!ativo) return
         setDados(d)
         setCodigo(lerRascunho(d.exercicio.id) ?? d.exercicio.codigoInicial)
+        setTentativasErradas(lerTentativasErradas(d.exercicio.id))
+        setDicasAbertas(lerDicasAbertas(d.exercicio.id))
       })
       .catch((e: unknown) => {
         if (ativo) setErro(e instanceof ExercicioIndisponivel ? e.message : mensagemDeErro(e))
@@ -111,6 +130,26 @@ export function Exercicio() {
   const linguagem = LINGUAGENS[exercicio.linguagem]
   const ehHtml = exercicio.linguagem === 'html'
 
+  /** Um Rodar terminou: marca a linha do erro e, se errou, conta uma tentativa para as dicas. */
+  function registrarTentativa(resultado: ResultadoDaExecucao, lista: ResultadoTeste[] | null) {
+    const comErro = resultado.erro ? resultado : lista?.find((r) => r.resultado.erro)?.resultado
+    const linha = comErro?.erro ? traduzirErro(comErro.erro, exercicio.linguagem)?.linha : null
+    setErroNaLinha(linha ? { linha } : null)
+    const errou = Boolean(resultado.erro || resultado.tempoEsgotado || lista?.some((r) => !r.certo))
+    if (!errou) return
+    setTentativasErradas((n) => {
+      guardarTentativasErradas(exercicio.id, n + 1)
+      return n + 1
+    })
+  }
+
+  function abrirDica() {
+    setDicasAbertas((n) => {
+      guardarDicasAbertas(exercicio.id, n + 1)
+      return n + 1
+    })
+  }
+
   function mudarCodigo(novo: string) {
     setCodigo(novo)
     guardarRascunho(exercicio.id, novo)
@@ -155,7 +194,9 @@ export function Exercicio() {
       return
     }
     // Deu erro ou travou: os testes também falhariam (e cada laço infinito custa 5 segundos). Corrija e rode de novo.
-    if (testes.length > 0 && !resultado.erro && !resultado.tempoEsgotado) await conferirTestes(py, codigoRodado)
+    const lista =
+      testes.length > 0 && !resultado.erro && !resultado.tempoEsgotado ? await conferirTestes(py, codigoRodado) : null
+    registrarTentativa(resultado, lista)
     setOcupado(null)
   }
 
@@ -163,7 +204,8 @@ export function Exercicio() {
     const py = await prepararExecutor()
     if (!py) return
     if (ehHtml) {
-      await conferirTestes(py, codigo)
+      const lista = await conferirTestes(py, codigo)
+      registrarTentativa({ saida: '', erro: null, tempoEsgotado: false, saidaGrande: false, precisaDeEntrada: false }, lista)
       setOcupado(null)
       return
     }
@@ -296,6 +338,7 @@ export function Exercicio() {
             aoMudar={mudarCodigo}
             rotulo={`Editor de código ${linguagem.nome}`}
             linguagem={exercicio.linguagem}
+            erroNaLinha={erroNaLinha}
           />
         </div>
 
@@ -314,6 +357,7 @@ export function Exercicio() {
               mensagemOcupado={mensagemOcupado}
               respostasDadas={sessao?.respostas.length ?? 0}
               aoResponder={responder}
+              linguagem={exercicio.linguagem}
             />
           )}
           <p className="exercicio-status" role="status">
@@ -348,11 +392,22 @@ export function Exercicio() {
                   {r.teste.tipo === 'oculto' ? '(oculto)' : '(visível)'}
                   <span className="sr-only">{r.certo ? ': certo' : ': errado'}</span>
                 </p>
-                {!r.certo && <DetalheDoErro r={r} rotulos={detalhes(exercicio.linguagem)} />}
+                {!r.certo && <DetalheDoErro r={r} rotulos={detalhes(exercicio.linguagem)} linguagem={exercicio.linguagem} />}
               </li>
             ))}
           </ol>
         </section>
+      )}
+
+      {exercicio.dicas.length > 0 && (
+        <DicasDoExercicio
+          dicas={exercicio.dicas}
+          // Modo Ninja e professor: tudo liberado, para conferir o texto das dicas.
+          liberadas={ehAluno && !ninja ? dicasLiberadas(tentativasErradas, exercicio.dicas.length) : exercicio.dicas.length}
+          abertas={ehAluno && !ninja ? dicasAbertas : exercicio.dicas.length}
+          faltam={ehAluno && !ninja ? faltamParaProxima(tentativasErradas, exercicio.dicas.length) : 0}
+          aoAbrir={abrirDica}
+        />
       )}
 
       {(ehAluno || ninja) && (
@@ -444,7 +499,7 @@ function SuasEntregas({ entregas }: { entregas: EntregaDoAluno[] }) {
   )
 }
 
-export function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao }) {
+export function SaidaDoPrograma({ resultado, linguagem = 'python' }: { resultado: ResultadoDaExecucao; linguagem?: Linguagem }) {
   if (resultado.tempoEsgotado) {
     return (
       <pre className="exercicio-erro">
@@ -457,8 +512,65 @@ export function SaidaDoPrograma({ resultado }: { resultado: ResultadoDaExecucao 
     <>
       <pre>{resultado.saida || (resultado.erro ? '' : '(sem saída)')}</pre>
       {resultado.saidaGrande && <p className="exercicio-aviso-pequeno">A saída era muito grande e foi cortada.</p>}
-      {resultado.erro && <pre className="exercicio-erro">{resultado.erro}</pre>}
+      {resultado.erro && <ErroExplicado erro={resultado.erro} linguagem={linguagem} classeOriginal="exercicio-erro" />}
     </>
+  )
+}
+
+/** Dicas do professor: liberadas a cada ERROS_POR_DICA tentativas erradas, abertas uma por vez. */
+function DicasDoExercicio({
+  dicas,
+  liberadas,
+  abertas,
+  faltam,
+  aoAbrir,
+}: {
+  dicas: string[]
+  liberadas: number
+  abertas: number
+  faltam: number
+  aoAbrir: () => void
+}) {
+  const proxima = Math.min(abertas, dicas.length)
+  return (
+    <section className="cartao exercicio-dicas" aria-labelledby="exercicio-dicas-titulo">
+      <h2 id="exercicio-dicas-titulo">Dicas</h2>
+      <p className="exercicio-dicas-explicacao">
+        Travou? A cada {ERROS_POR_DICA} tentativas erradas no Rodar, uma dica nova fica liberada. Abrir dica não tira XP.
+      </p>
+      <ol className="exercicio-dicas-lista" role="list">
+        {dicas.map((texto, i) => {
+          const numero = i + 1
+          if (i < abertas) {
+            return (
+              <li key={i} className="exercicio-dica exercicio-dica-aberta">
+                <p className="exercicio-dica-titulo">Dica {numero}</p>
+                <p className="exercicio-dica-texto">{texto}</p>
+              </li>
+            )
+          }
+          if (i === proxima && i < liberadas) {
+            return (
+              <li key={i} className="exercicio-dica">
+                <button type="button" className="botao" onClick={aoAbrir}>
+                  💡 Abrir a dica {numero}
+                </button>
+              </li>
+            )
+          }
+          return (
+            <li key={i} className="exercicio-dica exercicio-dica-trancada">
+              <span aria-hidden="true">🔒</span> Dica {numero}
+              {i === proxima && faltam > 0
+                ? `: libera depois de mais ${faltam} ${faltam === 1 ? 'tentativa errada' : 'tentativas erradas'}.`
+                : i < liberadas
+                  ? ': abra a dica de antes primeiro.'
+                  : ''}
+            </li>
+          )
+        })}
+      </ol>
+    </section>
   )
 }
 
@@ -494,9 +606,9 @@ function Coluna({ titulo, children }: { titulo: string; children: ReactNode }) {
   )
 }
 
-function DetalheDoErro({ r, rotulos }: { r: ResultadoTeste; rotulos: Rotulos }) {
+function DetalheDoErro({ r, rotulos, linguagem }: { r: ResultadoTeste; rotulos: Rotulos; linguagem: Linguagem }) {
   const { resultado, teste } = r
-  if (resultado.tempoEsgotado || resultado.erro) return <SaidaDoPrograma resultado={resultado} />
+  if (resultado.tempoEsgotado || resultado.erro) return <SaidaDoPrograma resultado={resultado} linguagem={linguagem} />
   return (
     <div className="exercicio-exemplo-colunas">
       <Coluna titulo={rotulos.entrada}>
@@ -512,7 +624,41 @@ function DetalheDoErro({ r, rotulos }: { r: ResultadoTeste; rotulos: Rotulos }) 
       <Coluna titulo={rotulos.obtido}>
         <pre>{resultado.saida || '(sem saída)'}</pre>
       </Coluna>
-      <ValoresDoTeste teste={teste} saida={resultado.saida} />
+      {teste.saida_esperada !== null ? (
+        <DiferencaDoTeste teste={teste} saida={resultado.saida} />
+      ) : (
+        <ValoresDoTeste teste={teste} saida={resultado.saida} />
+      )}
+    </div>
+  )
+}
+
+/** Teste visível: o que faltou e o que sobrou, com os valores marcados. */
+function DiferencaDoTeste({ teste, saida }: { teste: TesteDoAluno; saida: string }) {
+  const d = diferencaDoTeste(teste, saida)
+  if (!d) return null
+  return (
+    <div className="exercicio-diferenca">
+      <p className="exercicio-rotulo">O que está diferente</p>
+      <div className="exercicio-diferenca-frases">
+        {d.frases.map((f, i) => (
+          <p key={i}>{f}</p>
+        ))}
+      </div>
+      <div className={`exercicio-diferenca-partes${d.porLinha ? ' exercicio-diferenca-linhas' : ''}`} aria-label="Comparação marcada">
+        {d.partes.map((p, i) => (
+          <span key={i} className={`exercicio-parte exercicio-parte-${p.tipo}`}>
+            {p.tipo !== 'igual' && <span className="sr-only">{p.tipo === 'faltou' ? 'faltou: ' : 'sobrou: '}</span>}
+            {p.tipo === 'faltou' ? '− ' : p.tipo === 'sobrou' ? '+ ' : ''}
+            {p.valor || (d.porLinha ? '(linha vazia)' : '')}
+          </span>
+        ))}
+      </div>
+      <p className="exercicio-diferenca-legenda">
+        <span className="exercicio-parte exercicio-parte-igual">certo</span>
+        <span className="exercicio-parte exercicio-parte-faltou">− faltou</span>
+        <span className="exercicio-parte exercicio-parte-sobrou">+ sobrou</span>
+      </p>
     </div>
   )
 }
