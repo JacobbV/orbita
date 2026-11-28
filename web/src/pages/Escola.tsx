@@ -15,11 +15,13 @@ import {
   assentoPerto,
   assentosDo,
   aulasLiberadas,
+  avisosDoQuadro,
   caminho,
   escadaNoPonto,
   exerciciosLiberados,
   salaDoJogador,
   sentar,
+  sinaisDoQuadro,
   tileDoPonto,
   usarEscada,
   type Jogador,
@@ -27,6 +29,7 @@ import {
 import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarPonte, carregarPonteNinja, type DisciplinaDaPonte } from '../lib/ponte'
+import { dataHora, minhasProvas, type ProvaDoAluno } from '../lib/provas'
 import { useModoNinja } from '../ninja/ModoNinja'
 import './Escola.css'
 
@@ -84,6 +87,7 @@ export function Escola() {
   const perfilId = perfil?.id
   const [avatar, setAvatar] = useState<Escolhas | null>(null)
   const [disciplinas, setDisciplinas] = useState<DisciplinaDaPonte[] | null>(null)
+  const [provas, setProvas] = useState<ProvaDoAluno[]>([])
   const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
@@ -94,6 +98,8 @@ export function Escola() {
       (a) => ativo && setAvatar(a),
       (e: unknown) => ativo && setErro(mensagemDeErro(e)),
     )
+    // As provas do quadro são as do aluno; no Modo Ninja o quadro mostra só os exercícios.
+    if (!ninja) minhasProvas().then((p) => ativo && setProvas(p), () => {})
     const dados = ninja ? listarOfertas().then(carregarPonteNinja) : carregarPonte().then((d) => d.disciplinas)
     dados.then(
       (d) => ativo && setDisciplinas(d),
@@ -114,10 +120,10 @@ export function Escola() {
     )
   }
   if (!avatar) return <Carregando />
-  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} />
+  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} />
 }
 
-function Mapa({ escolhas, disciplinas }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[] }) {
+function Mapa({ escolhas, disciplinas, provas }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[] }) {
   const palco = useRef<HTMLDivElement>(null)
   const tela = useRef<HTMLCanvasElement>(null)
   const jogador = useRef<Jogador>({ ...INICIO })
@@ -129,6 +135,7 @@ function Mapa({ escolhas, disciplinas }: { escolhas: Escolhas; disciplinas: Disc
   const [andarAtual, setAndarAtual] = useState<Andar>('terreo')
   const [telaCheia, setTelaCheia] = useState(false)
   const [sentado, setSentado] = useState(false)
+  const [quadroAberto, setQuadroAberto] = useState(false)
   const sentarAoChegar = useRef<string | null>(null)
 
   const andares = useMemo(() => ({ terreo: pintarAndar('terreo'), superior: pintarAndar('superior') }), [])
@@ -261,6 +268,22 @@ function Mapa({ escolhas, disciplinas }: { escolhas: Escolhas; disciplinas: Disc
         ctx.fillStyle = '#E5E7F5'
         ctx.fillText(nome, lx, ly)
       }
+      // Sinal de aviso: sobe e desce ao lado do quadro; tocar nele abre o quadro de avisos.
+      const balanco = Math.sin(agora / 300) * 2
+      for (const sinal of sinaisDoQuadro(j.andar)) {
+        const bx = Math.round(sinal.x * e - camX)
+        const by = Math.round((sinal.y + balanco) * e - camY)
+        ctx.fillStyle = '#FBBF24'
+        ctx.beginPath()
+        ctx.moveTo(bx, by - 5 * e)
+        ctx.lineTo(bx + 5 * e, by + 4 * e)
+        ctx.lineTo(bx - 5 * e, by + 4 * e)
+        ctx.closePath()
+        ctx.fill()
+        ctx.fillStyle = '#0B0E1F'
+        ctx.fillRect(bx - e / 2, by - 2 * e, e, 3 * e)
+        ctx.fillRect(bx - e / 2, by + 2 * e, e, e)
+      }
       const spr = quadros[`${j.direcao}${quadro}`]
       if (spr && j.sentado) {
         // sentado: só o corpo de cima aparece, as pernas ficam atrás da mesa
@@ -331,6 +354,10 @@ function Mapa({ escolhas, disciplinas }: { escolhas: Escolhas; disciplinas: Disc
     const alvo: [number, number] = [Math.floor((px + camX) / e / TILE), Math.floor((py + camY) / e / TILE)]
     const mx = (px + camX) / e
     const my = (py + camY) / e
+    if (sinaisDoQuadro(j.andar).some((sn) => Math.hypot(sn.x - mx, sn.y - my) < 12)) {
+      setQuadroAberto(true)
+      return
+    }
     const cadeira = assentoPerto(j.andar, mx, my, 12)
     if (j.sentado) jogador.current = { andar: j.andar, x: j.x, y: j.y, direcao: j.direcao }
     setSentado(false)
@@ -412,6 +439,7 @@ function Mapa({ escolhas, disciplinas }: { escolhas: Escolhas; disciplinas: Disc
             </button>
           ))}
         </div>
+        {quadroAberto && <QuadroDeAvisos disciplinas={disciplinas} provas={provas} aoFechar={() => setQuadroAberto(false)} />}
         <PainelDaSala sala={sala} disciplinas={disciplinas} />
       </div>
     </div>
@@ -487,5 +515,47 @@ function ListaDeExercicios({ disciplinas }: { disciplinas: DisciplinaDaPonte[] }
         </div>
       ))}
     </>
+  )
+}
+
+function QuadroDeAvisos({ disciplinas, provas, aoFechar }: { disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; aoFechar: () => void }) {
+  const { provas: marcadas, atividades } = avisosDoQuadro(disciplinas, provas)
+  return (
+    <section className="escola-quadro cartao" aria-label="Quadro de avisos">
+      <div className="escola-quadro-topo">
+        <h2>Quadro de avisos</h2>
+        <button type="button" className="escola-botao" onClick={aoFechar}>
+          Fechar
+        </button>
+      </div>
+      <h3>Provas marcadas</h3>
+      {marcadas.length === 0 ? (
+        <p>Nenhuma prova marcada.</p>
+      ) : (
+        <ul>
+          {marcadas.map((p) => (
+            <li key={p.id}>
+              <Link to={`/prova/${p.id}`}>
+                <span className="escola-rotulo">{p.estado === 'antes' ? `Abre ${dataHora(p.abreEm)}` : p.estado === 'aberta' ? 'Aberta agora' : 'Em andamento'}</span> {p.titulo}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <h3>Exercícios para fazer</h3>
+      {atividades.length === 0 ? (
+        <p>Tudo em dia: nenhum exercício pendente.</p>
+      ) : (
+        <ul>
+          {atividades.map((a) => (
+            <li key={a.exercicio.id}>
+              <Link to={`/exercicio/${a.exercicio.id}`}>
+                <span className="escola-rotulo">{a.devolvida ? 'Devolvido, refaça' : a.rotuloDaAula}</span> {a.exercicio.titulo}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

@@ -7,17 +7,20 @@ import {
   assentoPerto,
   assentosDo,
   aulasLiberadas,
+  avisosDoQuadro,
   caminho,
   escadaNoPonto,
   exerciciosLiberados,
   podeFicarEm,
   salaDoJogador,
   sentar,
+  sinaisDoQuadro,
   tileDoPonto,
   usarEscada,
   type Jogador,
 } from './escola'
 import type { DisciplinaDaPonte } from './ponte'
+import type { ProvaDoAluno } from './provas'
 
 const sala = (id: string) => SALAS.find((s) => s.id === id)!
 const centro = (id: string, andarDaSala: 'terreo' | 'superior' = 'terreo'): Jogador => {
@@ -147,5 +150,30 @@ describe('laboratório grande', () => {
     const doLab1 = lugares.filter((l) => l.id.startsWith('lab-1-'))
     expect(doLab1.length).toBe(27)
     expect(lugares.length).toBeGreaterThanOrEqual(40)
+  })
+})
+
+describe('quadro de avisos', () => {
+  it('há um sinal em cada sala de aula acesa do térreo e nenhum em cima', () => {
+    expect(sinaisDoQuadro('terreo').map((x) => x.sala.id).sort()).toEqual(['sala-7', 'sala-8'])
+    expect(sinaisDoQuadro('superior')).toHaveLength(0)
+  })
+
+  const prova = (id: number, abre: string, fecha: string, extra: Partial<ProvaDoAluno> = {}): ProvaDoAluno => ({
+    id, titulo: `Prova ${id}`, instrucoes: '', abreEm: abre, fechaEm: fecha, duracaoMin: 50, saidasParaEncerrar: null,
+    questoes: 3, comecouEm: null, terminaEm: null, entregueEm: null, encerradaPor: null, saidas: 0, nota: null, ...extra,
+  })
+
+  it('mostra só provas que ainda não passaram, da mais próxima para a mais longe', () => {
+    const agora = new Date('2026-11-28T12:00:00Z').getTime()
+    const lista = [
+      prova(1, '2026-12-05T12:00:00Z', '2026-12-05T14:00:00Z'),
+      prova(2, '2026-11-28T11:00:00Z', '2026-11-28T15:00:00Z'),
+      prova(3, '2026-11-20T11:00:00Z', '2026-11-20T15:00:00Z'),
+      prova(4, '2026-11-28T11:00:00Z', '2026-11-28T15:00:00Z', { entregueEm: '2026-11-28T11:30:00Z' }),
+    ]
+    const r = avisosDoQuadro([], lista, agora)
+    expect(r.provas.map((p) => [p.id, p.estado])).toEqual([[2, 'aberta'], [1, 'antes']])
+    expect(r.atividades).toEqual([])
   })
 })
