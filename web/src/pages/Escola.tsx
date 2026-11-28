@@ -30,6 +30,7 @@ import {
 import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarPonte, carregarPonteNinja, type DisciplinaDaPonte } from '../lib/ponte'
+import { cadeirasOcupadas, escolherCadeira, soltarCadeira } from '../lib/cadeiras'
 import { anunciarConquista, registrarPresencaEscola } from '../lib/progresso'
 import { dataHora, minhasProvas, type ProvaDoAluno } from '../lib/provas'
 import { useModoNinja } from '../ninja/ModoNinja'
@@ -139,6 +140,10 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
   const [sentado, setSentado] = useState(false)
   const [quadroAberto, setQuadroAberto] = useState(false)
   const sentarAoChegar = useRef<string | null>(null)
+  // Cadeiras marcadas dos laboratórios: id do assento -> é a minha?
+  const cadeiras = useRef(new Map<string, boolean>())
+  const [minhaCadeira, setMinhaCadeira] = useState<string | null>(null)
+  const [avisoCadeira, setAvisoCadeira] = useState<string | null>(null)
 
   const andares = useMemo(() => ({ terreo: pintarAndar('terreo'), superior: pintarAndar('superior') }), [])
   const quadros = useMemo(() => pintarQuadros(escolhas), [escolhas])
@@ -286,6 +291,15 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
         ctx.fillRect(bx - e / 2, by - 2 * e, e, 3 * e)
         ctx.fillRect(bx - e / 2, by + 2 * e, e, e)
       }
+      for (const a of assentosDo(j.andar)) {
+        const dono = cadeiras.current.get(a.id)
+        if (dono === undefined) continue
+        const mx = Math.round(a.x * e - camX)
+        const my = Math.round((a.y - 9) * e - camY)
+        ctx.fillStyle = dono ? '#FBBF24' : 'rgba(156,163,175,0.9)'
+        ctx.fillRect(mx - e, my - 2 * e, 2 * e, 4 * e)
+        ctx.fillRect(mx - 2 * e, my - e, 4 * e, 2 * e)
+      }
       const spr = quadros[`${j.direcao}${quadro}`]
       if (spr && j.sentado) {
         // sentado: só o corpo de cima aparece, as pernas ficam atrás da mesa
@@ -383,6 +397,33 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
     document.addEventListener('fullscreenchange', aoMudar)
     return () => document.removeEventListener('fullscreenchange', aoMudar)
   }, [])
+  const atualizarCadeiras = useCallback(() => {
+    if (ninja) return
+    cadeirasOcupadas().then(
+      (m) => {
+        cadeiras.current = m
+        setMinhaCadeira([...m].find(([, minha]) => minha)?.[0] ?? null)
+      },
+      () => {},
+    )
+  }, [ninja])
+  useEffect(atualizarCadeiras, [atualizarCadeiras])
+
+  const marcarCadeira = () => {
+    const lugar = jogador.current.sentado
+    const sala = lugar ? salaDoJogador(jogador.current) : undefined
+    if (!lugar || !sala) return
+    const eMinha = cadeiras.current.get(lugar.id) === true
+    const acao = eMinha ? soltarCadeira() : escolherCadeira(sala.id, lugar.id)
+    acao.then(
+      () => {
+        setAvisoCadeira(eMinha ? 'Cadeira solta.' : 'Cadeira marcada: ela é sua.')
+        atualizarCadeiras()
+      },
+      (e) => setAvisoCadeira(mensagemDeErro(e)),
+    )
+  }
+
   // Presença: um sinal por minuto enquanto sentado numa sala de estudo (o banco conta o tempo).
   useEffect(() => {
     if (!sentado || ninja) return
@@ -426,12 +467,18 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
         </p>
       </header>
 
+      {avisoCadeira && <p className="escola-explica" role="status">{avisoCadeira}</p>}
       <div className="escola-palco" ref={palco}>
         <canvas ref={tela} className="escola-tela" onPointerDown={tocar} role="img" aria-label={`Mapa da escola, ${andarAtual === 'terreo' ? 'térreo' : 'andar de cima'}`} />
         <div className="escola-ferramentas">
           <button type="button" className="escola-botao" onClick={levantarOuSentar} aria-pressed={sentado}>
             {sentado ? 'Levantar' : 'Sentar'}
           </button>
+          {sentado && !ninja && sala?.tipo === 'lab' && (
+            <button type="button" className="escola-botao" onClick={marcarCadeira}>
+              {minhaCadeira ? 'Marcar ou soltar cadeira' : 'Marcar como minha'}
+            </button>
+          )}
           <button type="button" className="escola-botao" onClick={alternarTelaCheia} aria-pressed={telaCheia}>
             {telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
           </button>
