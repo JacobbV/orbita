@@ -645,6 +645,7 @@ function QuestoesDaProva({
               }
               respostasDadas={sessao?.respostas.length ?? 0}
               aoResponder={responder}
+              linguagem={q.linguagem}
             />
           )}
           <div className="exercicio-botoes">
@@ -696,7 +697,7 @@ function QuestoesDaProva({
                     </div>
                     <div>
                       <p className="exercicio-rotulo">Seu programa</p>
-                      <SaidaDoPrograma resultado={r.resultado} />
+                      <SaidaDoPrograma resultado={r.resultado} linguagem={q.linguagem} />
                     </div>
                   </div>
                 )}

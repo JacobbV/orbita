@@ -1,5 +1,6 @@
 import { lerModo, type ModoDeConferencia, type RegraDeConferencia } from '../lab/correcao'
 import type { Linguagem } from '../lab/linguagens'
+import { limparDicas, MAX_DICAS, MAX_LETRAS_DA_DICA } from './dicas'
 import { supabase } from './supabase'
 
 // Exercícios no painel do professor: lista da aula, criar, editar e remover.
@@ -24,6 +25,8 @@ export interface ExercicioDoPainel {
   /** Como a saída é conferida e as palavras extras que contam. */
   conferencia: ModoDeConferencia
   palavrasExtras: string
+  /** Até 3 dicas para o aluno, abertas uma por vez. */
+  dicas: string[]
   /** Quantas entregas de alunos já existem (com entregas, não pode remover). */
   entregas: number
   /** Entregas esperando a reconferência do professor. */
@@ -53,7 +56,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
   const { data, error } = await supabase()
     .from('aulas')
     .select(
-      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, conferencia, palavras_extras, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
+      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, conferencia, palavras_extras, dicas, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
     )
     .eq('id', aulaId)
     .maybeSingle()
@@ -79,6 +82,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
         codigoInicial: e.codigo_inicial,
         conferencia: lerModo(e.conferencia),
         palavrasExtras: e.palavras_extras,
+        dicas: e.dicas ?? [],
         testes: [...e.testes]
           .sort((a, b) => a.ordem - b.ordem)
           .map((t) => ({ tipo: t.tipo as TipoDeTeste, entrada: t.entrada, saidaEsperada: t.saida_esperada })),
@@ -97,6 +101,8 @@ export interface DadosDoExercicio {
   testes: TesteDoProfessor[]
   conferencia: ModoDeConferencia
   palavrasExtras: string
+  /** Dicas do exercício; fica de fora nas questões de prova (que não têm dicas). */
+  dicas?: string[]
 }
 
 /** Regra de conferência de um exercício, no formato da correção. */
@@ -105,7 +111,7 @@ export const regraDe = (d: { conferencia: ModoDeConferencia; palavrasExtras: str
   palavras: d.palavrasExtras,
 })
 
-export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes' | 'palavrasExtras', string>> & {
+export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes' | 'palavrasExtras' | 'dicas', string>> & {
   /** Erro de cada teste, pela posição na lista. */
   porTeste?: Record<number, string>
 }
@@ -121,6 +127,9 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
   else if (!d.testes.some((t) => t.tipo !== 'secreto'))
     erros.testes = 'Coloque pelo menos um teste visível ou oculto: é com eles que o aluno confere o código.'
   if (d.palavrasExtras.trim().length > 500) erros.palavrasExtras = 'Use até 500 letras nas palavras que também contam.'
+  const dicas = limparDicas(d.dicas ?? [])
+  if (dicas.length > MAX_DICAS) erros.dicas = `Use até ${MAX_DICAS} dicas.`
+  else if (dicas.some((x) => x.length > MAX_LETRAS_DA_DICA)) erros.dicas = `Cada dica pode ter até ${MAX_LETRAS_DA_DICA} letras.`
   const porTeste: Record<number, string> = {}
   d.testes.forEach((t, i) => {
     if (!t.saidaEsperada.trim()) porTeste[i] = 'Escreva a saída esperada (ou preencha com a sua solução).'
@@ -130,7 +139,7 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
 }
 
 export function temErros(e: ErrosDoExercicio): boolean {
-  return Boolean(e.titulo || e.enunciado || e.testes || e.palavrasExtras || e.porTeste)
+  return Boolean(e.titulo || e.enunciado || e.testes || e.palavrasExtras || e.dicas || e.porTeste)
 }
 
 /**
@@ -150,6 +159,7 @@ export async function salvarExercicio(id: number | null, aulaId: number | null, 
     p_linguagem: d.linguagem,
     p_conferencia: d.conferencia,
     p_palavras_extras: d.palavrasExtras.trim(),
+    ...(d.dicas ? { p_dicas: limparDicas(d.dicas) } : {}),
   })
   if (error) throw error
   return data
@@ -270,6 +280,7 @@ export const NOVO_EXERCICIO: DadosDoExercicio = {
   codigoInicial: '',
   conferencia: 'valores',
   palavrasExtras: '',
+  dicas: [],
   testes: [
     { tipo: 'visivel', entrada: '', saidaEsperada: '' },
     { tipo: 'oculto', entrada: '', saidaEsperada: '' },

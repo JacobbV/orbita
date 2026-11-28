@@ -8,6 +8,8 @@ export interface Exercicio {
   linguagem: 'python' | 'javascript' | 'html'
   codigoInicial: string
   dificuldade: 1 | 2 | 3
+  /** Até 3 dicas do professor, abertas uma de cada vez. */
+  dicas: string[]
   aula: { id: number; numero: number; titulo: string; unidade: number; sigla: string }
 }
 
@@ -22,7 +24,7 @@ export async function carregarExercicio(id: number): Promise<{ exercicio: Exerci
   const { data, error } = await supabase()
     .from('exercicios')
     .select(
-      'id, titulo, enunciado, linguagem, codigo_inicial, dificuldade, aula:aulas!inner(id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla)))',
+      'id, titulo, enunciado, linguagem, codigo_inicial, dificuldade, dicas, aula:aulas!inner(id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla)))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -41,6 +43,7 @@ export async function carregarExercicio(id: number): Promise<{ exercicio: Exerci
       linguagem: data.linguagem as Exercicio['linguagem'],
       codigoInicial: data.codigo_inicial,
       dificuldade: data.dificuldade as Exercicio['dificuldade'],
+      dicas: data.dicas ?? [],
       aula: { id: a.id, numero: a.numero, titulo: a.titulo, unidade: a.unidade.numero, sigla: a.unidade.disciplina.sigla },
     },
     testes: (testes.data ?? []).map((t) => ({
