@@ -21,6 +21,7 @@ import {
   exerciciosLiberados,
   salaDoJogador,
   sentar,
+  SALAS_DE_ESTUDO,
   sinaisDoQuadro,
   tileDoPonto,
   usarEscada,
@@ -29,6 +30,7 @@ import {
 import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarPonte, carregarPonteNinja, type DisciplinaDaPonte } from '../lib/ponte'
+import { anunciarConquista, registrarPresencaEscola } from '../lib/progresso'
 import { dataHora, minhasProvas, type ProvaDoAluno } from '../lib/provas'
 import { useModoNinja } from '../ninja/ModoNinja'
 import './Escola.css'
@@ -120,10 +122,10 @@ export function Escola() {
     )
   }
   if (!avatar) return <Carregando />
-  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} />
+  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} ninja={ninja} />
 }
 
-function Mapa({ escolhas, disciplinas, provas }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[] }) {
+function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; ninja: boolean }) {
   const palco = useRef<HTMLDivElement>(null)
   const tela = useRef<HTMLCanvasElement>(null)
   const jogador = useRef<Jogador>({ ...INICIO })
@@ -381,6 +383,18 @@ function Mapa({ escolhas, disciplinas, provas }: { escolhas: Escolhas; disciplin
     document.addEventListener('fullscreenchange', aoMudar)
     return () => document.removeEventListener('fullscreenchange', aoMudar)
   }, [])
+  // Presença: um sinal por minuto enquanto sentado numa sala de estudo (o banco conta o tempo).
+  useEffect(() => {
+    if (!sentado || ninja) return
+    const enviar = () => {
+      const lugar = salaDoJogador(jogador.current)
+      if (!lugar || !SALAS_DE_ESTUDO.includes(lugar.id)) return
+      registrarPresencaEscola(lugar.id).then(anunciarConquista, () => {})
+    }
+    enviar()
+    const id = window.setInterval(enviar, 60_000)
+    return () => window.clearInterval(id)
+  }, [sentado, ninja])
   const levantarOuSentar = () => {
     const j = jogador.current
     if (j.sentado) {
