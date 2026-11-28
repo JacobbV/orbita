@@ -5,6 +5,7 @@ import { saudacao } from '../../lib/saudacao'
 import { AlertaDeProva } from './AlertaDeProva'
 import { Aulas } from './Aulas'
 import { Entregas } from './Entregas'
+import { Loja } from './Loja'
 import { Pedidos } from './Pedidos'
 import { Provas } from './Provas'
 import { Turmas } from './Turmas'
@@ -18,6 +19,7 @@ const ABAS = [
   { id: 'turmas', rotulo: 'Turmas' },
   { id: 'entregas', rotulo: 'Entregas' },
   { id: 'provas', rotulo: 'Provas' },
+  { id: 'loja', rotulo: 'Loja' },
 ] as const
 
 type Aba = (typeof ABAS)[number]['id']
@@ -60,6 +62,7 @@ export function Professor() {
       {aba === 'turmas' && <Turmas />}
       {aba === 'entregas' && <Entregas />}
       {aba === 'provas' && <Provas />}
+      {aba === 'loja' && <Loja />}
     </div>
   )
 }

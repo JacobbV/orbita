@@ -191,6 +191,13 @@ describe('Ponte de comando', () => {
     expect(screen.getByRole('progressbar', { name: 'XP até a patente Navegador' })).toHaveAttribute('aria-valuenow', '50')
   })
 
+  it('mostra as moedinhas com o atalho para a Loja', async () => {
+    progressoFalso.valor = { xp: 175, nivel: 2, patente: 'Piloto', xpDaPatente: 100, proxima: 'Navegador', xpDaProxima: 250, moedas: 12 }
+    carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
+    abrir('/ponte', ALUNO)
+    expect(await screen.findByRole('link', { name: '12 moedas. Abrir a Loja' })).toHaveAttribute('href', '/hangar?aba=loja')
+  })
+
   it('abrir o link externo da aula registra a abertura e mostra o XP ganho', async () => {
     carregarPonte.mockResolvedValue(dadosComUmaAulaLiberada())
     abrir('/ponte', ALUNO)

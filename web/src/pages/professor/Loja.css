@@ -1,0 +1,120 @@
+/* Aba Loja do painel do professor */
+.loja-painel-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.loja-painel-bloco h3 {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.loja-painel-form {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .loja-painel-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+  .loja-painel-form > .aviso,
+  .loja-painel-form > button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+.loja-painel-tipo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  border: none;
+  padding: 0;
+}
+
+.loja-painel-tipo legend {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.loja-painel-tipo label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+}
+
+.loja-painel-alunos,
+.loja-painel-pecas,
+.loja-painel-compras {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loja-painel-aluno,
+.loja-painel-peca,
+.loja-painel-compra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  background: var(--espaco);
+}
+
+.loja-painel-nome {
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.loja-painel-saldo,
+.loja-painel-preco {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--estrela);
+  font-weight: 800;
+}
+
+.loja-painel-preco input {
+  width: 5.5rem;
+  min-height: var(--alvo-toque);
+}
+
+.loja-painel-venda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--alvo-toque);
+}
+
+.loja-painel-detalhe {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.loja-painel-confirmar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.loja-painel-aviso { font-size: 0.875rem; }
+.loja-painel-aviso-sucesso { color: var(--sucesso); }
+.loja-painel-aviso-erro { color: #fca5a5; }
+
+@media (min-width: 1600px) {
+  .loja-painel-pecas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

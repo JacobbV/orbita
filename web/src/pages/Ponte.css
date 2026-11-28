@@ -555,3 +555,18 @@
     padding: 20px;
   }
 }
+
+/* Moedinhas da loja, logo abaixo do XP */
+.ponte-moedas {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--alvo-toque);
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+.ponte-moedas-loja {
+  color: var(--ciano-claro);
+  font-size: 0.875rem;
+}

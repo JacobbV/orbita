@@ -179,3 +179,18 @@ kbd {
     scroll-behavior: auto !important;
   }
 }
+
+/* Moedinha da lojinha: desenho + quantidade, sempre na mesma linha. */
+.moedas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--estrela);
+}
+
+.moeda {
+  flex: none;
+  image-rendering: pixelated;
+}

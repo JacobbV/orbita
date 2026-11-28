@@ -21,9 +21,11 @@ test.describe.serial('Hangar e Ver como aluno', () => {
     await page.getByRole('main').getByRole('link', { name: /Hangar/ }).click()
     await expect(page.getByRole('heading', { name: 'Monte o seu tripulante' })).toBeVisible()
 
-    // Com 0 XP, o cabelo arrepiado (250 XP) fica trancado.
+    // Com 0 XP, a jaqueta de piloto (uniforme, 250 XP) fica trancada; o arrepiado é da loja.
+    await page.getByRole('tab', { name: 'Roupa' }).click()
+    await expect(page.getByRole('button', { name: /Jaqueta de piloto/ })).toBeDisabled()
     await page.getByRole('tab', { name: 'Cabelo', exact: true }).click()
-    await expect(page.getByRole('button', { name: /Arrepiado/ })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Arrepiado/ })).toContainText('40')
     await page.getByRole('button', { name: /Cacheado/ }).click()
     await page.getByRole('tab', { name: 'Roupa' }).click()
     await expect(page.getByRole('button', { name: /Cardigã/ })).toHaveCount(0)

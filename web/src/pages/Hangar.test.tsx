@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { abrir, prepararNavegadorFalso, SEM_LOGIN } from '../test/renderizar'
 
 // Dados inventados; o banco é trocado por versões falsas.
-const falso = vi.hoisted(() => ({ salvos: [] as unknown[], xp: 120 }))
+const falso = vi.hoisted(() => ({ salvos: [] as unknown[], xp: 120, moedas: 20, compras: [] as string[], trocas: [] as number[] }))
 
 vi.mock('../lib/supabase', () => ({
   supabaseConfigurado: () => true,
@@ -23,10 +23,38 @@ vi.mock('../lib/avatar', async (original) => {
   }
 })
 
-vi.mock('../lib/progresso', async (original) => ({
-  ...(await original<typeof import('../lib/progresso')>()),
-  carregarProgresso: async () => ({ xp: falso.xp, nivel: 2, patente: 'Piloto', xpDaPatente: 100, proxima: 'Navegador', xpDaProxima: 250 }),
-}))
+// Catálogo igual ao do banco: as peças "todos" que abriam por XP viram peças da loja.
+vi.mock('../lib/loja', async (original) => {
+  const real = await original<typeof import('../lib/loja')>()
+  const { PECAS } = await import('../arte/avatar')
+  const preco: Record<number, number> = { 100: 15, 250: 40, 500: 80 }
+  return {
+    ...real,
+    carregarLoja: async () => ({
+      moedas: falso.moedas,
+      xp: falso.xp,
+      patente: 'Piloto',
+      xpDaPatente: 100,
+      pecas: real.lerCatalogo(
+        PECAS.map((p) =>
+          p.para === 'todos' && p.xpMinimo > 0
+            ? { id: p.id, preco: preco[p.xpMinimo] ?? 80, na_loja: true, xp_minimo: 0 }
+            : { id: p.id, preco: null, na_loja: false, xp_minimo: p.xpMinimo },
+        ),
+      ),
+      compradas: new Set<string>(),
+    }),
+    carregarMeusMovimentos: async () => [{ quantidade: 5, descricao: 'Boas-vindas à nave', criadoEm: '2026-11-28T12:00:00Z' }],
+    comprarPeca: async (id: string) => {
+      falso.compras.push(id)
+      return falso.moedas - 15
+    },
+    trocarXpPorMoedas: async (n: number) => {
+      falso.trocas.push(n)
+      return { moedas: falso.moedas + n, xp: falso.xp - n * 50, patente: 'Cadete' }
+    },
+  }
+})
 
 const ALUNO = {
   ...SEM_LOGIN,
@@ -41,16 +69,70 @@ const PROFESSOR = {
 beforeAll(prepararNavegadorFalso)
 beforeEach(() => {
   falso.salvos = []
+  falso.compras = []
+  falso.trocas = []
 })
 
 describe('Hangar', () => {
-  it('peças acima do XP do aluno ficam trancadas', async () => {
+  it('peças do uniforme acima do XP ficam trancadas; as da loja mostram o preço', async () => {
+    abrir('/hangar', ALUNO)
+    await userEvent.click(await screen.findByRole('tab', { name: 'Roupa' }))
+    const jaqueta = screen.getByRole('button', { name: /Jaqueta de piloto/ })
+    expect(jaqueta).toBeDisabled()
+    expect(jaqueta).toHaveTextContent('250 XP')
+    expect(screen.getByRole('button', { name: /Camiseta estrela/ })).toBeEnabled()
+    await userEvent.click(screen.getByRole('tab', { name: 'Cabelo' }))
+    const arrepiado = screen.getByRole('button', { name: /Arrepiado/ })
+    expect(arrepiado).toBeEnabled()
+    expect(arrepiado).toHaveTextContent('40')
+  })
+
+  it('experimentar peça da loja não deixa salvar antes de comprar', async () => {
     abrir('/hangar', ALUNO)
     await userEvent.click(await screen.findByRole('tab', { name: 'Cabelo' }))
-    expect(screen.getByRole('button', { name: /Coque/ })).toBeEnabled()
-    const arrepiado = screen.getByRole('button', { name: /Arrepiado/ })
-    expect(arrepiado).toBeDisabled()
-    expect(arrepiado).toHaveTextContent('250 XP')
+    await userEvent.click(screen.getByRole('button', { name: /Arrepiado/ }))
+    expect(screen.getByRole('button', { name: 'Salvar boneco' })).toBeDisabled()
+    expect(screen.getByText('Peça da loja: compre antes de salvar o boneco.')).toBeInTheDocument()
+    expect(screen.getByText('Faltam 20 moedas. Continue estudando!')).toBeInTheDocument()
+  })
+
+  it('na Loja, o aluno experimenta, confirma e compra', async () => {
+    abrir('/hangar?aba=loja', ALUNO)
+    expect(await screen.findByRole('heading', { name: 'Loja da nave' })).toBeInTheDocument()
+    expect(await screen.findByText('Boas-vindas à nave')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Jaqueta de piloto/ })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: /^Coque/ }))
+    expect(screen.getByRole('button', { name: /^Coque/ })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Comprar por 15 moedas' }))
+    expect(screen.getByText('Comprar Coque por 15 moedas? Sobram 5.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sim, comprar' }))
+    expect(await screen.findByText(/Coque agora é sua!/)).toBeInTheDocument()
+    expect(falso.compras).toEqual(['cabelo-coque'])
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar boneco' }))
+    expect(await screen.findByText('Boneco salvo!')).toBeInTheDocument()
+    expect(falso.salvos).toEqual([expect.objectContaining({ cabelo: 'cabelo-coque' })])
+  })
+
+  it('peça cara mostra quanto falta', async () => {
+    abrir('/hangar?aba=loja', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: /^Chapéu viking/ }))
+    expect(screen.getByText('Faltam 60 moedas. Continue estudando!')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Comprar por/ })).toBeNull()
+  })
+
+  it('troca de XP avisa que a patente desce e pede confirmação', async () => {
+    abrir('/hangar?aba=loja', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: 'Trocar 50 XP' }))
+    expect(screen.getByText('Trocar 50 XP por 1 moeda? Você fica com 70 XP e volta de patente.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sim, trocar' }))
+    expect(await screen.findByText('Pronto: +1 moeda. Agora você tem 70 XP.')).toBeInTheDocument()
+    expect(falso.trocas).toEqual([1])
+  })
+
+  it('professor não tem loja', async () => {
+    abrir('/hangar', PROFESSOR)
+    await screen.findByRole('heading', { name: 'Monte o seu boneco' })
+    expect(screen.queryByRole('tab', { name: 'Loja' })).toBeNull()
   })
 
   it('aluno não vê as peças do professor', async () => {
@@ -101,9 +183,9 @@ describe('Hangar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Tom 7' }))
     expect(screen.getByRole('button', { name: 'Tom 7' })).toHaveAttribute('aria-pressed', 'true')
     await userEvent.click(screen.getByRole('tab', { name: 'Cabelo' }))
-    expect(screen.getByRole('button', { name: 'Galáxia (abre com 250 XP)' })).toBeDisabled()
-    await userEvent.click(screen.getByRole('button', { name: 'Rosa' }))
-    expect(screen.getByRole('button', { name: 'Rosa' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Galáxia (na loja por 40 moedas)' })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Castanho' }))
+    expect(screen.getByRole('button', { name: 'Castanho' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('escolher minha cor guarda a cor livre do cabelo', async () => {
