@@ -140,3 +140,12 @@ describe('móveis e cadeiras', () => {
     expect(assentoPerto('terreo', INICIO.x, INICIO.y)).toBeUndefined()
   })
 })
+
+describe('laboratório grande', () => {
+  it('o Laboratório 1 tem lugar para uma turma de 40 junto com o Laboratório 2', () => {
+    const lugares = assentosDo('superior')
+    const doLab1 = lugares.filter((l) => l.id.startsWith('lab-1-'))
+    expect(doLab1.length).toBe(27)
+    expect(lugares.length).toBeGreaterThanOrEqual(40)
+  })
+})
