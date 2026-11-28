@@ -23,7 +23,7 @@ test.describe.serial('Hangar e Ver como aluno', () => {
 
     // Com 0 XP, a jaqueta de piloto (uniforme, 250 XP) fica trancada; o arrepiado é da loja.
     await page.getByRole('tab', { name: 'Roupa' }).click()
-    await expect(page.getByRole('button', { name: /Jaqueta de piloto/ })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Jaqueta de aviador/ })).toBeDisabled()
     await page.getByRole('tab', { name: 'Cabelo', exact: true }).click()
     await expect(page.getByRole('button', { name: /Arrepiado/ })).toContainText('40')
     await page.getByRole('button', { name: /Cacheado/ }).click()

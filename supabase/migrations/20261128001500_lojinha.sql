@@ -38,6 +38,13 @@ set preco = case xp_minimo when 100 then 15 when 250 then 40 else 80 end,
     xp_minimo = 0
 where xp_minimo > 0 and para = 'todos';
 
+-- Uniforme da nave redesenhado no estilo aviador: nomes novos.
+update public.pecas set nome = 'Camiseta de piloto' where id = 'roupa-camiseta-estrela';
+update public.pecas set nome = 'Jaqueta de aviador' where id = 'roupa-jaqueta-de-piloto';
+update public.pecas set nome = 'Capacete de piloto' where id = 'acessorio-capacete';
+update public.pecas set nome = 'Óculos de aviador' where id = 'acessorio-visor';
+update public.pecas set nome = 'Asas de piloto' where id = 'acessorio-broche';
+
 -- -----------------------------------------------------------------------------
 -- Moedas ganhas (e tiradas) e compras
 -- -----------------------------------------------------------------------------

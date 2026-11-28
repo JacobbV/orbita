@@ -28,6 +28,10 @@ function igual(antigo: v1.Escolhas) {
 
 const CORPOS = ['corpo-estreito', 'corpo-medio', 'corpo-largo']
 
+// O uniforme da nave foi redesenhado de propósito em 28/11/2026 (estilo
+// aviador): estas 5 peças não precisam sair iguais às antigas.
+const REDESENHADAS = new Set(['roupa-camiseta-estrela', 'roupa-jaqueta-de-piloto', 'acessorio-capacete', 'acessorio-visor', 'acessorio-broche'])
+
 describe('bonecos antigos continuam iguais', () => {
   it('os três padrões', () => {
     igual(v1.PADRAO_ALUNO)
@@ -37,7 +41,7 @@ describe('bonecos antigos continuam iguais', () => {
 
   it('cada peça antiga, em cada corpo antigo', () => {
     for (const corpo of CORPOS) {
-      for (const p of v1.PECAS) {
+      for (const p of v1.PECAS.filter((x) => !REDESENHADAS.has(x.id))) {
         for (const padrao of [v1.PADRAO_ALUNO, v1.PADRAO_PROFESSOR]) igual({ ...padrao, corpo, [p.camada]: p.id })
       }
     }

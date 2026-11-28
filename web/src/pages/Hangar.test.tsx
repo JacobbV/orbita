@@ -77,10 +77,10 @@ describe('Hangar', () => {
   it('peças do uniforme acima do XP ficam trancadas; as da loja mostram o preço', async () => {
     abrir('/hangar', ALUNO)
     await userEvent.click(await screen.findByRole('tab', { name: 'Roupa' }))
-    const jaqueta = screen.getByRole('button', { name: /Jaqueta de piloto/ })
+    const jaqueta = screen.getByRole('button', { name: /Jaqueta de aviador/ })
     expect(jaqueta).toBeDisabled()
     expect(jaqueta).toHaveTextContent('250 XP')
-    expect(screen.getByRole('button', { name: /Camiseta estrela/ })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Camiseta de piloto/ })).toBeEnabled()
     await userEvent.click(screen.getByRole('tab', { name: 'Cabelo' }))
     const arrepiado = screen.getByRole('button', { name: /Arrepiado/ })
     expect(arrepiado).toBeEnabled()
@@ -100,7 +100,7 @@ describe('Hangar', () => {
     abrir('/hangar?aba=loja', ALUNO)
     expect(await screen.findByRole('heading', { name: 'Loja da nave' })).toBeInTheDocument()
     expect(await screen.findByText('Boas-vindas à nave')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Jaqueta de piloto/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Jaqueta de aviador/ })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: /^Coque/ }))
     expect(screen.getByRole('button', { name: /^Coque/ })).toHaveAttribute('aria-pressed', 'true')
     await userEvent.click(screen.getByRole('button', { name: 'Comprar por 15 moedas' }))
@@ -161,7 +161,7 @@ describe('Hangar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Corpo e mãos' }))
     expect(screen.getByRole('button', { name: /Notebook com adesivos/ })).toBeEnabled()
     expect(screen.getByRole('button', { name: /Caneca de café/ })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByRole('button', { name: /Capacete espacial/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Capacete de piloto/ })).toBeNull()
   })
 
   it('corpo: base, altura e tipo, um embaixo do outro', async () => {
