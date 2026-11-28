@@ -68,6 +68,24 @@ export function podarColegas(colegas: Map<string, Colega>, agora: number): void 
   }
 }
 
+/** Aula que o professor está transmitindo numa sala. Só leva o número: o título vem das aulas do próprio aluno. */
+export interface AulaAoVivo {
+  aulaId: number
+  sala: string
+  visto: number
+}
+
+/** A transmissão some se o professor ficar 15 s sem mandar o sinal. */
+export const AULA_SUMIU_APOS_MS = 15000
+
+export function lerAula(bruto: unknown, agora: number): AulaAoVivo | null {
+  if (!bruto || typeof bruto !== 'object') return null
+  const m = bruto as Record<string, unknown>
+  if (typeof m.aulaId !== 'number' || !Number.isInteger(m.aulaId) || m.aulaId <= 0) return null
+  if (typeof m.sala !== 'string' || !/^[a-z0-9-]{1,20}$/.test(m.sala)) return null
+  return { aulaId: m.aulaId, sala: m.sala, visto: agora }
+}
+
 export interface MinhaPosicao {
   id: string
   apelido: string
@@ -82,16 +100,27 @@ export interface MinhaPosicao {
 
 export interface CanalDaEscola {
   enviar: (p: MinhaPosicao) => void
+  /** Professor: sinal da aula ao vivo (repetir a cada poucos segundos). */
+  enviarAula: (aulaId: number, sala: string) => void
   fechar: () => void
 }
 
 /** Entra no canal. `falar` false: só escuta (Modo Ninja entra invisível). */
-export function entrarNaEscola(meuId: string, aoReceber: (c: Colega) => void, falar: boolean): CanalDaEscola {
+export function entrarNaEscola(
+  meuId: string,
+  aoReceber: (c: Colega) => void,
+  falar: boolean,
+  aoReceberAula: (a: AulaAoVivo) => void = () => {},
+): CanalDaEscola {
   const cliente = supabase()
   const canal = cliente.channel('escola', { config: { private: true, broadcast: { self: false } } })
   canal.on('broadcast', { event: 'pos' }, ({ payload }) => {
     const c = lerColega(payload, performance.now())
     if (c && c.id !== meuId) aoReceber(c)
+  })
+  canal.on('broadcast', { event: 'aula' }, ({ payload }) => {
+    const a = lerAula(payload, performance.now())
+    if (a) aoReceberAula(a)
   })
   let pronto = false
   canal.subscribe((estado) => {
@@ -101,6 +130,10 @@ export function entrarNaEscola(meuId: string, aoReceber: (c: Colega) => void, fa
     enviar: (p) => {
       if (!falar || !pronto) return
       void canal.send({ type: 'broadcast', event: 'pos', payload: p })
+    },
+    enviarAula: (aulaId, sala) => {
+      if (!pronto) return
+      void canal.send({ type: 'broadcast', event: 'aula', payload: { aulaId, sala } })
     },
     fechar: () => {
       void cliente.removeChannel(canal)

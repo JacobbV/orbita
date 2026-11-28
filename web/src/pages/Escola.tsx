@@ -30,7 +30,7 @@ import {
 import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarPonte, carregarPonteNinja, type DisciplinaDaPonte } from '../lib/ponte'
-import { entrarNaEscola, podarColegas, type CanalDaEscola, type Colega } from '../lib/escola-ao-vivo'
+import { AULA_SUMIU_APOS_MS, entrarNaEscola, podarColegas, type AulaAoVivo, type CanalDaEscola, type Colega } from '../lib/escola-ao-vivo'
 import { cadeirasOcupadas, escolherCadeira, soltarCadeira } from '../lib/cadeiras'
 import { anunciarConquista, registrarPresencaEscola } from '../lib/progresso'
 import { dataHora, minhasProvas, type ProvaDoAluno } from '../lib/provas'
@@ -127,10 +127,10 @@ export function Escola() {
     )
   }
   if (!avatar) return <Carregando />
-  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} ninja={ninja} meuId={perfilId} apelido={perfil?.apelido ?? (perfil?.papel === 'professor' ? 'Professor' : 'Astronauta')} />
+  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} ninja={ninja} meuId={perfilId} professor={perfil?.papel === 'professor'} apelido={perfil?.apelido ?? (perfil?.papel === 'professor' ? 'Professor' : 'Astronauta')} />
 }
 
-function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; ninja: boolean; apelido: string; meuId: string | undefined }) {
+function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId, professor }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; ninja: boolean; apelido: string; meuId: string | undefined; professor: boolean }) {
   const palco = useRef<HTMLDivElement>(null)
   const tela = useRef<HTMLCanvasElement>(null)
   const jogador = useRef<Jogador>({ ...INICIO })
@@ -150,6 +150,9 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolh
   const colegas = useRef(new Map<string, Colega>())
   const spritesColegas = useRef(new Map<string, { chave: string; quadros: Record<string, HTMLCanvasElement> }>())
   const canal = useRef<CanalDaEscola | null>(null)
+  // Aula ao vivo: o professor transmite uma aula na sala; quem está na sala vê o convite.
+  const [aulaAoVivo, setAulaAoVivo] = useState<AulaAoVivo | null>(null)
+  const [transmitindo, setTransmitindo] = useState<{ aulaId: number; sala: string } | null>(null)
   const [minhaCadeira, setMinhaCadeira] = useState<string | null>(null)
   const [avisoCadeira, setAvisoCadeira] = useState<string | null>(null)
 
@@ -452,7 +455,7 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolh
     if (!meuId) return
     let aberto: CanalDaEscola
     try {
-      aberto = entrarNaEscola(meuId, (c) => colegas.current.set(c.id, c), !ninja)
+      aberto = entrarNaEscola(meuId, (c) => colegas.current.set(c.id, c), !ninja, setAulaAoVivo)
     } catch {
       return // sem Realtime a escola funciona do mesmo jeito, só sem colegas
     }
@@ -464,6 +467,34 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolh
       mapa.clear()
     }
   }, [meuId, ninja])
+
+  // Professor: repete o sinal da aula a cada 5 s enquanto transmite.
+  useEffect(() => {
+    if (!transmitindo) return
+    const enviar = () => canal.current?.enviarAula(transmitindo.aulaId, transmitindo.sala)
+    enviar()
+    const id = window.setInterval(enviar, 5000)
+    return () => window.clearInterval(id)
+  }, [transmitindo])
+  // Aluno: a transmissão some se o sinal parar.
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setAulaAoVivo((a) => (a && performance.now() - a.visto > AULA_SUMIU_APOS_MS ? null : a))
+    }, 3000)
+    return () => window.clearInterval(id)
+  }, [])
+  const alternarTransmissao = (aulaId: number) => {
+    if (!sala) return
+    setTransmitindo((t) => (t && t.aulaId === aulaId && t.sala === sala.id ? null : { aulaId, sala: sala.id }))
+  }
+  const aulaDoConvite = useMemo(() => {
+    if (!aulaAoVivo || !sala || sala.id !== aulaAoVivo.sala) return null
+    for (const d of disciplinas) {
+      const a = aulasLiberadas(d).find((x) => x.id === aulaAoVivo.aulaId)
+      if (a) return a
+    }
+    return null
+  }, [aulaAoVivo, sala, disciplinas])
 
   const atualizarCadeiras = useCallback(() => {
     if (ninja) return
@@ -569,13 +600,34 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolh
           ))}
         </div>
         {quadroAberto && <QuadroDeAvisos disciplinas={disciplinas} provas={provas} aoFechar={() => setQuadroAberto(false)} />}
-        <PainelDaSala sala={sala} disciplinas={disciplinas} />
+        {aulaDoConvite && !professor && (
+        <section className="escola-painel cartao escola-aovivo" role="status">
+          <p className="pixel escola-selo">Aula ao vivo</p>
+          <h2>{aulaDoConvite.titulo}</h2>
+          <Link className="botao botao-primario" to={`/aula/${aulaDoConvite.id}`}>
+            Entrar na aula
+          </Link>
+        </section>
+      )}
+      <PainelDaSala sala={sala} disciplinas={disciplinas} professor={professor} transmitindoId={transmitindo?.sala === sala?.id ? transmitindo?.aulaId ?? null : null} aoTransmitir={alternarTransmissao} />
       </div>
     </div>
   )
 }
 
-function PainelDaSala({ sala, disciplinas }: { sala: Sala | null; disciplinas: DisciplinaDaPonte[] }) {
+function PainelDaSala({
+  sala,
+  disciplinas,
+  professor,
+  transmitindoId,
+  aoTransmitir,
+}: {
+  sala: Sala | null
+  disciplinas: DisciplinaDaPonte[]
+  professor: boolean
+  transmitindoId: number | null
+  aoTransmitir: (aulaId: number) => void
+}) {
   if (!sala) {
     return (
       <section className="escola-painel cartao" aria-live="polite">
@@ -595,13 +647,23 @@ function PainelDaSala({ sala, disciplinas }: { sala: Sala | null; disciplinas: D
           {acao.rotulo}
         </Link>
       )}
-      {acao.tipo === 'aulas' && <ListaDeAulas disciplinas={disciplinas} />}
+      {acao.tipo === 'aulas' && <ListaDeAulas disciplinas={disciplinas} professor={professor && sala.tipo === 'sala'} transmitindoId={transmitindoId} aoTransmitir={aoTransmitir} />}
       {acao.tipo === 'exercicios' && <ListaDeExercicios disciplinas={disciplinas} />}
     </section>
   )
 }
 
-function ListaDeAulas({ disciplinas }: { disciplinas: DisciplinaDaPonte[] }) {
+function ListaDeAulas({
+  disciplinas,
+  professor,
+  transmitindoId,
+  aoTransmitir,
+}: {
+  disciplinas: DisciplinaDaPonte[]
+  professor: boolean
+  transmitindoId: number | null
+  aoTransmitir: (aulaId: number) => void
+}) {
   const grupos = disciplinas.map((d) => ({ d, aulas: aulasLiberadas(d) })).filter((g) => g.aulas.length > 0)
   if (grupos.length === 0) return <p>Nenhuma aula liberada ainda. O professor libera uma a uma.</p>
   return (
@@ -615,6 +677,11 @@ function ListaDeAulas({ disciplinas }: { disciplinas: DisciplinaDaPonte[] }) {
                 <Link to={`/aula/${a.id}`}>
                   <span className="escola-rotulo">{a.rotulo}</span> {a.titulo}
                 </Link>
+                {professor && (
+                  <button type="button" className="escola-botao" onClick={() => aoTransmitir(a.id)} aria-pressed={transmitindoId === a.id}>
+                    {transmitindoId === a.id ? 'Encerrar aula ao vivo' : 'Transmitir ao vivo'}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
