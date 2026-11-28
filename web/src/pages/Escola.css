@@ -1,0 +1,108 @@
+.escola {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 24px 48px;
+}
+
+.escola-topo h1 {
+  margin: 4px 0;
+}
+
+.escola-selo {
+  margin: 0;
+  color: var(--nebulosa);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+
+.escola-explica {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.escola-palco {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  background: var(--espaco);
+}
+
+.escola-tela {
+  display: block;
+  width: 100%;
+  image-rendering: pixelated;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.escola-direcional {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(2, 48px);
+  gap: 4px;
+  touch-action: none;
+}
+
+.escola-seta {
+  min-width: 48px;
+  min-height: 48px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--casco) 85%, transparent);
+  color: var(--texto);
+  font-size: 1.25rem;
+  touch-action: none;
+}
+
+.escola-seta[data-seta='↑'] { grid-column: 2; grid-row: 1; }
+.escola-seta[data-seta='←'] { grid-column: 1; grid-row: 2; }
+.escola-seta[data-seta='↓'] { grid-column: 2; grid-row: 2; }
+.escola-seta[data-seta='→'] { grid-column: 3; grid-row: 2; }
+
+/* Em telas grandes o teclado basta; os botões ficam só no toque. */
+@media (hover: hover) and (pointer: fine) {
+  .escola-direcional { display: none; }
+}
+
+.escola-painel {
+  padding: 16px;
+}
+
+.escola-painel h2,
+.escola-painel h3 {
+  margin: 4px 0 8px;
+}
+
+.escola-painel p { margin: 0 0 8px; color: var(--texto-suave); }
+
+.escola-grupo ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.escola-grupo a {
+  display: block;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.escola-grupo a:hover { border-color: var(--ciano); }
+
+.escola-rotulo {
+  margin-right: 8px;
+  color: var(--ciano);
+  font-size: 0.8125rem;
+}
