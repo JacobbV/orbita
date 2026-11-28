@@ -5,7 +5,7 @@ import { Aviso } from '../components/Aviso'
 import { Carregando } from '../components/Carregando'
 import { ALTURA_MAPA, LARGURA_MAPA, TILE, desenharAndar, salasDo, type Andar, type Sala } from '../arte/escola'
 import { corDaSala, desenharPlacas, nomeNoMapa } from '../arte/escola-placas'
-import { coresDoMini, miniBonecoPixels } from '../arte/escola-boneco'
+import { coresDoMini, miniBonecoPixels, type CoresMini } from '../arte/escola-boneco'
 import type { Escolhas } from '../arte/avatar'
 import { carregarAvatar, carregarAvatarNinja } from '../lib/avatar'
 import {
@@ -30,6 +30,7 @@ import {
 import { listarOfertas } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { carregarPonte, carregarPonteNinja, type DisciplinaDaPonte } from '../lib/ponte'
+import { entrarNaEscola, podarColegas, type CanalDaEscola, type Colega } from '../lib/escola-ao-vivo'
 import { cadeirasOcupadas, escolherCadeira, soltarCadeira } from '../lib/cadeiras'
 import { anunciarConquista, registrarPresencaEscola } from '../lib/progresso'
 import { dataHora, minhasProvas, type ProvaDoAluno } from '../lib/provas'
@@ -62,7 +63,10 @@ function pintarAndar(andar: Andar): HTMLCanvasElement {
 
 /** Os 12 quadros do mini-boneco (4 direções × parado e dois passos), já desenhados. */
 function pintarQuadros(escolhas: Escolhas): Record<string, HTMLCanvasElement> {
-  const cores = coresDoMini(escolhas)
+  return pintarQuadrosDeCores(coresDoMini(escolhas))
+}
+
+function pintarQuadrosDeCores(cores: CoresMini): Record<string, HTMLCanvasElement> {
   const saida: Record<string, HTMLCanvasElement> = {}
   for (const d of ['baixo', 'cima', 'esquerda', 'direita'] as const) {
     for (const q of [0, 1, 2] as const) {
@@ -123,10 +127,10 @@ export function Escola() {
     )
   }
   if (!avatar) return <Carregando />
-  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} ninja={ninja} />
+  return <Mapa escolhas={avatar} disciplinas={disciplinas ?? []} provas={provas} ninja={ninja} meuId={perfilId} apelido={perfil?.apelido ?? (perfil?.papel === 'professor' ? 'Professor' : 'Astronauta')} />
 }
 
-function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; ninja: boolean }) {
+function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId }: { escolhas: Escolhas; disciplinas: DisciplinaDaPonte[]; provas: ProvaDoAluno[]; ninja: boolean; apelido: string; meuId: string | undefined }) {
   const palco = useRef<HTMLDivElement>(null)
   const tela = useRef<HTMLCanvasElement>(null)
   const jogador = useRef<Jogador>({ ...INICIO })
@@ -142,6 +146,10 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
   const sentarAoChegar = useRef<string | null>(null)
   // Cadeiras marcadas dos laboratórios: id do assento -> é a minha?
   const cadeiras = useRef(new Map<string, boolean>())
+  // Colegas vistos no mapa (Realtime) e os bonecos já desenhados deles.
+  const colegas = useRef(new Map<string, Colega>())
+  const spritesColegas = useRef(new Map<string, { chave: string; quadros: Record<string, HTMLCanvasElement> }>())
+  const canal = useRef<CanalDaEscola | null>(null)
   const [minhaCadeira, setMinhaCadeira] = useState<string | null>(null)
   const [avisoCadeira, setAvisoCadeira] = useState<string | null>(null)
 
@@ -158,6 +166,8 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
     let passoTempo = 0
     let ultimo = performance.now()
     let anterior = ''
+    const ultimoEnvio = { texto: '', quando: 0 }
+    const minhasCores = coresDoMini(escolhas)
 
     const medir = () => {
       const w = Math.max(240, caixa.clientWidth)
@@ -300,6 +310,47 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
         ctx.fillRect(mx - e, my - 2 * e, 2 * e, 4 * e)
         ctx.fillRect(mx - 2 * e, my - e, 4 * e, 2 * e)
       }
+      // Colegas: quem está no mesmo andar aparece com o apelido por cima da cabeça.
+      podarColegas(colegas.current, agora)
+      const vistos = [...colegas.current.values()].filter((c) => c.andar === j.andar).sort((p, q) => p.y - q.y)
+      for (const c of vistos) {
+        const chave = JSON.stringify(c.cores)
+        let feito = spritesColegas.current.get(c.id)
+        if (!feito || feito.chave !== chave) {
+          feito = { chave, quadros: pintarQuadrosDeCores(c.cores) }
+          spritesColegas.current.set(c.id, feito)
+        }
+        const img = feito.quadros[`${c.direcao}${c.quadro}`]
+        if (!img) continue
+        const cx = Math.round(c.x * e - camX)
+        const cy = Math.round(c.y * e - camY)
+        if (cx < -40 || cx > w + 40 || cy < -40 || cy > h + 80) continue
+        ctx.fillStyle = 'rgba(0,0,0,0.28)'
+        ctx.fillRect(cx - 5 * e, cy - e, 10 * e, 2 * e)
+        if (c.sentado) {
+          const corte = img.height - 6
+          ctx.drawImage(img, 0, 0, img.width, corte, cx - (img.width / 2) * e, cy - (img.height - 1) * e + 3 * e, img.width * e, corte * e)
+        } else {
+          ctx.drawImage(img, cx - (img.width / 2) * e, cy - (img.height - 1) * e, img.width * e, img.height * e)
+        }
+        ctx.font = `${Math.round(3.5 * e)}px 'Orbita Pixel Acentos', 'Press Start 2P', monospace`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'bottom'
+        const larg = ctx.measureText(c.apelido).width + 3 * e
+        const ty = cy - img.height * e + 2 * e
+        ctx.fillStyle = 'rgba(11,14,31,0.78)'
+        ctx.fillRect(Math.round(cx - larg / 2), ty - 6 * e, Math.round(larg), 6 * e)
+        ctx.fillStyle = '#E5E7F5'
+        ctx.fillText(c.apelido, cx, ty - e / 2)
+      }
+      for (const id of spritesColegas.current.keys()) if (!colegas.current.has(id)) spritesColegas.current.delete(id)
+      // Minha posição para os colegas: quando muda, no máximo 4 vezes por segundo, e um sinal a cada 2 s parado.
+      const envio = `${j.andar}|${Math.round(j.x)}|${Math.round(j.y)}|${j.direcao}|${quadro}|${j.sentado ? 1 : 0}`
+      if (meuId && (envio !== ultimoEnvio.texto ? agora - ultimoEnvio.quando > 250 : agora - ultimoEnvio.quando > 2000)) {
+        ultimoEnvio.texto = envio
+        ultimoEnvio.quando = agora
+        canal.current?.enviar({ id: meuId, apelido, cores: minhasCores, andar: j.andar, x: Math.round(j.x), y: Math.round(j.y), direcao: j.direcao, quadro: quadro === 1 || quadro === 2 ? quadro : 0, sentado: Boolean(j.sentado) })
+      }
       const spr = quadros[`${j.direcao}${quadro}`]
       if (spr && j.sentado) {
         // sentado: só o corpo de cima aparece, as pernas ficam atrás da mesa
@@ -352,7 +403,7 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
       window.removeEventListener('keydown', baixo)
       window.removeEventListener('keyup', cima)
     }
-  }, [andares, quadros])
+  }, [andares, quadros, escolhas, meuId, apelido])
 
   const tocar = useCallback((ev: React.PointerEvent<HTMLCanvasElement>) => {
     const cv = tela.current
@@ -397,6 +448,23 @@ function Mapa({ escolhas, disciplinas, provas, ninja }: { escolhas: Escolhas; di
     document.addEventListener('fullscreenchange', aoMudar)
     return () => document.removeEventListener('fullscreenchange', aoMudar)
   }, [])
+  useEffect(() => {
+    if (!meuId) return
+    let aberto: CanalDaEscola
+    try {
+      aberto = entrarNaEscola(meuId, (c) => colegas.current.set(c.id, c), !ninja)
+    } catch {
+      return // sem Realtime a escola funciona do mesmo jeito, só sem colegas
+    }
+    canal.current = aberto
+    const mapa = colegas.current
+    return () => {
+      aberto.fechar()
+      canal.current = null
+      mapa.clear()
+    }
+  }, [meuId, ninja])
+
   const atualizarCadeiras = useCallback(() => {
     if (ninja) return
     cadeirasOcupadas().then(
