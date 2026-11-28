@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
-import { criarConta, criarProfessor, emailDeTeste, entrar, enviarApostilaDeTeste, enviarSlidesDeTeste, oferta, registrarErros, rest } from './apoio.ts'
+import { criarConta, criarProfessor, emailDeTeste, entrar, enviarApostilaDeTeste, enviarSlidesDeTeste, oferta, registrarErros, rest, sortearApelidoDe } from './apoio.ts'
 
 // Todas as telas em larguras de celular pequeno até monitor ultrawide:
 // sem rolagem horizontal, céu cobrindo a tela, alvos de toque com 44px ou
@@ -21,6 +21,8 @@ type Papel = 'visitante' | 'aluno' | 'professor'
 let slidesId = 0
 /** Oferta de Algoritmos do 1º INFO M, para o XP da turma. */
 let ofertaAlgM = 0
+/** Turma 1º INFO M (ranking). */
+let turmaAlgM = 0
 /** Aula I.1 de Algoritmos, para a tela de exercícios do painel. */
 let aulaI1 = 0
 /** Exercício de Soma na aula I.1, com uma entrega já corrigida. */
@@ -127,6 +129,25 @@ const TELAS: Tela[] = [
     papel: 'professor',
     preparar: async (page) => {
       await expect(page.getByRole('heading', { name: '1º INFO M' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Ranking da turma',
+    caminho: 'ranking',
+    papel: 'aluno',
+    preparar: async (page) => {
+      await expect(page.getByRole('heading', { name: 'Ranking da tripulação' })).toBeVisible()
+      await expect(page.getByRole('list', { name: 'Ranking semana' })).toBeVisible()
+    },
+  },
+  {
+    nome: 'Painel: ranking da turma',
+    get caminho() {
+      return `professor/ranking/${turmaAlgM}`
+    },
+    papel: 'professor',
+    preparar: async (page) => {
+      await expect(page.getByRole('list', { name: 'Participantes do ranking' })).toBeVisible()
     },
   },
   {
@@ -288,6 +309,20 @@ test.beforeAll(async ({ browser }) => {
     quemEVoce: 'Plutão Exemplo de Oliveira Fictício, 1º INFO M, manhã',
   })
   await rest(`matriculas?aluno_id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
+  // Um colega com apelido já está no ranking, para a tela do ranking ter uma linha.
+  turmaAlgM = (await rest<Array<{ id: number }>>(`turmas?nome=eq.${encodeURIComponent('1º INFO M')}&select=id`))[0]?.id ?? 0
+  const colega = emailDeTeste('larguras-colega')
+  const idColega = await criarConta(colega, 'Régulo Colega Fictício', {
+    ofertaId: algM,
+    quemEVoce: 'Régulo Colega Fictício, 1º INFO M, manhã',
+  })
+  await rest(`matriculas?aluno_id=eq.${idColega}`, { method: 'PATCH', body: JSON.stringify({ status: 'aprovado' }) })
+  await sortearApelidoDe(colega)
+  await rest('ranking_participantes?on_conflict=aluno_id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=ignore-duplicates' },
+    body: JSON.stringify({ aluno_id: idColega }),
+  })
   await rest('matriculas', {
     method: 'POST',
     body: JSON.stringify({
