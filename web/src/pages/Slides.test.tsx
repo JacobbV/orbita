@@ -175,7 +175,8 @@ describe('Slides: marcador de página', () => {
     abrir('/slides/7', ALUNO)
     const moldura = await screen.findByTitle('Slides: Listas')
     slideAberto(moldura, 1)
-    expect(await screen.findByTestId('fita-do-marcador')).toBeInTheDocument()
+    // A fita depende de duas esperas (slides e anotações); na máquina do GitHub, sob carga, passou de 1 s.
+    expect(await screen.findByTestId('fita-do-marcador', {}, { timeout: 3000 })).toBeInTheDocument()
     expect(screen.queryByText(/Você parou no slide/)).toBeNull()
   })
 
