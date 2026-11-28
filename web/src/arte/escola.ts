@@ -91,16 +91,16 @@ export const SALAS: Sala[] = [
   s('terreo', A, 'sala-8', 'Sala 8', 'sala', 9, 7, true),
   s('terreo', A, 'sala-7', 'Sala 7', 'sala', 17, 7, true),
   s('terreo', A, 'wc-fem', 'WC Feminino', 'wc-f', 25, 3, true),
-  s('terreo', A, 'lavanderia', 'Lavanderia', 'lavanderia', 29, 2, true),
+  s('terreo', A, 'lavanderia', 'Lavanderia', 'lavanderia', 29, 2, false),
   s('terreo', A, 'wc-masc', 'WC Masculino', 'wc-m', 32, 3, true),
-  s('terreo', A, 'sala-2', 'Sala 2', 'sala', 36, 7, true),
-  s('terreo', A, 'sala-1', 'Sala 1', 'sala', 44, 7, true),
-  s('terreo', B, 'sala-6', 'Sala 6', 'sala', 9, 7, true),
-  s('terreo', B, 'sala-5', 'Sala 5', 'sala', 17, 7, true),
+  s('terreo', A, 'sala-2', 'Sala 2', 'sala', 36, 7, false),
+  s('terreo', A, 'sala-1', 'Sala 1', 'sala', 44, 7, false),
+  s('terreo', B, 'sala-6', 'Sala 6', 'sala', 9, 7, false),
+  s('terreo', B, 'sala-5', 'Sala 5', 'sala', 17, 7, false),
   s('terreo', B, 'coped', 'COPED', 'coordenacao', 25, 5, true),
   s('terreo', B, 'coord-info', 'Coord. Informática', 'coordenacao', 31, 4, true),
-  s('terreo', B, 'sala-4', 'Sala 4', 'sala', 36, 7, true),
-  s('terreo', B, 'sala-3', 'Sala 3', 'sala', 44, 7, true),
+  s('terreo', B, 'sala-4', 'Sala 4', 'sala', 36, 7, false),
+  s('terreo', B, 'sala-3', 'Sala 3', 'sala', 44, 7, false),
   // Térreo, bloco de baixo
   s('terreo', C, 'cozinha', 'Cozinha', 'cozinha', 9, 7, false),
   s('terreo', C, 'copa', 'Copa', 'copa', 17, 5, true),
@@ -717,7 +717,7 @@ export function desenharAndar(andar: Andar, pinta: Pinta): void {
         chaoXadrez(pinta, x, y, COR.concreto, COR.concretoJunta, 16)
         break
       case 'w':
-        chaoXadrez(pinta, x, y, '#c2bdb3', '#aaa498', 16)
+        chaoXadrez(pinta, x, y, COR.corredor, COR.corredorJunta)
         break
       case 'v':
         piso(pinta, tx, ty)

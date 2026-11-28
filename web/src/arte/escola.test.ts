@@ -47,8 +47,8 @@ describe('mapa da escola', () => {
   it('tem as salas pedidas acesas', () => {
     const acesas = SALAS.filter((s) => s.ativa).map((s) => s.id).sort()
     expect(acesas).toEqual([
-      'biblioteca', 'coord-info', 'copa', 'coped', 'lab-1', 'lab-2', 'lab-cad', 'lavanderia', 'leitura',
-      'sala-1', 'sala-2', 'sala-3', 'sala-4', 'sala-5', 'sala-6', 'sala-7', 'sala-8', 'wc-fem', 'wc-masc',
+      'biblioteca', 'coord-info', 'copa', 'coped', 'lab-1', 'lab-2', 'lab-cad', 'leitura',
+      'sala-7', 'sala-8', 'wc-fem', 'wc-masc',
     ])
   })
 })

@@ -25,6 +25,8 @@ export interface CoresMini {
   /** Cabelo que desce até os ombros. */
   longo: boolean
   careca: boolean
+  /** Segunda cor da roupa (ex.: o verde da farda do IF), ou null. */
+  detalhe: string | null
 }
 
 function moda(cores: (string | null | undefined)[], fora: Set<string>): string | null {
@@ -71,9 +73,10 @@ export function coresDoMini(escolhas: Escolhas): CoresMini {
       break
     }
   }
+  const detalhe = moda(regiao(gola, gola + 5, meio - 8, meio + 7), new Set([...fora, camisa, calcado, calca, ...doCabelo]))
   const lados = regiao(topo + 14, topo + 22, meio - 10, meio - 7).concat(regiao(topo + 14, topo + 22, meio + 6, meio + 9))
   const longo = !careca && lados.filter((c) => c && doCabelo.has(c)).length >= 6
-  return { pele, cabelo, camisa, calca, calcado, longo, careca }
+  return { pele, cabelo, camisa, calca, calcado, longo, careca, detalhe }
 }
 
 // Legenda: h cabelo, p pele, o olho, c camisa, C sombra da camisa, l calça,
@@ -87,9 +90,9 @@ const FRENTE: readonly string[] = [
   '.LppoppoppL.',
   '.LppppppppL.',
   '.L.pppppp.L.',
-  '..cccccccc..',
-  '.cccccccccc.',
-  '.cccccccccc.',
+  '..dccccccd..',
+  '.dcccccccd.',
+  '.dcccccccd.',
   '.pccccccccp.',
   '..CCCCCCCC..',
   '..llllllll..',
@@ -107,9 +110,9 @@ const COSTAS: readonly string[] = [
   '.LhhhhhhhhL.',
   '.LhhhhhhhhL.',
   '.L.pppppp.L.',
-  '..cccccccc..',
-  '.cccccccccc.',
-  '.cccccccccc.',
+  '..dccccccd..',
+  '.dcccccccd.',
+  '.dcccccccd.',
   '.pccccccccp.',
   '..CCCCCCCC..',
   '..llllllll..',
@@ -127,7 +130,7 @@ const LADO_DIREITO: readonly string[] = [
   '..Lhhppppop.',
   '..Lhppppppp.',
   '..L.pppppp..',
-  '....cccccc..',
+  '....dddddd..',
   '....cccccc..',
   '....cCCccc..',
   '....cpcccc..',
@@ -168,6 +171,7 @@ export function miniBonecoPixels(cores: CoresMini, direcao: Direcao, quadro: Qua
     p: cores.pele,
     o: '#1b1530',
     c: cores.camisa,
+    d: cores.detalhe ?? cores.camisa,
     C: escurecer(cores.camisa, 0.25),
     l: cores.calca,
     s: cores.calcado,
