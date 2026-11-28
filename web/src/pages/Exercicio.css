@@ -350,3 +350,136 @@
   font-family: var(--fonte-codigo);
   font-size: 0.875rem;
 }
+
+/* Diferença entre a saída esperada e a do aluno (testes visíveis) */
+.exercicio-diferenca {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.exercicio-diferenca-frases {
+  display: grid;
+  gap: 4px;
+}
+
+.exercicio-diferenca-frases p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.exercicio-diferenca-partes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.exercicio-diferenca-linhas {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.exercicio-parte {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: var(--espaco);
+  font-family: var(--fonte-codigo);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.exercicio-diferenca-linhas .exercicio-parte {
+  border-radius: var(--raio-pequeno);
+}
+
+.exercicio-parte-igual {
+  border-color: color-mix(in srgb, var(--sucesso) 45%, var(--borda));
+}
+
+.exercicio-parte-faltou {
+  border-color: var(--estrela);
+  background: rgb(251 191 36 / 0.12);
+  color: #fde68a;
+}
+
+.exercicio-parte-sobrou {
+  border-color: var(--plasma);
+  background: rgb(244 114 182 / 0.12);
+  color: #f9a8d4;
+}
+
+.exercicio-diferenca-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.exercicio-diferenca-legenda .exercicio-parte {
+  font-size: 0.75rem;
+}
+
+/* Dicas do professor */
+.exercicio-dicas {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.exercicio-dicas h2 {
+  font-size: 1.125rem;
+}
+
+.exercicio-dicas .botao {
+  justify-self: start;
+}
+
+.exercicio-dicas-explicacao {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.exercicio-dicas-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.exercicio-dica-aberta {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--estrela) 50%, var(--borda));
+  border-radius: var(--raio-pequeno);
+  background: rgb(251 191 36 / 0.06);
+}
+
+.exercicio-dica-titulo {
+  margin: 0 0 4px;
+  color: var(--estrela);
+  font-weight: 600;
+}
+
+.exercicio-dica-texto {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.exercicio-dica-trancada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo-toque);
+  padding: 0 14px;
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-pequeno);
+  color: var(--texto-suave);
+}

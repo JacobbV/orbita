@@ -144,8 +144,9 @@ end;
 $$;
 select pg_temp.entrar('fd000000-0000-0000-0000-000000000012');
 set local role authenticated;
-select is((select count(*) from public.ranking_da_turma(pg_temp.turma('1º INFO V'), 'semana')), 11::bigint,
-  'com 12 empatados, o aluno recebe 10 linhas + a própria');
+-- (o apelido é sorteado: a própria linha pode cair entre as 10 primeiras ou vir à parte)
+select ok((select count(*) from public.ranking_da_turma(pg_temp.turma('1º INFO V'), 'semana')) between 10 and 11,
+  'com 12 empatados, o aluno recebe 10 linhas (+ a própria, se ficou de fora)');
 select is((select count(*) from public.ranking_da_turma(pg_temp.turma('1º INFO V'), 'semana') where eh_voce), 1::bigint,
   'a própria linha vem uma vez só');
 select ok((select bool_and(posicao = 1) from public.ranking_da_turma(pg_temp.turma('1º INFO V'), 'semana')), 'empatados dividem a 1ª posição');

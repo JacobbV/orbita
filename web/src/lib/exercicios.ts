@@ -1,5 +1,6 @@
 import { lerModo, type ModoDeConferencia, type RegraDeConferencia } from '../lab/correcao'
 import type { Linguagem } from '../lab/linguagens'
+import { limparDicas, MAX_DICAS, MAX_LETRAS_DA_DICA } from './dicas'
 import { supabase } from './supabase'
 
 // Exercícios no painel do professor: lista da aula, criar, editar e remover.
@@ -24,6 +25,8 @@ export interface ExercicioDoPainel {
   /** Como a saída é conferida e as palavras extras que contam. */
   conferencia: ModoDeConferencia
   palavrasExtras: string
+  /** Até 3 dicas para o aluno, abertas uma por vez. */
+  dicas: string[]
   /** Quantas entregas de alunos já existem (com entregas, não pode remover). */
   entregas: number
   /** Entregas esperando a reconferência do professor. */
@@ -53,7 +56,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
   const { data, error } = await supabase()
     .from('aulas')
     .select(
-      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, conferencia, palavras_extras, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
+      'id, numero, titulo, unidade:unidades!inner(numero, disciplina:disciplinas!inner(sigla, nome)), exercicios(id, titulo, enunciado, dificuldade, linguagem, codigo_inicial, conferencia, palavras_extras, dicas, ordem, testes(tipo, entrada, saida_esperada, ordem), entregas(situacao))',
     )
     .eq('id', aulaId)
     .maybeSingle()
@@ -79,6 +82,7 @@ export async function carregarAulaComExercicios(aulaId: number): Promise<AulaCom
         codigoInicial: e.codigo_inicial,
         conferencia: lerModo(e.conferencia),
         palavrasExtras: e.palavras_extras,
+        dicas: e.dicas ?? [],
         testes: [...e.testes]
           .sort((a, b) => a.ordem - b.ordem)
           .map((t) => ({ tipo: t.tipo as TipoDeTeste, entrada: t.entrada, saidaEsperada: t.saida_esperada })),
@@ -97,6 +101,8 @@ export interface DadosDoExercicio {
   testes: TesteDoProfessor[]
   conferencia: ModoDeConferencia
   palavrasExtras: string
+  /** Dicas do exercício; fica de fora nas questões de prova (que não têm dicas). */
+  dicas?: string[]
 }
 
 /** Regra de conferência de um exercício, no formato da correção. */
@@ -105,7 +111,7 @@ export const regraDe = (d: { conferencia: ModoDeConferencia; palavrasExtras: str
   palavras: d.palavrasExtras,
 })
 
-export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes' | 'palavrasExtras', string>> & {
+export type ErrosDoExercicio = Partial<Record<'titulo' | 'enunciado' | 'testes' | 'palavrasExtras' | 'dicas', string>> & {
   /** Erro de cada teste, pela posição na lista. */
   porTeste?: Record<number, string>
 }
@@ -121,6 +127,9 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
   else if (!d.testes.some((t) => t.tipo !== 'secreto'))
     erros.testes = 'Coloque pelo menos um teste visível ou oculto: é com eles que o aluno confere o código.'
   if (d.palavrasExtras.trim().length > 500) erros.palavrasExtras = 'Use até 500 letras nas palavras que também contam.'
+  const dicas = limparDicas(d.dicas ?? [])
+  if (dicas.length > MAX_DICAS) erros.dicas = `Use até ${MAX_DICAS} dicas.`
+  else if (dicas.some((x) => x.length > MAX_LETRAS_DA_DICA)) erros.dicas = `Cada dica pode ter até ${MAX_LETRAS_DA_DICA} letras.`
   const porTeste: Record<number, string> = {}
   d.testes.forEach((t, i) => {
     if (!t.saidaEsperada.trim()) porTeste[i] = 'Escreva a saída esperada (ou preencha com a sua solução).'
@@ -130,7 +139,7 @@ export function validarExercicio(d: DadosDoExercicio): ErrosDoExercicio {
 }
 
 export function temErros(e: ErrosDoExercicio): boolean {
-  return Boolean(e.titulo || e.enunciado || e.testes || e.palavrasExtras || e.porTeste)
+  return Boolean(e.titulo || e.enunciado || e.testes || e.palavrasExtras || e.dicas || e.porTeste)
 }
 
 /**
@@ -150,6 +159,7 @@ export async function salvarExercicio(id: number | null, aulaId: number | null, 
     p_linguagem: d.linguagem,
     p_conferencia: d.conferencia,
     p_palavras_extras: d.palavrasExtras.trim(),
+    ...(d.dicas ? { p_dicas: limparDicas(d.dicas) } : {}),
   })
   if (error) throw error
   return data
@@ -174,13 +184,16 @@ export interface EntregaParaReconferir {
   testesTotal: number
 }
 
-export async function entregasParaReconferir(exercicioId: number): Promise<EntregaParaReconferir[]> {
-  const { data, error } = await supabase()
+export async function entregasParaReconferir(
+  exercicioId: number,
+  quais: 'a_confirmar' | 'todas' = 'a_confirmar',
+): Promise<EntregaParaReconferir[]> {
+  let consulta = supabase()
     .from('entregas')
     .select('id, tentativa, codigo, testes_certos, testes_total, aluno:perfis!inner(nome)')
     .eq('exercicio_id', exercicioId)
-    .eq('situacao', 'a_confirmar')
-    .order('criado_em')
+  if (quais === 'a_confirmar') consulta = consulta.eq('situacao', 'a_confirmar')
+  const { data, error } = await consulta.order('criado_em')
   if (error) throw error
   return data.map((e) => ({
     id: e.id,
@@ -195,6 +208,32 @@ export async function entregasParaReconferir(exercicioId: number): Promise<Entre
 export async function conferirEntrega(id: number, confere: boolean): Promise<void> {
   const { error } = await supabase().rpc('conferir_entrega', { p_entrega_id: id, p_confere: confere })
   if (error) throw error
+}
+
+export interface ResultadoDoRefazer {
+  mudou: boolean
+  xp: number
+  nota: number | null
+}
+
+/** Manda o resultado medido agora (regra atual) e o banco só melhora a entrega, nunca piora. */
+export async function refazerConferencia(id: number, testesCertos: number, secretosOk: boolean): Promise<ResultadoDoRefazer> {
+  const { data, error } = await supabase().rpc('refazer_conferencia', {
+    p_entrega_id: id,
+    p_testes_certos: testesCertos,
+    p_secretos_ok: secretosOk,
+  })
+  if (error) throw error
+  const r = data as { mudou?: boolean; xp?: number; nota?: number | null }
+  return { mudou: r.mudou === true, xp: r.xp ?? 0, nota: r.nota ?? null }
+}
+
+/** Resume os testes rodados: quantos visíveis/ocultos certos e se todos os secretos passaram. */
+export function resumirParaRefazer(resultados: { tipo: TipoDeTeste; certo: boolean }[]): { certos: number; secretosOk: boolean } {
+  return {
+    certos: resultados.filter((r) => r.tipo !== 'secreto' && r.certo).length,
+    secretosOk: resultados.filter((r) => r.tipo === 'secreto').every((r) => r.certo),
+  }
 }
 
 /**
@@ -241,6 +280,7 @@ export const NOVO_EXERCICIO: DadosDoExercicio = {
   codigoInicial: '',
   conferencia: 'valores',
   palavrasExtras: '',
+  dicas: [],
   testes: [
     { tipo: 'visivel', entrada: '', saidaEsperada: '' },
     { tipo: 'oculto', entrada: '', saidaEsperada: '' },

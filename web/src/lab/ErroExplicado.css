@@ -1,0 +1,41 @@
+/* Erro do programa explicado em português */
+.erro-explicado {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.erro-explicado-texto {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--plasma);
+  border-radius: 0 var(--raio) var(--raio) 0;
+  background: rgb(244 114 182 / 0.1);
+  color: var(--texto);
+  font-family: var(--fonte-texto);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.erro-explicado-titulo {
+  color: #f9a8d4;
+}
+
+.erro-explicado-tipo {
+  font-family: var(--fonte-codigo);
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
+.erro-explicado-rotulo {
+  margin: 0;
+  color: var(--texto-suave);
+  font-family: var(--fonte-texto);
+  font-size: 0.8rem;
+}
+
+.erro-explicado-original pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

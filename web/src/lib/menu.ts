@@ -11,6 +11,7 @@ export interface ItemDoMenu {
 const PREFIXOS_DO_SISTEMA = [
   '/ponte',
   '/mapa',
+  '/escola',
   '/hangar',
   '/medalhas',
   '/ranking',
@@ -34,6 +35,7 @@ export function itensDoMenu(papel: Perfil['papel'], ninja: boolean): ItemDoMenu[
       // O mesmo menu do aluno, mais a volta ao painel.
       { para: '/ninja', rotulo: 'Ponte' },
       { para: '/mapa', rotulo: 'Mapa' },
+      { para: '/escola', rotulo: 'Escola', secundario: true },
       { para: '/hangar', rotulo: 'Hangar' },
       { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
       { para: '/professor', rotulo: 'Painel', secundario: true },
@@ -49,6 +51,7 @@ export function itensDoMenu(papel: Perfil['papel'], ninja: boolean): ItemDoMenu[
   return [
     { para: '/ponte', rotulo: 'Ponte' },
     { para: '/mapa', rotulo: 'Mapa' },
+    { para: '/escola', rotulo: 'Escola', secundario: true },
     { para: '/hangar', rotulo: 'Hangar' },
     { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
     { para: '/ranking', rotulo: 'Ranking', secundario: true },

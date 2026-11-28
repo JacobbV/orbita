@@ -17,6 +17,7 @@ const falso = vi.hoisted(() => ({
   comErro: false,
   entregues: [] as { exercicioId: number; codigo: string; certos: number }[],
   linguagem: 'python' as 'python' | 'javascript' | 'html',
+  dicas: [] as string[],
   /** Entregas que o banco devolve para a tela (da mais nova para a mais antiga). */
   jaEntregues: [] as Record<string, unknown>[],
 }))
@@ -59,6 +60,7 @@ vi.mock('../lib/laboratorio', async (original) => ({
       linguagem: falso.linguagem,
       codigoInicial: 'a = int(input())\n',
       dificuldade: 1,
+      dicas: falso.dicas,
       aula: { id: 11, numero: 1, titulo: 'Entrada e saída', unidade: 1, sigla: 'ALG' },
     },
     testes: [
@@ -125,6 +127,7 @@ beforeEach(() => {
   falso.jaEntregues = []
   falso.entregues = []
   falso.linguagem = 'python'
+  falso.dicas = []
   localStorage.clear()
 })
 
@@ -154,6 +157,95 @@ describe('Exercício no Modo Ninja', () => {
     expect(falso.entregues).toEqual([])
     // Pode treinar de novo.
     expect(screen.getByRole('button', { name: 'Entregar' })).toBeEnabled()
+  })
+
+  it('as dicas vêm todas abertas, para conferir o texto', async () => {
+    falso.dicas = ['Use int() no input().', 'Some as duas variáveis.']
+    render(
+      <AuthContext.Provider value={PROFESSOR}>
+        <ModoNinjaContext.Provider value={{ ativo: true, entrar: () => {}, sair: () => {} }}>
+          <MemoryRouter initialEntries={['/exercicio/7']}>
+            <App />
+          </MemoryRouter>
+        </ModoNinjaContext.Provider>
+      </AuthContext.Provider>,
+    )
+    const dicas = await screen.findByRole('region', { name: 'Dicas' })
+    expect(dicas).toHaveTextContent('Use int() no input().')
+    expect(dicas).toHaveTextContent('Some as duas variáveis.')
+    expect(within(dicas).queryByRole('button')).toBeNull()
+  })
+})
+
+describe('Ajuda nos exercícios', () => {
+  it('teste visível errado: mostra onde era um valor e veio outro', async () => {
+    falso.saidas.set('1\n2', 'A soma é: 12\n')
+    falso.saidas.set('5\n5', '10\n')
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    expect(await screen.findByRole('heading', { name: '1 de 2 testes certos' })).toBeInTheDocument()
+    const lista = screen.getAllByRole('listitem').filter((li) => li.textContent?.includes('Teste'))
+    expect(lista[0]).toHaveTextContent('O que está diferente')
+    expect(lista[0]).toHaveTextContent('Onde era 3, o seu programa mostrou 12.')
+  })
+
+  it('teste oculto errado: não mostra a diferença, para não entregar a resposta', async () => {
+    falso.saidas.set('1\n2', '3\n')
+    falso.saidas.set('5\n5', '11\n')
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    await screen.findByRole('heading', { name: '1 de 2 testes certos' })
+    const lista = screen.getAllByRole('listitem').filter((li) => li.textContent?.includes('Teste'))
+    expect(lista[1]).not.toHaveTextContent('O que está diferente')
+    expect(lista[1]).not.toHaveTextContent('Onde era')
+  })
+
+  it('erro do Python aparece em português, com a mensagem original embaixo', async () => {
+    falso.comErro = true
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    const terminal = await screen.findByRole('region', { name: 'Terminal' })
+    expect(await within(terminal).findByText(/O nome “y” não existe/)).toBeInTheDocument()
+    expect(terminal).toHaveTextContent("NameError: name 'y' is not defined")
+    expect(terminal).toHaveTextContent('Mensagem original do Python')
+  })
+
+  it('dicas: uma libera a cada 2 tentativas erradas e abre quando o aluno quer', async () => {
+    falso.dicas = ['Use int() no input().', 'Some as duas variáveis.']
+    falso.saidas.set('1\n2', '12\n')
+    falso.saidas.set('5\n5', '55\n')
+    abrir('/exercicio/7', ALUNO)
+    const dicas = await screen.findByRole('region', { name: 'Dicas' })
+    expect(dicas).toHaveTextContent('Dica 1: libera depois de mais 2 tentativas erradas.')
+    expect(dicas).not.toHaveTextContent('Use int()')
+    const rodar = screen.getByRole('button', { name: '▶ Rodar' })
+    await userEvent.click(rodar)
+    await screen.findByRole('heading', { name: '0 de 2 testes certos' })
+    expect(dicas).toHaveTextContent('Dica 1: libera depois de mais 1 tentativa errada.')
+    await userEvent.click(rodar)
+    await userEvent.click(await within(dicas).findByRole('button', { name: '💡 Abrir a dica 1' }))
+    expect(dicas).toHaveTextContent('Use int() no input().')
+    expect(dicas).not.toHaveTextContent('Some as duas')
+    expect(dicas).toHaveTextContent('Dica 2: libera depois de mais 2 tentativas erradas.')
+    // A contagem fica no navegador: ao voltar, a dica continua aberta.
+    expect(localStorage.getItem('orbita:dicas-abertas:7')).toBe('1')
+    expect(localStorage.getItem('orbita:tentativas-erradas:7')).toBe('2')
+  })
+
+  it('acertar tudo não conta tentativa errada', async () => {
+    falso.dicas = ['Use int() no input().']
+    falso.saidas.set('1\n2', '3')
+    falso.saidas.set('5\n5', '10')
+    abrir('/exercicio/7', ALUNO)
+    await userEvent.click(await screen.findByRole('button', { name: '▶ Rodar' }))
+    await screen.findByRole('heading', { name: 'Todos os 2 testes certos!' })
+    expect(localStorage.getItem('orbita:tentativas-erradas:7')).toBeNull()
+  })
+
+  it('sem dicas, o cartão de dicas não aparece', async () => {
+    abrir('/exercicio/7', ALUNO)
+    await screen.findByRole('heading', { name: 'Soma de dois números' })
+    expect(screen.queryByRole('region', { name: 'Dicas' })).toBeNull()
   })
 })
 

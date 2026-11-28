@@ -11,6 +11,7 @@ import { Entrar } from './pages/Entrar'
 import { Hangar } from './pages/Hangar'
 import { Inicio } from './pages/Inicio'
 import { Mapa } from './pages/Mapa'
+import { Escola } from './pages/Escola'
 import { Medalhas } from './pages/Medalhas'
 import { PonteNinja } from './ninja/PonteNinja'
 import { NaoEncontrada } from './pages/NaoEncontrada'
@@ -68,6 +69,16 @@ export function App() {
               <RotaProtegida>
                 <AlunoOuNinja>
                   <Mapa />
+                </AlunoOuNinja>
+              </RotaProtegida>
+            }
+          />
+          <Route
+            path="escola"
+            element={
+              <RotaProtegida>
+                <AlunoOuNinja>
+                  <Escola />
                 </AlunoOuNinja>
               </RotaProtegida>
             }

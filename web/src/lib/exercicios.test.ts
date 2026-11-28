@@ -1,4 +1,4 @@
-import { decidirReconferencia, validarExercicio } from './exercicios'
+import { decidirReconferencia, resumirParaRefazer, validarExercicio } from './exercicios'
 
 describe('decidirReconferencia', () => {
   const tudoCerto = { testesCertos: 2, testesTotal: 2 }
@@ -77,5 +77,33 @@ describe('validarExercicio', () => {
       palavrasExtras: 'par '.repeat(130),
     })
     expect(erros.palavrasExtras).toBe('Use até 500 letras nas palavras que também contam.')
+  })
+
+  it('dicas: cada uma até 1000 letras; as vazias não contam', () => {
+    const base = {
+      titulo: 'Soma',
+      enunciado: 'Some.',
+      dificuldade: 1 as const,
+      linguagem: 'python' as const,
+      codigoInicial: '',
+      testes: [{ tipo: 'visivel' as const, entrada: '1 2', saidaEsperada: '3' }],
+      conferencia: 'valores' as const,
+      palavrasExtras: '',
+    }
+    expect(validarExercicio({ ...base, dicas: ['', 'Use +.', ''] })).toEqual({})
+    expect(validarExercicio({ ...base, dicas: ['x'.repeat(1001)] }).dicas).toBe('Cada dica pode ter até 1000 letras.')
+  })
+})
+
+describe('resumirParaRefazer', () => {
+  it('conta visíveis e ocultos certos e exige todos os secretos', () => {
+    expect(
+      resumirParaRefazer([
+        { tipo: 'visivel', certo: true },
+        { tipo: 'oculto', certo: true },
+        { tipo: 'secreto', certo: false },
+      ]),
+    ).toEqual({ certos: 2, secretosOk: false })
+    expect(resumirParaRefazer([{ tipo: 'visivel', certo: false }])).toEqual({ certos: 0, secretosOk: true })
   })
 })

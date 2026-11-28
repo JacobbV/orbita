@@ -82,10 +82,11 @@ function dados(): AulaComExercicios {
         ],
         conferencia: 'valores',
         palavrasExtras: '',
+        dicas: ['Use um laço while.'],
         entregas: 3,
         aConfirmar: 2,
       },
-      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, linguagem: 'python', codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], conferencia: 'exato', palavrasExtras: '', entregas: 0, aConfirmar: 0 },
+      { id: 8, titulo: 'Rascunho', enunciado: 'x', dificuldade: 1, linguagem: 'python', codigoInicial: '', testes: [{ tipo: 'visivel', entrada: '', saidaEsperada: '1' }], conferencia: 'exato', palavrasExtras: '', dicas: [], entregas: 0, aConfirmar: 0 },
     ],
   }
 }
@@ -131,6 +132,7 @@ describe('Exercícios da aula (painel)', () => {
     expect(within(form).getByLabelText(/Só os valores/)).toBeChecked()
     expect(within(form).getAllByText('O site confere:')).toHaveLength(2)
     await u.type(within(form).getByLabelText('Palavras que também contam (opcional)'), 'total')
+    await u.type(within(form).getByLabelText(/^Dica 2 /), 'Use sum() e split().')
     await u.click(within(form).getByRole('button', { name: 'Salvar exercício' }))
     expect(await screen.findByText('Exercício "Soma" criado.')).toBeInTheDocument()
     expect(falso.salvos).toEqual([
@@ -149,6 +151,7 @@ describe('Exercícios da aula (painel)', () => {
           ],
           conferencia: 'valores',
           palavrasExtras: 'total',
+          dicas: ['', 'Use sum() e split().', ''],
         },
       },
     ])
@@ -192,6 +195,7 @@ describe('Exercícios da aula (painel)', () => {
     await u.click(await screen.findByRole('button', { name: 'Editar Contagem regressiva' }))
     const form = screen.getByRole('form', { name: 'Editar: Contagem regressiva' })
     expect(within(form).getByLabelText('Título')).toHaveValue('Contagem regressiva')
+    expect(within(form).getByLabelText(/^Dica 1 \(libera depois de 2 tentativas erradas\)/)).toHaveValue('Use um laço while.')
     await u.click(within(form).getByRole('button', { name: 'Remover teste 3' }))
     await u.click(within(form).getByRole('button', { name: '+ Adicionar teste' }))
     await u.type(within(form).getByLabelText('Saída esperada do teste 3'), '9')

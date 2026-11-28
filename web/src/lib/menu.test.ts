@@ -11,8 +11,8 @@ describe('menu do sistema', () => {
     }
   })
 
-  it('aluno vê Ponte, Mapa, Hangar, Medalhas e Ranking', () => {
-    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Mapa', 'Hangar', 'Medalhas', 'Ranking'])
+  it('aluno vê Ponte, Mapa, Escola, Hangar, Medalhas e Ranking', () => {
+    expect(itensDoMenu('aluno', false).map((i) => i.rotulo)).toEqual(['Ponte', 'Mapa', 'Escola', 'Hangar', 'Medalhas', 'Ranking'])
   })
 
   it('professor vê o Painel e, no Modo Ninja, a ponte ninja', () => {
@@ -21,7 +21,7 @@ describe('menu do sistema', () => {
   })
 
   it('no Modo Ninja o menu tem tudo do aluno, mais o Painel', () => {
-    expect(itensDoMenu('professor', true).map((i) => i.para)).toEqual(['/ninja', '/mapa', '/hangar', '/medalhas', '/professor'])
+    expect(itensDoMenu('professor', true).map((i) => i.para)).toEqual(['/ninja', '/mapa', '/escola', '/hangar', '/medalhas', '/professor'])
   })
 
   it('a bolinha usa a inicial do apelido, ou do nome', () => {

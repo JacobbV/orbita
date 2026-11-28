@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ErroExplicado } from './ErroExplicado'
 import { TEMPO_LIMITE_MS, type ResultadoDaExecucao } from './executor'
+import type { Linguagem } from './linguagens'
 import './Terminal.css'
 
 interface Props {
@@ -12,10 +14,12 @@ interface Props {
   respostasDadas?: number
   /** O programa parou e espera a próxima resposta do input(). */
   aoResponder: (resposta: string) => void
+  /** Linguagem do programa, para explicar o erro em português. */
+  linguagem?: Linguagem
 }
 
 /** Terminal do exercício: mostra a saída do programa e pede as respostas do input() na hora, como o CMD. */
-export function Terminal({ resultado, ocupado, mensagemOcupado, respostasDadas = 0, aoResponder }: Props) {
+export function Terminal({ resultado, ocupado, mensagemOcupado, respostasDadas = 0, aoResponder, linguagem = 'python' }: Props) {
   const [digitado, setDigitado] = useState('')
   const campo = useRef<HTMLInputElement>(null)
   const esperando = resultado?.precisaDeEntrada === true && !ocupado
@@ -39,7 +43,7 @@ export function Terminal({ resultado, ocupado, mensagemOcupado, respostasDadas =
       <div className="terminal-corpo" aria-live="polite">
         {!resultado && !ocupado && <p className="terminal-vazio">Clique em Rodar para ver o seu programa funcionando aqui.</p>}
         {ocupado && <p className="terminal-vazio">{mensagemOcupado ?? 'Rodando…'}</p>}
-        {resultado && !ocupado && <Saida resultado={resultado} />}
+        {resultado && !ocupado && <Saida resultado={resultado} linguagem={linguagem} />}
         {esperando && (
           <form className="terminal-linha" onSubmit={enviar}>
             <label className="sr-only" htmlFor="terminal-resposta">
@@ -69,7 +73,7 @@ export function Terminal({ resultado, ocupado, mensagemOcupado, respostasDadas =
   )
 }
 
-function Saida({ resultado }: { resultado: ResultadoDaExecucao }) {
+function Saida({ resultado, linguagem }: { resultado: ResultadoDaExecucao; linguagem: Linguagem }) {
   if (resultado.tempoEsgotado) {
     return (
       <pre className="terminal-erro">
@@ -84,7 +88,7 @@ function Saida({ resultado }: { resultado: ResultadoDaExecucao }) {
         <pre className="terminal-saida">{resultado.saida || '(sem saída)'}</pre>
       )}
       {resultado.saidaGrande && <p className="terminal-aviso">A saída era muito grande e foi cortada.</p>}
-      {resultado.erro && <pre className="terminal-erro">{resultado.erro}</pre>}
+      {resultado.erro && <ErroExplicado erro={resultado.erro} linguagem={linguagem} classeOriginal="terminal-erro" />}
     </>
   )
 }

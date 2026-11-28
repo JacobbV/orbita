@@ -428,3 +428,23 @@
   color: var(--texto-suave);
   font-size: 0.8125rem;
 }
+
+/* Dicas do exercício */
+.exercicios-dicas {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  min-width: 0;
+}
+
+.exercicios-dicas legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.exercicios-dicas .campo-dica {
+  margin: 0;
+}

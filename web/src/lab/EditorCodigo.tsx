@@ -4,11 +4,31 @@ import { python } from '@codemirror/lang-python'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView, basicSetup } from 'codemirror'
 import { indentUnit } from '@codemirror/language'
+import { StateEffect, StateField, type Extension } from '@codemirror/state'
+import { Decoration, type DecorationSet } from '@codemirror/view'
 import { useEffect, useRef } from 'react'
 import type { Linguagem } from './linguagens'
 import './EditorCodigo.css'
 
 const CORES = { python: () => python(), javascript: () => javascript(), html: () => html() }
+
+// Linha com erro: fundo vermelho fraco na linha que o erro apontou.
+const marcarLinha = StateEffect.define<number | null>()
+const decoracaoDoErro = Decoration.line({ class: 'editor-codigo-linha-erro' })
+const linhaDoErro: Extension = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(atual, tr) {
+    let deco = atual.map(tr.changes)
+    for (const e of tr.effects) {
+      if (!e.is(marcarLinha)) continue
+      const n = e.value
+      deco = n !== null && n >= 1 && n <= tr.state.doc.lines ? Decoration.set([decoracaoDoErro.range(tr.state.doc.line(n).from)]) : Decoration.none
+    }
+    // Mudou o código: a marca some, porque o erro pode já ter sido corrigido.
+    return tr.docChanged ? Decoration.none : deco
+  },
+  provide: (f) => EditorView.decorations.from(f),
+})
 
 interface Props {
   valor: string
@@ -21,10 +41,15 @@ interface Props {
   bloquearColar?: boolean
   /** Chamado cada vez que um colar ou soltar foi barrado. */
   aoBloquearColar?: () => void
+  /**
+   * Linha (a partir de 1) onde o último erro aconteceu; fica marcada até o código mudar.
+   * Um objeto novo a cada execução, para marcar de novo a mesma linha.
+   */
+  erroNaLinha?: { linha: number } | null
 }
 
 /** Editor de código (CodeMirror 6) com cores da linguagem e números de linha. */
-export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false, linguagem = 'python', bloquearColar = false, aoBloquearColar }: Props) {
+export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false, linguagem = 'python', bloquearColar = false, aoBloquearColar, erroNaLinha = null }: Props) {
   const caixa = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const aoMudarAtual = useRef(aoMudar)
@@ -39,6 +64,7 @@ export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false, linguagem 
       parent: caixa.current,
       extensions: [
         basicSetup,
+        linhaDoErro,
         CORES[linguagem](),
         oneDark,
         indentUnit.of(linguagem === 'python' ? '    ' : '  '),
@@ -79,6 +105,19 @@ export function EditorCodigo({ valor, aoMudar, rotulo, baixo = false, linguagem 
       editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: valor } })
     }
   }, [valor])
+
+  useEffect(() => {
+    const editor = view.current
+    if (!editor) return
+    const pedida = erroNaLinha?.linha ?? null
+    const n = pedida !== null && pedida >= 1 && pedida <= editor.state.doc.lines ? pedida : null
+    editor.dispatch({
+      effects: [
+        marcarLinha.of(n),
+        ...(n !== null ? [EditorView.scrollIntoView(editor.state.doc.line(n).from, { y: 'nearest' })] : []),
+      ],
+    })
+  }, [erroNaLinha])
 
   return <div ref={caixa} className={`editor-codigo${baixo ? ' editor-codigo-baixo' : ''}`} />
 }
