@@ -512,6 +512,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ranking_participantes": {
+                  Row: {
+                    "aluno_id": string,"entrou_em": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "aluno_id": string,"entrou_em"?: string
+                  }
+                  Update: {
+                    "aluno_id"?: string,"entrou_em"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"slides_do_usuario": {
                   Row: {
                     "atualizado_em": string,"marcador": number | null,"material_id": number,"rabiscos": Json,"usuario_id": string
@@ -744,6 +758,23 @@ isOneToOne: false
 "definir_material_da_aula":
 { Args: { "p_aula_id": number,"p_tipo": string,"p_caminho": string,"p_titulo"?: string }; Returns: string
                            },
+"entrar_no_ranking":
+{ Args: Record<PropertyKey, never>; Returns: undefined },
+"minha_situacao_no_ranking":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "participando": boolean,"pode_entrar": boolean,"tem_apelido": boolean
+            }[]
+                           },
+"ranking_da_turma":
+{ Args: { "p_periodo"?: string,"p_turma_id": number }; Returns: {
+              "apelido": string,"eh_voce": boolean,"escolhas": Json,"patente": string,"posicao": number,"xp": number
+            }[]
+                           },
+"ranking_da_turma_professor":
+{ Args: { "p_periodo"?: string,"p_turma_id": number }; Returns: {
+              "aluno_id": string,"apelido": string,"entrou_em": string,"nome": string,"patente": string,"posicao": number,"xp": number
+            }[]
+                           },
 "remover_material_da_aula":
 { Args: { "p_aula_id": number,"p_tipo": string }; Returns: string
                            },
@@ -847,6 +878,8 @@ isOneToOne: false
 "responder_questao":
 { Args: { "p_codigo": string,"p_questao_id": number,"p_testes_certos": number }; Returns: string
                            },
+"sair_do_ranking":
+{ Args: Record<PropertyKey, never>; Returns: undefined },
 "salvar_avatar":
 { Args: { "p_escolhas": Json }; Returns: undefined
                            },
@@ -875,6 +908,8 @@ isOneToOne: false
               "conferencia": string,"entrada": string,"id": number,"palavras": string,"saida_esperada": string,"saida_hash": string,"tipo": string
             }[]
                            },
+"tirar_do_ranking":
+{ Args: { "p_aluno_id": string }; Returns: undefined },
 "xp_da_turma":
 { Args: { "p_turma_disciplina_id": number }; Returns: {
               "aluno_id": string,"apelido": string,"nome": string,"patente": string,"xp": number

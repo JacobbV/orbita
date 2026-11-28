@@ -149,3 +149,33 @@
   border-radius: var(--raio);
 }
 .escola-palco:fullscreen .escola-direcional { bottom: 16px; }
+
+.escola-quadro {
+  padding: 16px;
+  max-height: 50vh;
+  overflow: auto;
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+.escola-quadro-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.escola-quadro ul { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.escola-quadro a { display: block; min-height: 44px; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 10px; color: var(--texto); text-decoration: none; }
+.escola-quadro a:hover { border-color: var(--estrela); }
+.escola-quadro h2, .escola-quadro h3 { margin: 4px 0 8px; }
+.escola-quadro p { margin: 0 0 12px; color: var(--texto-suave); }
+
+.escola-palco:fullscreen .escola-quadro {
+  position: absolute;
+  right: 8px;
+  top: 64px;
+  width: min(420px, calc(100% - 16px));
+  border-width: 1px;
+  border-radius: var(--raio);
+}

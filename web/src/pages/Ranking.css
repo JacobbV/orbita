@@ -1,0 +1,135 @@
+/* Ranking da tripulação */
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block: 24px 48px;
+  max-width: 880px;
+}
+
+.ranking-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 20px;
+}
+
+.ranking-topo h1 {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+  font-weight: 800;
+}
+
+.ranking-selo {
+  margin-bottom: 8px;
+  color: var(--estrela);
+}
+
+.ranking-intro,
+.ranking-nota {
+  color: var(--texto-suave);
+}
+
+.ranking-entrada {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.ranking-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ranking-turma {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 320px;
+  color: var(--texto-suave);
+}
+
+.ranking-turma select {
+  min-height: var(--alvo-toque);
+}
+
+.ranking-abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ranking-vazio {
+  padding: 20px;
+  color: var(--texto-suave);
+}
+
+.ranking-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranking-linha {
+  display: grid;
+  grid-template-columns: 44px 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  min-height: 64px;
+}
+
+.ranking-linha-voce {
+  border-color: var(--ciano);
+}
+
+.ranking-posicao {
+  color: var(--estrela);
+  font-size: 0.75rem;
+}
+
+.ranking-quem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ranking-quem strong {
+  overflow-wrap: anywhere;
+}
+
+.ranking-voce {
+  color: var(--ciano-claro);
+  font-weight: 600;
+}
+
+.ranking-patente {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.ranking-xp {
+  font-family: var(--fonte-codigo);
+  color: var(--ciano-claro);
+  white-space: nowrap;
+}
+
+.ranking-corte {
+  text-align: center;
+  color: var(--texto-suave);
+  line-height: 1;
+}
+
+@media (max-width: 400px) {
+  .ranking-linha {
+    grid-template-columns: 36px 40px 1fr auto;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+}

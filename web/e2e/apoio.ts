@@ -159,3 +159,24 @@ export function registrarErros(page: Page): string[] {
   page.on('pageerror', (e) => erros.push(e.message))
   return erros
 }
+
+/** Sorteia e grava um apelido para a conta, como o aluno faria (pelas funções do banco, com o login dela). */
+export async function sortearApelidoDe(email: string): Promise<string> {
+  const { url, anonKey } = supabaseLocal()
+  const login = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: anonKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: SENHA }),
+  })
+  const { access_token: token } = (await login.json()) as { access_token: string }
+  const cabecalho = { apikey: anonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+  const sorteio = await fetch(`${url}/rest/v1/rpc/sortear_apelido`, { method: 'POST', headers: cabecalho, body: '{}' })
+  const apelido = (await sorteio.json()) as string
+  const grava = await fetch(`${url}/rest/v1/rpc/escolher_apelido`, {
+    method: 'POST',
+    headers: cabecalho,
+    body: JSON.stringify({ p_apelido: apelido }),
+  })
+  if (!grava.ok) throw new Error(`escolher_apelido: ${grava.status} ${await grava.text()}`)
+  return apelido
+}

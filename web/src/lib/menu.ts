@@ -14,6 +14,7 @@ const PREFIXOS_DO_SISTEMA = [
   '/escola',
   '/hangar',
   '/medalhas',
+  '/ranking',
   '/aguardando',
   '/aula/',
   '/exercicio/',
@@ -53,6 +54,7 @@ export function itensDoMenu(papel: Perfil['papel'], ninja: boolean): ItemDoMenu[
     { para: '/escola', rotulo: 'Escola', secundario: true },
     { para: '/hangar', rotulo: 'Hangar' },
     { para: '/medalhas', rotulo: 'Medalhas', secundario: true },
+    { para: '/ranking', rotulo: 'Ranking', secundario: true },
   ]
 }
 

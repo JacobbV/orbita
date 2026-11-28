@@ -184,6 +184,12 @@ function CartaoTurma({
             </div>
           )
         })}
+        <p>
+          <Link to={`/professor/ranking/${turma.id}`} className="botao botao-compacto">
+            Ranking da turma
+            <span className="sr-only"> ({turma.nome})</span>
+          </Link>
+        </p>
       </div>
       <form className="painel-turma-form" onSubmit={salvar} noValidate aria-labelledby={`${id}-nome`}>
         <div className={`campo painel-campo-ano${erroAno ? ' campo-com-erro' : ''}`}>
