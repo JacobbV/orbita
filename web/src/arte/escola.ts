@@ -580,6 +580,13 @@ function moveis(pinta: Pinta, sala: Sala) {
       // cadeiras de visita
       pinta(px + 22, py + 46, 10, 8, '#7a5cc2')
       if (pw > 60) pinta(px + 38, py + 46, 10, 8, '#7a5cc2')
+      // sofazinho e banquinho para esperar
+      pinta(px + pw - 36, py + ph - 24, 30, 16, '#5b3fa0')
+      pinta(px + pw - 36, py + ph - 24, 30, 5, '#7a5cc2')
+      pinta(px + pw - 36, py + ph - 24, 4, 16, '#7a5cc2')
+      pinta(px + pw - 10, py + ph - 24, 4, 16, '#7a5cc2')
+      pinta(px + 6, py + 54, 9, 8, '#c2410c')
+      pinta(px + 6, py + 54, 9, 3, '#e8703a')
       if (pw > 120) {
         for (let k = 0; k < 4; k++) {
           pinta(px + 70 + k * 36, py + 10, 26, 12, COR.madeira)
@@ -847,4 +854,106 @@ export function desenharAndar(andar: Andar, pinta: Pinta): void {
 /** Centro de cada sala, em pixels, para escrever o nome por cima. */
 export function centroDa(sala: Sala): [number, number] {
   return [(sala.x + sala.w / 2) * TILE, (sala.y + sala.h / 2) * TILE]
+}
+
+// -----------------------------------------------------------------------------
+// Móveis que barram o boneco e lugares para sentar (mesmas medidas do desenho)
+// -----------------------------------------------------------------------------
+export type DirecaoAssento = 'baixo' | 'cima' | 'esquerda' | 'direita'
+
+export interface Assento {
+  id: string
+  /** Posição dos pés quando sentado, em pixels do mapa. */
+  x: number
+  y: number
+  direcao: DirecaoAssento
+}
+
+export interface LayoutDaSala {
+  /** Retângulos [x, y, largura, altura] em pixels do mapa. */
+  solidos: [number, number, number, number][]
+  assentos: Assento[]
+}
+
+export function layoutDaSala(sala: Sala): LayoutDaSala {
+  const px = sala.x * TILE
+  const py = sala.y * TILE
+  const pw = sala.w * TILE
+  const ph = sala.h * TILE
+  const solidos: LayoutDaSala['solidos'] = []
+  const assentos: Assento[] = []
+  const lugar = (x: number, y: number, direcao: DirecaoAssento) => assentos.push({ id: `${sala.id}-${assentos.length}`, x, y, direcao })
+  switch (sala.tipo) {
+    case 'sala': {
+      solidos.push([px + 48, py + 6, 28, 10])
+      const cols = Math.floor((pw - 8) / 34)
+      for (let r = 0; r < 3; r++) for (let c = 0; c < cols; c++) {
+        const x = px + 10 + c * 34
+        const y = py + 30 + r * 21
+        if (y + 16 > py + ph) continue
+        solidos.push([x, y, 18, 7])
+        lugar(x + 9, y + 15, 'cima')
+      }
+      break
+    }
+    case 'lab': {
+      for (let r = 0; r < 3; r++) {
+        const y = py + 10 + r * 28
+        solidos.push([px + 6, y, pw - 12, 14])
+        for (let k = 0; k < 4; k++) lugar(px + 12 + k * 24 + 6, y + 22, 'cima')
+      }
+      break
+    }
+    case 'cad': {
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) {
+        const x = px + 8 + c * 34
+        const y = py + 14 + r * 38
+        solidos.push([x, y, 26, 20])
+        lugar(x + 13, y + 28, 'cima')
+      }
+      break
+    }
+    case 'biblioteca': {
+      for (let r = 0; r < 3; r++) solidos.push([px + 6, py + 6 + r * 30, 82, 14])
+      solidos.push([px + 100, py + 22, 48, 20], [px + 100, py + 58, 48, 20])
+      for (let k = 0; k < 3; k++) {
+        const x = px + 108 + k * 15
+        lugar(x, py + 21, 'baixo')
+        lugar(x, py + 50, 'cima')
+        lugar(x, py + 86, 'cima')
+      }
+      break
+    }
+    case 'leitura': {
+      solidos.push([px + 4, py + 2, 36, 10])
+      lugar(px + 26, py + 44, 'baixo')
+      lugar(px + 66, py + 50, 'baixo')
+      lugar(px + 44, py + 70, 'baixo')
+      break
+    }
+    case 'coordenacao': {
+      solidos.push([px + 8, py + 8, Math.min(40, pw - 22), 12], [px + pw - 16, py + 2, 14, 26], [px + 4, py + ph - 14, 10, 10])
+      lugar(px + 27, py + 54, 'cima')
+      if (pw > 60) lugar(px + 43, py + 54, 'cima')
+      lugar(px + pw - 28, py + ph - 10, 'baixo')
+      lugar(px + pw - 16, py + ph - 10, 'baixo')
+      lugar(px + 10, py + 62, 'direita')
+      break
+    }
+    case 'copa': {
+      solidos.push([px, py, pw, 12], [px + pw - 16, py, 14, 26], [px + 18, py + 44, 40, 22])
+      lugar(px + 27, py + 42, 'baixo')
+      lugar(px + 49, py + 42, 'baixo')
+      lugar(px + 27, py + 74, 'cima')
+      lugar(px + 49, py + 74, 'cima')
+      break
+    }
+    case 'wc-f':
+    case 'wc-m':
+      solidos.push([px, py, pw, 32])
+      break
+    default:
+      break
+  }
+  return { solidos, assentos }
 }

@@ -1,7 +1,7 @@
 // Plaquinhas com o nome das salas, desenhadas por cima do mapa (canvas 2D).
 // Arte original, todos os direitos reservados (veja LICENCA-ARTE.md).
 
-import { TILE, salasDo, centroDa, type Andar } from './escola'
+import { TILE, type Andar } from './escola'
 
 const ABREVIADOS: Record<string, string> = {
   'Coord. Informática': 'Coord.\nInformática',
@@ -36,14 +36,18 @@ function placa(ctx: CanvasRenderingContext2D, texto: string, cx: number, cy: num
   linhas.forEach((l, i) => ctx.fillText(l, Math.round(cx), y + 3 + i * 10))
 }
 
-/** Nomes das salas acesas e das escadas, na escala 1 do mapa. */
+/** Cor da plaquinha de uma sala. */
+export function corDaSala(tipo: string): string {
+  return tipo === 'lab' || tipo === 'cad' ? '#A78BFA' : tipo.startsWith('wc') || tipo === 'lavanderia' ? '#9CA3C7' : '#22D3EE'
+}
+
+/** Nome curto da sala, numa linha só (o nome flutua sobre a parede de cima da sala). */
+export function nomeNoMapa(nome: string): string {
+  return (ABREVIADOS[nome] ?? nome).replace('\n', ' ')
+}
+
+/** Escadas e pátios, na escala 1 do mapa. Os nomes das salas flutuam por cima, em tempo real. */
 export function desenharPlacas(ctx: CanvasRenderingContext2D, andar: Andar): void {
-  for (const s of salasDo(andar)) {
-    if (!s.ativa) continue
-    const [cx, cy] = centroDa(s)
-    const cor = s.tipo === 'lab' || s.tipo === 'cad' ? '#A78BFA' : s.tipo.startsWith('wc') || s.tipo === 'lavanderia' ? '#9CA3C7' : '#22D3EE'
-    placa(ctx, ABREVIADOS[s.nome] ?? s.nome, cx, cy, cor)
-  }
   const extra = (t: string, x: number, y: number, cor = '#FBBF24') => placa(ctx, t, x * TILE, y * TILE, cor)
   if (andar === 'terreo') {
     extra('Escada\n(sobe)', 4.5, 6)
