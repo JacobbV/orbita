@@ -1,4 +1,5 @@
 import type { Escolhas } from '../arte/avatar'
+import { carregarAcessos } from './acessos'
 import { avatarPadrao, limparEscolhas } from './avatar'
 import { carregarMedalhas, type MedalhaDoAluno } from './medalhas'
 import { carregarXpDaTurma, type XpDoAluno } from './progresso'
@@ -9,22 +10,31 @@ import { supabase } from './supabase'
 
 export interface TripulanteDaTurma extends XpDoAluno {
   escolhas: Escolhas
+  /** Última vez que o aluno estava com o site aberto (só o professor vê). */
+  ultimoAcesso: string | null
 }
 
 /** Alunos aprovados da turma, com XP, patente e o boneco que cada um montou. */
 export async function carregarTripulacao(ofertaId: number): Promise<TripulanteDaTurma[]> {
   const alunos = await carregarXpDaTurma(ofertaId)
   if (alunos.length === 0) return []
-  const { data, error } = await supabase()
+  const [{ data, error }, acessos] = await Promise.all([
+    supabase()
     .from('avatares')
     .select('perfil_id, escolhas')
     .in(
       'perfil_id',
       alunos.map((a) => a.alunoId),
-    )
+    ),
+    carregarAcessos(alunos.map((a) => a.alunoId)),
+  ])
   // O boneco é um extra: se falhar, todos aparecem com o boneco padrão.
   const porPerfil = new Map((error ? [] : data).map((a) => [a.perfil_id, limparEscolhas(a.escolhas)]))
-  return alunos.map((a) => ({ ...a, escolhas: { ...avatarPadrao('aluno'), ...porPerfil.get(a.alunoId) } }))
+  return alunos.map((a) => ({
+    ...a,
+    escolhas: { ...avatarPadrao('aluno'), ...porPerfil.get(a.alunoId) },
+    ultimoAcesso: acessos.get(a.alunoId) ?? null,
+  }))
 }
 
 export interface EntregaNoPerfil {

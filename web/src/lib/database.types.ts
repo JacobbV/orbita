@@ -90,6 +90,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"acessos": {
+                  Row: {
+                    "perfil_id": string,"ultimo_acesso": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "perfil_id": string,"ultimo_acesso"?: string
+                  }
+                  Update: {
+                    "perfil_id"?: string,"ultimo_acesso"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"aulas_abertas": {
                   Row: {
                     "aberta_em": string,"aluno_id": string,"aula_id": number
@@ -842,6 +856,9 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"registrar_acesso":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "professor_da_nave":
 { Args: Record<PropertyKey, never>; Returns: {
               "apelido": string,"escolhas": Json,"nome": string
