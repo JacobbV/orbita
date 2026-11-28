@@ -74,8 +74,9 @@ describe('Modo Ninja', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar ninja' }))
     expect(await screen.findByText('Ninja salvo!')).toBeInTheDocument()
     expect(falso.ninjaSalvo).toEqual([expect.objectContaining({ 'acessorio-corpo': 'acessorio-estrela-ninja' })])
-    // O ninja não sorteia apelido: o apelido é do professor.
-    expect(screen.queryByRole('region', { name: /apelido/i })).toBeNull()
+    // O ninja tem o apelido dele, separado do apelido do professor.
+    expect(screen.getByRole('region', { name: 'Apelido do ninja' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /aparece para os alunos/i })).toBeNull()
   })
 
   it('medalhas ficam todas acesas e a faixa permite sair do modo', async () => {

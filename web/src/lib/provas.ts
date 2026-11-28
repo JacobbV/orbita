@@ -382,6 +382,72 @@ export async function entregarProva(id: number): Promise<void> {
   if (error) throw error
 }
 
+// ---------------------------------------------------------------------------
+// Modo Ninja: prova de treino (nada é gravado no banco)
+// ---------------------------------------------------------------------------
+
+/** A prova vista pelo ninja: como a de um aluno que ainda não começou. */
+export function provaDoPainelParaNinja(p: ProvaDoPainel): ProvaDoAluno {
+  return {
+    id: p.id,
+    titulo: p.titulo,
+    instrucoes: p.instrucoes,
+    abreEm: p.abreEm,
+    fechaEm: p.fechaEm,
+    duracaoMin: p.duracaoMin,
+    saidasParaEncerrar: p.saidasParaEncerrar,
+    questoes: p.questoes,
+    comecouEm: null,
+    terminaEm: null,
+    entregueEm: null,
+    encerradaPor: null,
+    saidas: 0,
+    nota: null,
+  }
+}
+
+/** Provas de uma turma, para a ponte do ninja. */
+export async function provasDoNinja(turmaId: number): Promise<ProvaDoAluno[]> {
+  return (await listarProvas()).filter((p) => p.oferta.turma.id === turmaId).map(provaDoPainelParaNinja)
+}
+
+/** Uma prova para o ninja treinar, ou null se não existe. */
+export async function provaDoNinja(id: number): Promise<ProvaDoAluno | null> {
+  const p = await carregarProva(id)
+  return p ? provaDoPainelParaNinja(p) : null
+}
+
+/** Questões da prova de treino, no mesmo formato que o aluno recebe. */
+export async function questoesDaProvaNinja(id: number): Promise<QuestaoDaProva[]> {
+  const { data, error } = await supabase().rpc('questoes_da_prova_ninja', { p_prova_id: id })
+  if (error) throw error
+  return (data ?? []).map((q) => ({
+    questaoId: q.questao_id,
+    titulo: q.titulo,
+    enunciado: q.enunciado,
+    linguagem: q.linguagem as Linguagem,
+    codigoInicial: q.codigo_inicial,
+    peso: Number(q.peso),
+    testes: ((q.testes as unknown as TesteDoAluno[]) ?? []).map((t) => ({ ...t, conferencia: lerModo(t.conferencia), palavras: t.palavras ?? '' })),
+    minhaResposta: null,
+  }))
+}
+
+/** Nota do treino (0 a 10), com a mesma conta do banco: média ponderada; sem resposta vale zero. */
+export function notaDoTreino(
+  questoes: Pick<QuestaoDaProva, 'questaoId' | 'peso'>[],
+  salvas: Record<number, { certos: number; total: number }>,
+): number {
+  const pesos = questoes.reduce((s, q) => s + q.peso, 0)
+  if (pesos <= 0) return 0
+  const soma = questoes.reduce((s, q) => {
+    const r = salvas[q.questaoId]
+    const nota = r && r.total > 0 && r.certos > 0 ? Math.round((100 * r.certos) / r.total) / 10 : 0
+    return s + q.peso * nota
+  }, 0)
+  return Math.round((10 * soma) / pesos) / 10
+}
+
 /** Rascunho do código da questão no próprio navegador. */
 export function lerRascunhoDaQuestao(provaId: number, questaoId: number): string | null {
   try {

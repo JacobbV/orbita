@@ -43,6 +43,13 @@
   font-weight: 500;
 }
 
+/* Cartão da patente do ninja: largura fixa ao lado do nome, como o do aluno */
+@media (min-width: 600px) {
+  .ponte-patente.ninja-patente {
+    flex: 0 0 15rem;
+  }
+}
+
 /* Faixa no topo das telas */
 .faixa-ninja {
   border-bottom: 1px solid #d23b43;

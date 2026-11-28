@@ -12,6 +12,8 @@ import { nomeTurno } from '../lib/api'
 import { mensagemDeErro } from '../lib/erros'
 import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
 import { PreviaDoProfessor } from '../lib/previa'
+import { useModoNinja } from '../ninja/ModoNinja'
+import { registrarAulaDoNinja } from '../ninja/progressoNinja'
 import { carregarMedalhas, ultimasGanhas, type MedalhaDoAluno } from '../lib/medalhas'
 import { saudacao } from '../lib/saudacao'
 import {
@@ -28,6 +30,7 @@ import {
   carregarPonte,
   NOME_NA_PONTE,
   numeroRomano,
+  primeiraAula,
   rotuloMaterial,
   type AulaDaPonte,
   type DadosDaPonte,
@@ -135,8 +138,17 @@ export function Ponte() {
 }
 
 /** Continuar aula, atividades abertas e dias seguidos de estudo. */
-function ResumoDaPonte({ disciplinas, estudo }: { disciplinas: DisciplinaDaPonte[]; estudo: EstudoRecente | null }) {
-  const continuar = aulaParaContinuar(disciplinas, estudo?.ultimaAulaId ?? null)
+export function ResumoDaPonte({
+  disciplinas,
+  estudo,
+  ninja = false,
+}: {
+  disciplinas: DisciplinaDaPonte[]
+  estudo: EstudoRecente | null
+  ninja?: boolean
+}) {
+  // No Modo Ninja nenhuma aula tem data de liberação: sem aula aberta antes, a próxima missão é a primeira.
+  const continuar = aulaParaContinuar(disciplinas, estudo?.ultimaAulaId ?? null) ?? (ninja ? primeiraAula(disciplinas) : null)
   const abertas = atividadesAbertas(disciplinas)
   const temAulaInterna = continuar?.aula.materiais.some((m) => m.url === null) ?? false
 
@@ -194,7 +206,9 @@ function ResumoDaPonte({ disciplinas, estudo }: { disciplinas: DisciplinaDaPonte
               {estudo.seguidos === 0
                 ? 'Abra uma aula hoje para começar a sua sequência.'
                 : estudo.estudouHoje
-                  ? 'Hoje já conta. A cada 5 dias seguidos rende 30 XP.'
+                  ? ninja
+                    ? 'Hoje já conta. No Modo Ninja a sequência não rende XP.'
+                    : 'Hoje já conta. A cada 5 dias seguidos rende 30 XP.'
                   : 'Abra uma aula hoje para não perder a sequência.'}
             </p>
           </div>
@@ -316,6 +330,8 @@ function ItemAula({ aula, romano }: { aula: AulaDaPonte; romano: string }) {
 
 function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; materiais: Material[]; primario?: boolean }) {
   const previa = useContext(PreviaDoProfessor)
+  const ninja = useModoNinja().ativo
+  const { perfil } = useAuth()
   if (materiais.length === 0) return <p className="ponte-sem-material">Material em breve.</p>
   return (
     <ul className="ponte-materiais" role="list">
@@ -333,6 +349,7 @@ function Materiais({ aulaId, materiais, primario = false }: { aulaId: number; ma
               className={`botao ponte-material ${primario ? 'botao-primario' : ''}`}
               onClick={() => {
                 if (!previa) registrarAberturaEmSilencio(aulaId)
+                else if (ninja && perfil) registrarAulaDoNinja(perfil.id, aulaId)
               }}
             >
               {rotuloMaterial(m)}
@@ -405,8 +422,9 @@ function CartaoPatente({ progresso }: { progresso: Progresso }) {
 }
 
 /** As últimas medalhas ganhas e o atalho para todas. Se não carregar, só o atalho. */
-function UltimasMedalhas() {
+export function UltimasMedalhas() {
   const { perfil } = useAuth()
+  const ninja = useModoNinja().ativo
   const [medalhas, setMedalhas] = useState<MedalhaDoAluno[] | null>(null)
 
   useEffect(() => {
@@ -414,14 +432,15 @@ function UltimasMedalhas() {
     let ativo = true
     carregarMedalhas(perfil.id).then(
       (m) => {
-        if (ativo) setMedalhas(m)
+        // O ninja tem todas acesas, como na página de medalhas.
+        if (ativo) setMedalhas(ninja ? m.map((x) => ({ ...x, ganhaEm: x.ganhaEm ?? 'ninja' })) : m)
       },
       () => {},
     )
     return () => {
       ativo = false
     }
-  }, [perfil])
+  }, [perfil, ninja])
 
   const ultimas = medalhas ? ultimasGanhas(medalhas) : []
   const ganhas = medalhas?.filter((m) => m.ganhaEm).length ?? 0

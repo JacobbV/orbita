@@ -11,6 +11,7 @@ import { XP_POR_DIFICULDADE } from '../lib/laboratorio'
 import { corDaUnidade } from '../lib/mapa'
 import { anunciarConquista, registrarAberturaEmSilencio, registrarAudioOuvido } from '../lib/progresso'
 import { useModoNinja } from '../ninja/ModoNinja'
+import { registrarAulaDoNinja } from '../ninja/progressoNinja'
 import './Aula.css'
 
 function irPara(id: string) {
@@ -31,7 +32,9 @@ export function Aula() {
   const ehProfessor = perfil?.papel === 'professor'
   const ehAluno = perfil?.papel === 'aluno'
   const ninja = useModoNinja().ativo
-  const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
+  const perfilId = perfil?.id
+  // No Modo Ninja o professor vê sempre como o aluno (sem o Editar e com a marca-d'água de exemplo).
+  const comoAluno = ehProfessor && (ninja || new URLSearchParams(location.search).get('comoAluno') === '1')
 
   useEffect(() => {
     let ativo = true
@@ -41,6 +44,8 @@ export function Aula() {
         setAula(a)
         // Aluno ganha XP na primeira vez que abre a aula (o banco confere tudo).
         if (ehAluno) registrarAberturaEmSilencio(a.id)
+        // O ninja guarda a aula só no navegador dele (Continuar aula e dias seguidos), sem XP.
+        else if (ninja && perfilId) registrarAulaDoNinja(perfilId, a.id)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(e instanceof AulaIndisponivel ? e.message : mensagemDeErro(e))
@@ -48,7 +53,7 @@ export function Aula() {
     return () => {
       ativo = false
     }
-  }, [aulaId, ehProfessor, ehAluno, comoAluno])
+  }, [aulaId, ehProfessor, ehAluno, comoAluno, ninja, perfilId])
 
   const marca = comoAluno
     ? 'Nome do aluno · aluno@academico.ifpb.edu.br'
@@ -168,12 +173,12 @@ export function Aula() {
         )}
       </section>
 
-      {aula.audio ? <AudioDaAula aulaId={aula.id} caminho={aula.audio} daXp={ehAluno && !comoAluno} /> : null}
+      {aula.audio ? <AudioDaAula aulaId={aula.id} caminho={aula.audio} daXp={ehAluno && !comoAluno} ninja={ninja} /> : null}
     </div>
   )
 }
 
-function AudioDaAula({ aulaId, caminho, daXp }: { aulaId: number; caminho: string; daXp: boolean }) {
+function AudioDaAula({ aulaId, caminho, daXp, ninja = false }: { aulaId: number; caminho: string; daXp: boolean; ninja?: boolean }) {
   const [endereco, setEndereco] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -199,7 +204,11 @@ function AudioDaAula({ aulaId, caminho, daXp }: { aulaId: number; caminho: strin
   return (
     <section id="aula-audio" className="cartao aula-audio" aria-labelledby="aula-audio-titulo">
       <h2 id="aula-audio-titulo">Áudio da aula</h2>
-      <p className="campo-dica">{daXp ? 'Ouça até o fim e ganhe +10 XP (uma vez por aula).' : 'Áudio da aula.'}</p>
+      <p className="campo-dica">{daXp
+          ? 'Ouça até o fim e ganhe +10 XP (uma vez por aula).'
+          : ninja
+            ? 'O aluno ganha +10 XP ao ouvir até o fim. No Modo Ninja não rende XP.'
+            : 'Áudio da aula.'}</p>
       {endereco ? (
         <audio
           className="aula-player"

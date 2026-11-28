@@ -9,6 +9,7 @@ import { registrarAberturaEmSilencio } from '../lib/progresso'
 import { carregarSlides, SlidesIndisponiveis, type SlidesDaAula } from '../lib/slides'
 import './Slides.css'
 import { useModoNinja } from '../ninja/ModoNinja'
+import { registrarAulaDoNinja } from '../ninja/progressoNinja'
 
 /**
  * Slides HTML de uma aula, dentro de uma moldura isolada: os scripts do slide
@@ -23,7 +24,10 @@ export function Slides() {
   const ehAluno = perfil?.papel === 'aluno'
   const [erro, setErro] = useState<string | null>(null)
   const ehProfessor = perfil?.papel === 'professor'
-  const comoAluno = ehProfessor && new URLSearchParams(location.search).get('comoAluno') === '1'
+  const ninja = useModoNinja().ativo
+  const perfilId = perfil?.id
+  // No Modo Ninja o professor vê sempre como o aluno (sem o Editar e com a marca-d'água de exemplo).
+  const comoAluno = ehProfessor && (ninja || new URLSearchParams(location.search).get('comoAluno') === '1')
 
   useEffect(() => {
     let ativo = true
@@ -33,6 +37,7 @@ export function Slides() {
         setSlides(s)
         // Aluno ganha XP na primeira vez que abre a aula (o banco confere tudo).
         if (ehAluno) registrarAberturaEmSilencio(s.aulaId)
+        else if (ninja && perfilId) registrarAulaDoNinja(perfilId, s.aulaId)
       })
       .catch((e: unknown) => {
         if (ativo) setErro(e instanceof SlidesIndisponiveis ? e.message : mensagemDeErro(e))
@@ -40,9 +45,8 @@ export function Slides() {
     return () => {
       ativo = false
     }
-  }, [id, ehAluno, ehProfessor, comoAluno])
+  }, [id, ehAluno, ehProfessor, comoAluno, ninja, perfilId])
 
-  const ninja = useModoNinja().ativo
   // "Ver como aluno": o professor vê a marca-d'água como o aluno veria (com um nome de exemplo).
   const marca = comoAluno
     ? 'Nome do aluno · aluno@academico.ifpb.edu.br'

@@ -20,6 +20,10 @@ describe('menu do sistema', () => {
     expect(itensDoMenu('professor', true)[0]).toEqual({ para: '/ninja', rotulo: 'Ponte' })
   })
 
+  it('no Modo Ninja o menu tem tudo do aluno, mais o Painel', () => {
+    expect(itensDoMenu('professor', true).map((i) => i.para)).toEqual(['/ninja', '/mapa', '/hangar', '/medalhas', '/professor'])
+  })
+
   it('a bolinha usa a inicial do apelido, ou do nome', () => {
     expect(inicialDoPerfil({ nome: 'ana lima', apelido: 'Cometa Veloz' })).toBe('C')
     expect(inicialDoPerfil({ nome: 'ana lima', apelido: null })).toBe('A')

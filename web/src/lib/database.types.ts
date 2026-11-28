@@ -809,6 +809,11 @@ isOneToOne: false
               "codigo_inicial": string,"enunciado": string,"linguagem": string,"minha_resposta": string,"peso": number,"questao_id": number,"respondida_em": string,"testes": Json,"titulo": string
             }[]
                            },
+"questoes_da_prova_ninja":
+{ Args: { "p_prova_id": number }; Returns: {
+              "codigo_inicial": string,"enunciado": string,"linguagem": string,"peso": number,"questao_id": number,"testes": Json,"titulo": string
+            }[]
+                           },
 "registrar_abertura_da_aula":
 { Args: { "p_aula_id": number }; Returns: Json
                            },
