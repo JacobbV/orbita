@@ -778,6 +778,18 @@ isOneToOne: false
 "remover_material_da_aula":
 { Args: { "p_aula_id": number,"p_tipo": string }; Returns: string
                            },
+"registrar_presenca_escola":
+{ Args: { "p_sala": string }; Returns: Json
+                           },
+"escolher_cadeira":
+{ Args: { "p_assento": string,"p_sala": string }; Returns: undefined
+                           },
+"soltar_cadeira":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"cadeiras_ocupadas":
+{ Args: Record<PropertyKey, never>; Returns: { "assento": string,"minha": boolean }[]
+                           },
 "registrar_audio_ouvido":
 { Args: { "p_aula_id": number }; Returns: Json
                            },

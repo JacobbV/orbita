@@ -287,3 +287,6 @@ export function avisosDoQuadro(disciplinas: DisciplinaDaPonte[], provas: ProvaDo
   daProva.sort((a, b) => a.abreEm.localeCompare(b.abreEm))
   return { provas: daProva, atividades: atividadesAbertas(disciplinas) }
 }
+
+/** Salas de estudo: sentado nelas por um tempo, o aluno ganha XP de presença. */
+export const SALAS_DE_ESTUDO: readonly string[] = ['sala-7', 'sala-8', 'lab-1', 'lab-2', 'lab-cad', 'biblioteca']
