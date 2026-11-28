@@ -13,6 +13,7 @@ import {
   acaoDaSala,
   andar as andarPasso,
   assentoPerto,
+  definirProfessorNaEscola,
   assentosDo,
   aulasLiberadas,
   avisosDoQuadro,
@@ -146,6 +147,10 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId, professor 
   const sentarAoChegar = useRef<string | null>(null)
   // Cadeiras marcadas dos laboratórios: id do assento -> é a minha?
   const cadeiras = useRef(new Map<string, boolean>())
+  useEffect(() => {
+    definirProfessorNaEscola(professor)
+    return () => definirProfessorNaEscola(false)
+  }, [professor])
   // Colegas vistos no mapa (Realtime) e os bonecos já desenhados deles.
   const colegas = useRef(new Map<string, Colega>())
   const spritesColegas = useRef(new Map<string, { chave: string; quadros: Record<string, HTMLCanvasElement> }>())
@@ -573,7 +578,7 @@ function Mapa({ escolhas, disciplinas, provas, ninja, apelido, meuId, professor 
           <button type="button" className="escola-botao" onClick={levantarOuSentar} aria-pressed={sentado}>
             {sentado ? 'Levantar' : 'Sentar'}
           </button>
-          {sentado && !ninja && sala?.tipo === 'lab' && (
+          {sentado && !ninja && !professor && sala?.tipo === 'lab' && (
             <button type="button" className="escola-botao" onClick={marcarCadeira}>
               {minhaCadeira ? 'Marcar ou soltar cadeira' : 'Marcar como minha'}
             </button>

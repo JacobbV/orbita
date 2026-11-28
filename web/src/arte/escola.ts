@@ -434,7 +434,11 @@ function moveis(pinta: Pinta, sala: Sala) {
       // mesa do professor
       pinta(px + 48, py + 6, 28, 10, COR.madeira)
       pinta(px + 48, py + 6, 28, 3, COR.madeiraClara)
-      pinta(px + 58, py + 17, 9, 5, '#3c4a6e')
+      // computador do professor em cima do birô: de frente para ele, o aluno vê só as costas do monitor
+      pinta(px + 56, py + 6, 12, 8, '#262b40')
+      pinta(px + 61, py + 10, 2, 1, '#8d93a8')
+      // cadeira do professor: atrás do birô, entre o birô e o quadro
+      pinta(px + 58, py + 1, 9, 5, '#3c4a6e')
       // carteiras
       const cols = Math.floor((pw - 8) / 34)
       for (let r = 0; r < 3; r++) for (let c = 0; c < cols; c++) {
@@ -462,11 +466,18 @@ function moveis(pinta: Pinta, sala: Sala) {
       }
       quadroNaParede(pinta, px + 30, face, 52, '#f4f6fa')
       if (pw > 160) quadroNaParede(pinta, px + pw - 90, face, 52, '#f4f6fa')
+      // birô do professor, com computador, e a cadeira atrás dele
+      pinta(px + pw - 40, py + 8, 34, 12, COR.madeira)
+      pinta(px + pw - 40, py + 8, 34, 3, COR.madeiraClara)
+      pinta(px + pw - 30, py + 3, 12, 9, '#262b40')
+      pinta(px + pw - 25, py + 7, 2, 1, '#8d93a8')
+      pinta(px + pw - 27, py + 1, 9, 4, '#3c4a6e')
       for (let r = 0; r < 3; r++) {
         const y = py + 10 + r * 28
-        pinta(px + 6, y + 6, pw - 12, 8, '#dfe3ea')
-        pinta(px + 6, y + 12, pw - 12, 2, '#aab1c0')
-        for (let k = 0; k < Math.floor((pw - 12) / 24); k++) {
+        const larg = larguraDaBancada(pw, r)
+        pinta(px + 6, y + 6, larg, 8, '#dfe3ea')
+        pinta(px + 6, y + 12, larg, 2, '#aab1c0')
+        for (let k = 0; k < Math.floor(larg / 24); k++) {
           const x = px + 12 + k * 24
           pinta(x, y, 13, 9, '#262b40')
           pinta(x + 1, y + 1, 11, 6, k % 2 ? '#3ad1e6' : '#6fe3f2')
@@ -566,8 +577,9 @@ function moveis(pinta: Pinta, sala: Sala) {
       pinta(px + 8, py + 8, Math.min(40, pw - 22), 12, COR.madeira)
       pinta(px + 8, py + 8, Math.min(40, pw - 22), 3, COR.madeiraClara)
       pinta(px + 14, py + 2, 12, 9, '#262b40')
-      pinta(px + 15, py + 3, 10, 5, '#3ad1e6')
-      pinta(px + 16, py + 22, 10, 6, '#3f5d99')
+      pinta(px + 19, py + 6, 2, 1, '#8d93a8')
+      // cadeira do professor, atrás da mesa
+      pinta(px + 8 + Math.min(40, pw - 22) - 14, py + 1, 9, 5, '#3c4a6e')
       // armário
       pinta(px + pw - 16, py + 2, 14, 24, '#7d8597')
       for (let k = 0; k < 3; k++) {
@@ -868,12 +880,19 @@ export interface Assento {
   x: number
   y: number
   direcao: DirecaoAssento
+  /** Cadeira atrás do birô: só o professor senta. */
+  professor?: boolean
 }
 
 export interface LayoutDaSala {
   /** Retângulos [x, y, largura, altura] em pixels do mapa. */
   solidos: [number, number, number, number][]
   assentos: Assento[]
+}
+
+/** Largura da bancada de cada fila do laboratório: a primeira cede lugar ao birô do professor. */
+function larguraDaBancada(pw: number, fila: number): number {
+  return pw - 12 - (fila === 0 ? 40 : 0)
 }
 
 export function layoutDaSala(sala: Sala): LayoutDaSala {
@@ -884,6 +903,8 @@ export function layoutDaSala(sala: Sala): LayoutDaSala {
   const solidos: LayoutDaSala['solidos'] = []
   const assentos: Assento[] = []
   const lugar = (x: number, y: number, direcao: DirecaoAssento) => assentos.push({ id: `${sala.id}-${assentos.length}`, x, y, direcao })
+  // A cadeira do professor vem sempre por último: os números das outras não mudam.
+  const lugarDoProfessor = (x: number, y: number) => assentos.push({ id: `${sala.id}-prof`, x, y, direcao: 'baixo', professor: true })
   switch (sala.tipo) {
     case 'sala': {
       solidos.push([px + 48, py + 6, 28, 10])
@@ -895,14 +916,18 @@ export function layoutDaSala(sala: Sala): LayoutDaSala {
         solidos.push([x, y, 18, 7])
         lugar(x + 9, y + 15, 'cima')
       }
+      lugarDoProfessor(px + 62, py + 5)
       break
     }
     case 'lab': {
       for (let r = 0; r < 3; r++) {
         const y = py + 10 + r * 28
-        solidos.push([px + 6, y, pw - 12, 14])
-        for (let k = 0; k < Math.floor((pw - 12) / 24); k++) lugar(px + 12 + k * 24 + 6, y + 22, 'cima')
+        const larg = larguraDaBancada(pw, r)
+        solidos.push([px + 6, y, larg, 14])
+        for (let k = 0; k < Math.floor(larg / 24); k++) lugar(px + 12 + k * 24 + 6, y + 22, 'cima')
       }
+      solidos.push([px + pw - 40, py + 8, 34, 12])
+      lugarDoProfessor(px + pw - 23, py + 5)
       break
     }
     case 'cad': {
@@ -939,6 +964,7 @@ export function layoutDaSala(sala: Sala): LayoutDaSala {
       lugar(px + pw - 28, py + ph - 10, 'baixo')
       lugar(px + pw - 16, py + ph - 10, 'baixo')
       lugar(px + 10, py + 62, 'direita')
+      lugarDoProfessor(px + 8 + Math.min(40, pw - 22) - 10, py + 5)
       break
     }
     case 'copa': {
