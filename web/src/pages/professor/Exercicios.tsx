@@ -20,6 +20,8 @@ import {
   carregarAulaComExercicios,
   conferirEntrega,
   decidirReconferencia,
+  refazerConferencia,
+  resumirParaRefazer,
   entregasParaReconferir,
   EXPLICACAO_DO_TIPO,
   MAX_TESTES,
@@ -65,6 +67,7 @@ export function Exercicios() {
   const [editando, setEditando] = useState<number | 'novo' | null>(null)
   const [removendo, setRemovendo] = useState<number | null>(null)
   const [reconferindo, setReconferindo] = useState<number | null>(null)
+  const [refazendo, setRefazendo] = useState<number | null>(null)
   const [aviso, setAviso] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const [ocupado, setOcupado] = useState(false)
 
@@ -204,7 +207,7 @@ export function Exercicios() {
                   <button
                     type="button"
                     className="botao botao-primario"
-                    disabled={editando !== null || ocupado || reconferindo !== null}
+                    disabled={editando !== null || ocupado || reconferindo !== null || refazendo !== null}
                     aria-label={`Reconferir as entregas de ${e.titulo}`}
                     onClick={() => {
                       setAviso(null)
@@ -212,6 +215,20 @@ export function Exercicios() {
                     }}
                   >
                     Reconferir ({e.aConfirmar})
+                  </button>
+                )}
+                {e.entregas > 0 && (
+                  <button
+                    type="button"
+                    className="botao"
+                    disabled={editando !== null || ocupado || reconferindo !== null || refazendo !== null}
+                    aria-label={`Refazer as notas de ${e.titulo} pela regra de hoje`}
+                    onClick={() => {
+                      setAviso(null)
+                      setRefazendo(e.id)
+                    }}
+                  >
+                    Refazer notas
                   </button>
                 )}
                 <button
@@ -244,6 +261,15 @@ export function Exercicios() {
                     await recarregar().catch(() => {})
                   }}
                   aoFechar={() => setReconferindo(null)}
+                />
+              )}
+              {refazendo === e.id && (
+                <RefazerNotas
+                  exercicio={e}
+                  aoTerminar={async () => {
+                    await recarregar().catch(() => {})
+                  }}
+                  aoFechar={() => setRefazendo(null)}
                 />
               )}
               {removendo === e.id && (
@@ -719,6 +745,99 @@ function Reconferencia({
           ))}
         </ul>
       )}
+      {estado === 'pronto' && (
+        <button type="button" className="botao" onClick={aoFechar}>
+          Fechar
+        </button>
+      )}
+    </div>
+  )
+}
+
+type LinhaDoRefazer = { entrega: EntregaParaReconferir; certos: number; secretosOk: boolean; xp: number; mudou: boolean }
+
+/**
+ * Roda de novo, no navegador do professor, todos os testes no código de TODAS as
+ * entregas do exercício, com a regra de conferência de hoje. Quem tinha perdido
+ * nota ou XP por causa da regra antiga (ou de uma edição do exercício) recupera.
+ * Nunca rebaixa ninguém.
+ */
+function RefazerNotas({
+  exercicio,
+  aoTerminar,
+  aoFechar,
+}: {
+  exercicio: ExercicioDoPainel
+  aoTerminar: () => Promise<void>
+  aoFechar: () => void
+}) {
+  const [estado, setEstado] = useState<'carregando' | 'rodando' | 'pronto'>('carregando')
+  const [linhas, setLinhas] = useState<LinhaDoRefazer[]>([])
+  const [total, setTotal] = useState(0)
+  const [erro, setErro] = useState<string | null>(null)
+  const iniciou = useRef(false)
+
+  useEffect(() => {
+    if (iniciou.current) return
+    iniciou.current = true
+    const py = criarExecutor(exercicio.linguagem)
+    ;(async () => {
+      try {
+        const entregas = await entregasParaReconferir(exercicio.id, 'todas')
+        setTotal(entregas.length)
+        await py.carregar()
+        setEstado('rodando')
+        for (const entrega of entregas) {
+          const resultados: { tipo: TipoDeTeste; certo: boolean }[] = []
+          for (const t of exercicio.testes) {
+            const r = await py.rodar(entrega.codigo, t.entrada, false)
+            const certo = !r.erro && !r.tempoEsgotado && saidasConferem(r.saida, t.saidaEsperada, t.entrada, regraDe(exercicio))
+            resultados.push({ tipo: t.tipo, certo })
+          }
+          const { certos, secretosOk } = resumirParaRefazer(resultados)
+          const r = await refazerConferencia(entrega.id, certos, secretosOk)
+          setLinhas((l) => [...l, { entrega, certos, secretosOk, xp: r.xp, mudou: r.mudou }])
+        }
+        setEstado('pronto')
+        await aoTerminar()
+      } catch (e) {
+        setErro(e instanceof Error && e.message.startsWith('Não foi possível carregar') ? e.message : mensagemDeErro(e))
+        setEstado('pronto')
+      }
+    })()
+    return () => py.encerrar()
+    // Roda uma vez por abertura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const melhoraram = linhas.filter((l) => l.mudou)
+  const comXp = linhas.filter((l) => l.xp > 0)
+  return (
+    <div className="exercicios-reconferencia" role="region" aria-label={`Refazer notas de ${exercicio.titulo}`}>
+      <p className="exercicios-reconferencia-titulo">
+        {estado === 'carregando' && `Preparando o ${LINGUAGENS[exercicio.linguagem].nome}…`}
+        {estado === 'rodando' && `Refazendo… ${linhas.length} de ${total}`}
+        {estado === 'pronto' &&
+          !erro &&
+          `Pronto: ${melhoraram.length} ${melhoraram.length === 1 ? 'entrega melhorou' : 'entregas melhoraram'}, ${comXp.length} ${comXp.length === 1 ? 'aluno recebeu' : 'alunos receberam'} XP.`}
+      </p>
+      <p className="campo-dica">
+        Todos os testes rodam de novo aqui, inclusive os secretos, com a conferência de hoje. A nota só sobe e quem acerta
+        tudo recebe o XP que faltava. Ninguém perde nada.
+      </p>
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
+      {melhoraram.length > 0 && (
+        <ul className="exercicios-reconferencia-lista" role="list">
+          {melhoraram.map((l) => (
+            <li key={l.entrega.id} className="exercicios-confere">
+              <span aria-hidden="true">✓</span> <strong>{l.entrega.aluno}</strong> (entrega {l.entrega.tentativa}):{' '}
+              {l.certos} de {exercicio.testes.filter((t) => t.tipo !== 'secreto').length} testes certos
+              {l.xp > 0 ? `, recebeu ${l.xp} XP` : ''}.
+            </li>
+          ))}
+        </ul>
+      )}
+      {estado === 'pronto' && !erro && melhoraram.length === 0 && <p className="campo-dica">Nada precisou mudar.</p>}
       {estado === 'pronto' && (
         <button type="button" className="botao" onClick={aoFechar}>
           Fechar

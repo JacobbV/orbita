@@ -174,13 +174,16 @@ export interface EntregaParaReconferir {
   testesTotal: number
 }
 
-export async function entregasParaReconferir(exercicioId: number): Promise<EntregaParaReconferir[]> {
-  const { data, error } = await supabase()
+export async function entregasParaReconferir(
+  exercicioId: number,
+  quais: 'a_confirmar' | 'todas' = 'a_confirmar',
+): Promise<EntregaParaReconferir[]> {
+  let consulta = supabase()
     .from('entregas')
     .select('id, tentativa, codigo, testes_certos, testes_total, aluno:perfis!inner(nome)')
     .eq('exercicio_id', exercicioId)
-    .eq('situacao', 'a_confirmar')
-    .order('criado_em')
+  if (quais === 'a_confirmar') consulta = consulta.eq('situacao', 'a_confirmar')
+  const { data, error } = await consulta.order('criado_em')
   if (error) throw error
   return data.map((e) => ({
     id: e.id,
@@ -195,6 +198,32 @@ export async function entregasParaReconferir(exercicioId: number): Promise<Entre
 export async function conferirEntrega(id: number, confere: boolean): Promise<void> {
   const { error } = await supabase().rpc('conferir_entrega', { p_entrega_id: id, p_confere: confere })
   if (error) throw error
+}
+
+export interface ResultadoDoRefazer {
+  mudou: boolean
+  xp: number
+  nota: number | null
+}
+
+/** Manda o resultado medido agora (regra atual) e o banco só melhora a entrega, nunca piora. */
+export async function refazerConferencia(id: number, testesCertos: number, secretosOk: boolean): Promise<ResultadoDoRefazer> {
+  const { data, error } = await supabase().rpc('refazer_conferencia', {
+    p_entrega_id: id,
+    p_testes_certos: testesCertos,
+    p_secretos_ok: secretosOk,
+  })
+  if (error) throw error
+  const r = data as { mudou?: boolean; xp?: number; nota?: number | null }
+  return { mudou: r.mudou === true, xp: r.xp ?? 0, nota: r.nota ?? null }
+}
+
+/** Resume os testes rodados: quantos visíveis/ocultos certos e se todos os secretos passaram. */
+export function resumirParaRefazer(resultados: { tipo: TipoDeTeste; certo: boolean }[]): { certos: number; secretosOk: boolean } {
+  return {
+    certos: resultados.filter((r) => r.tipo !== 'secreto' && r.certo).length,
+    secretosOk: resultados.filter((r) => r.tipo === 'secreto').every((r) => r.certo),
+  }
 }
 
 /**
